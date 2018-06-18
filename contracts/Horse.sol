@@ -35,7 +35,8 @@ contract Horse is CToken {
             bytes32("Some rank"),
             bytes32("Some pedigree"),
             bytes32("Some parents"),
-            bytes32("Some grandparents"),
+            bytes32("Some grandparents")
+            bytes32("Some great grandparents,
             bytes32("some phenotypes"),
             bytes32("Some genotypes"),
             bytes32("None")
