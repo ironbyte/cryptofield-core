@@ -16,7 +16,6 @@ class App extends Component {
 
     this.myHorses = this.myHorses.bind(this);
     this.buy = this.buy.bind(this);
-    this.getData = this.getData.bind(this);
   }
 
   componentWillMount() {
@@ -56,6 +55,7 @@ class App extends Component {
 
   buy() {
     let amount = this.web3.toWei(1, "finney");
+    let bio = "Some biography"
     let byteParams = [
       "Sundance Dancer",
       "Brown",
@@ -68,8 +68,7 @@ class App extends Component {
       "Some pedigree",
       "Some parents",
       "Some grandparents",
-      "some phenotypes",
-      "Some genotypes",
+      "some greatgrandparents",
       "None"
     ];
 
@@ -79,10 +78,8 @@ class App extends Component {
 
     console.log(byteParams);
 
-    let bio = "Some biography"
-
     this.web3.eth.getAccounts((err, accounts) => {
-      this.state.instance.buyStallion(accounts[0], bio, byteParams, {from: accounts[0], value: amount, gas: 1000000})
+      this.state.instance.buyStallion(accounts[0], bio, "12 ft", byteParams, {from: accounts[0], value: amount, gas: 1000000})
       .then(res => { console.log(res) })
       .catch(err => { console.log(err) })
     })
@@ -102,19 +99,16 @@ class App extends Component {
     })
   }
 
-  getData() {
-    //console.log(this.web3.toAscii("0x536f6d652072756e6e696e67207374796c65").replace(/\u0000g/, ""))
-    this.state.CToken._getHorse.call(0)
-    .then(res => {
-      console.log(res);
-    })
-    .catch(err => { console.log(err) })
-  }
-
   showHorseInfo(horseId) {
-    this.state.CToken._getHorse.call(horseId.toString())
+    let response = [];
+
+    this.state.instance.getHorse.call(horseId)
     .then(res => {
-      console.log(res);
+      res.forEach((ele, index) => {
+        response[index] = this.web3.toAscii(ele).replace(/\0/g, "")
+      })
+
+      console.log(response)
     })
     .catch(err => { console.log(err) })
   }
@@ -136,7 +130,6 @@ class App extends Component {
           </button>
 
           <button onClick={this.myHorses} className="button expanded success"> Your horses </button>
-          <button onClick={this.getData} className="button expanded success"> Data </button>
         </div>
 
         {
