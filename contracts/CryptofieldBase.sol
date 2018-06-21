@@ -32,9 +32,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         string previousOwner;
         string horseType;
 
-        string[] phenotypes;
-        string[] genotypes;
-
         bytes32 name;
         bytes32 color;
         bytes32 breed;
@@ -86,9 +83,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
             bio: _bio,
             previousOwner: "", // G1P have no previous owner unless its bought from another user
             horseType: "G1P",
-
-            phenotypes: [], // TODO: Discuss Phenotypes
-            genotypes: [], // TODO: Discuss Genotypes
 
             name: _byteParams[0],
             color: _byteParams[1],
