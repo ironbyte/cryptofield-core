@@ -17,9 +17,9 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         uint256 saleId;
         uint256 timestamp;
         uint256 height; // Hands
-        uint256 individualValue;
-        uint256 totalValue;
-        uint256 coverServiceFee;
+        uint256 reserveValue;
+        uint256 saleValue;
+        uint256 feeValue;
         uint256 dateSold;
         uint256 amountOfTimesSold;
 
