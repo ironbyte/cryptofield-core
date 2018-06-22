@@ -1,6 +1,6 @@
 pragma solidity ^0.4.2;
 
-import 'zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
+import './ERC721Token.sol';
 import 'zeppelin-solidity/contracts/token/ERC721/ERC721BasicToken.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
@@ -16,21 +16,22 @@ contract CToken is ERC721BasicToken, ERC721Token, Ownable {
     mapping(uint256 => uint256) ownedHorsesIndex;
 
     /* @dev Returns an array of ids of horses owned by '_from' */
-    function _getHorsesOwned(address _from) public returns(uint256[]) {
-        return ownedHorses[_from];
+    function _getHorsesOwned(address _from) public view returns(uint256[]) {
+        return getOwnedTokens(_from);
     }
 
-    /*
-    @param _byteParams is just a list with the elements from the struct so we don't run into compile errors.
-    for having a stack too deep.
-    Check if the size of the array is always 14 by comparing to struct elements. */
     function mint(address _sender, uint256 _horseId) public {
         _mint(_sender, _horseId);
     }
 
+    function _transferTo(address _from, address _to, uint256 _horseId) public {
+        approve(_to, _horseId);
+        safeTransferFrom(_from, _to, _horseId);
+    }
+
     /* @dev adds horse to list of owned horses by an address
     Throws if the horse already exists on the user list. */
-    function _addHorse(address _to, uint256 _horseId) public onlyOwnerOf(_horseId) {
+    function addHorse(address _to, uint256 _horseId) public {
         uint256 length = ownedHorses[_to].length;
         ownedHorses[_to].push(_horseId);
         ownedHorsesIndex[_horseId] = length;
@@ -39,7 +40,7 @@ contract CToken is ERC721BasicToken, ERC721Token, Ownable {
     /* @dev We're implementing this functionality even though open-zepellin implements it
     because we don't have the option to retrieve all the tokens owned by an address from their framework.
     Throws if _from isn't the owner of _horseId */
-    function _removeHorse(address _from, uint256 _horseId) public onlyOwnerOf(_horseId) {
+    function removeHorse(address _from, uint256 _horseId) public {
         // We're just copying zepellin's implementation.
         uint256 tokenIndex = ownedHorsesIndex[_horseId];
         uint256 lastTokenIndex = ownedHorses[_from].length.sub(1);
