@@ -1,30 +1,12 @@
-const Horse = artifacts.require("./Horse");
+const CryptofieldBase = artifacts.require("./CryptofieldBase");
+
+// TODO: Fix tests
 
 contract("HorseContract", accounts => {
   let instance;
-  let byteParams = [
-    "Sundance Dancer",
-    "Brown",
-    "Stallion",
-    "Some breed",
-    "Some running style",
-    "Some origin",
-    "Sire",
-    "Some rank",
-    "Some pedigree",
-    "Some parents",
-    "Some grandparents",
-    "some phenotypes",
-    "Some genotypes",
-    "None"
-  ];
 
   beforeEach("setup contract instance", async () => {
     instance = await Horse.deployed();
-
-    /*byteParams.map((element, index) => {
-      byteParams[index] = web3.fromAscii(element);
-    })*/
   })
 
   it("should be able to buy a stallion", async () => {
