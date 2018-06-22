@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
-import Horse from "./../build/contracts/Horse.json";
+import CryptofieldBase from "./../build/contracts/CryptofieldBase.json";
 import CToken from "./../build/contracts/CToken.json";
 
 class App extends Component {
@@ -16,6 +16,7 @@ class App extends Component {
 
     this.myHorses = this.myHorses.bind(this);
     this.buy = this.buy.bind(this);
+    this.transfer = this.transfer.bind(this);
   }
 
   componentWillMount() {
@@ -38,13 +39,13 @@ class App extends Component {
 
   instantiateContract() {
     let contract = require('truffle-contract')
-    let HorseContract = contract(Horse);
+    let CryptofieldBaseContract = contract(CryptofieldBase);
     let CTokenContract = contract(CToken);
 
-    HorseContract.setProvider(this.web3.currentProvider);
+    CryptofieldBaseContract.setProvider(this.web3.currentProvider);
     CTokenContract.setProvider(this.web3.currentProvider);
 
-    HorseContract.deployed().then(instance => {
+    CryptofieldBaseContract.deployed().then(instance => {
       this.setState({ instance: instance });
     })
 
@@ -58,18 +59,13 @@ class App extends Component {
     let bio = "Some biography"
     let byteParams = [
       "Sundance Dancer",
-      "Brown",
+      "Red",
       "Stallion",
-      "Some breed",
-      "Some running style",
-      "Some origin",
-      "Sire",
-      "Some rank",
-      "Some pedigree",
-      "Some parents",
-      "Some grandparents",
-      "some greatgrandparents",
-      "None"
+      "Fast",
+      "Canada",
+      "Male",
+      "2",
+      "pedigree"
     ];
 
     for(let i = 0; i < byteParams.length; i++) {
@@ -79,7 +75,7 @@ class App extends Component {
     console.log(byteParams);
 
     this.web3.eth.getAccounts((err, accounts) => {
-      this.state.instance.buyStallion(accounts[0], bio, "12 ft", byteParams, {from: accounts[0], value: amount, gas: 1000000})
+      this.state.instance.buyStallion(accounts[0], bio, 12, byteParams, {from: accounts[0], value: amount, gas: 1000000})
       .then(res => { console.log(res) })
       .catch(err => { console.log(err) })
     })
@@ -89,8 +85,9 @@ class App extends Component {
     let horsesArr = [];
 
     this.web3.eth.getAccounts((err, accounts) => {
-      this.state.instance.getStallions.call(accounts[0], {from: accounts[0]})
+      this.state.instance.getHorsesOwned.call(accounts[0], {from: accounts[0]})
       .then(res => {
+        console.log(accounts)
         res.forEach(horseId => { horsesArr.push(horseId) })
 
         this.setState({ horsesOwned: horsesArr })
@@ -113,6 +110,19 @@ class App extends Component {
     .catch(err => { console.log(err) })
   }
 
+  transfer() {
+    this.web3.eth.getAccounts((err, accounts) => {
+      console.log(accounts)
+      this.state.instance.sendHorse(
+                                      accounts[0],
+                                      "0x150bca44f718e4e6df12e28b9ef029dbf4d7ddbf",
+                                      2, {from: accounts[0], gas: 1000000}
+                                    )
+      .then(res => { console.log(res) })
+      .catch(err => { console.log(err) })
+    })
+  }
+
   render() {
     return (
       <div className="grid-x grid-margin-x">
@@ -130,6 +140,7 @@ class App extends Component {
           </button>
 
           <button onClick={this.myHorses} className="button expanded success"> Your horses </button>
+          <button onClick={this.transfer} className="button expanded success"> Transfer </button>
         </div>
 
         {
