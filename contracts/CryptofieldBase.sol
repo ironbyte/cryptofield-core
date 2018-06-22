@@ -23,10 +23,10 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         uint256 dateSold;
         uint256 amountOfTimesSold;
 
-        uint256[] parents;
-        uint256[] grandparents;
-        uint256[] greatgrandparents;
-
+        uint8[] foalNames;
+        uint8[] parents;
+        uint8[] grandparents;
+        uint8[] greatgrandparents;
 
         string bio;
         string previousOwner;
@@ -62,47 +62,37 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
         /* @dev Just a counter to have an upgoing value of ids starting from 1 up to 1111
         until the 'require' above is not longer met. */
-        uint256 newHorseId = counter.add(1);
+        uint256 newHorseId = counter += 1;
 
-        Horse memory horse = Horse({
-            buyer: _buyerAddress,
-
-            saleId: newHorseId,
-            timestamp: now,
-            height: _height,
-            individualValue: 0.0, // Placeholder
-            totalValue: 0.0, // Placeholder
-            coverServiceFee: 0.0, // Placeholder
-            dateSold: 0, // Should be changed to 'timestamp' the day its sold
-            amountOfTimesSold: 0,
-
-            parents: [], // If its a G1P then the horse has no fathers, sad.
-            grandparents: [], // Same as above
-            greatgrandparents: [], // Same as above
-
-            bio: _bio,
-            previousOwner: "", // G1P have no previous owner unless its bought from another user
-            horseType: "G1P",
-
-            name: _byteParams[0],
-            color: _byteParams[1],
-            breed: _byteParams[2],
-            runningStyle: _byteParams[3],
-            origin: _byteParams[4],
-            gender: _byteParams[5],
-            rank: _byteParams[6],
-            pedigree: _byteParams[7]
-        });
+        Horse memory horse;
+        horse.buyer = _buyerAddress;
+        horse.saleId = newHorseId;
+        horse.timestamp = now;
+        horse.height = _height;
+        horse.bio = _bio;
+        horse.horseType = "G1P"; // G1P lack some of the initial values
+        horse.name = _byteParams[0];
+        horse.color = _byteParams[1];
+        horse.breed = _byteParams[2];
+        horse.runningStyle = _byteParams[3];
+        horse.origin = _byteParams[4];
+        horse.gender = _byteParams[5];
+        horse.rank = _byteParams[6];
+        horse.pedigree = _byteParams[7];
 
         horses.push(horse);
 
-        stallionsAvailable.sub(1);
+        stallionsAvailable -= 1;
 
         // Maps the horse ID to an address.
-        _addHorse(_buyerAddress, newHorseId);
+        // _addHorse(_buyerAddress, newHorseId);
 
         // "mint" sends a Transfer event
         mint(msg.sender, newHorseId);
+    }
+
+    function sendHorse(address _from, address _to, uint256 _horseId) public {
+        _transferTo(_from, _to, _horseId);
     }
 
     /* @param _from user from where we're retrieving the list of horses owned
