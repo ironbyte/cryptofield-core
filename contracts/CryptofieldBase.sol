@@ -84,9 +84,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
         stallionsAvailable -= 1;
 
-        // Maps the horse ID to an address.
-        // _addHorse(_buyerAddress, newHorseId);
-
         // "mint" sends a Transfer event
         mint(msg.sender, newHorseId);
     }
