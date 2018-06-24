@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
 import CryptofieldBase from "./../build/contracts/CryptofieldBase.json";
 import CToken from "./../build/contracts/CToken.json";
+import Transfer from "./components/Transfer";
 
 class App extends Component {
   constructor(props) {
@@ -11,7 +12,8 @@ class App extends Component {
       instance: null,
       stallionsAvailable: null,
       horsesOwned: [],
-      CToken: null
+      CToken: null,
+      isTransferring: false
     }
 
     this.myHorses = this.myHorses.bind(this);
@@ -99,7 +101,7 @@ class App extends Component {
   showHorseInfo(horseId) {
     let response = [];
 
-    this.state.instance.getHorse.call(horseId)
+    this.state.instance.getHorse.call(horseId - 1)
     .then(res => {
       res.forEach((ele, index) => {
         response[index] = this.web3.toAscii(ele).replace(/\0/g, "")
@@ -111,16 +113,7 @@ class App extends Component {
   }
 
   transfer() {
-    this.web3.eth.getAccounts((err, accounts) => {
-      console.log(accounts)
-      this.state.instance.sendHorse(
-                                      accounts[0],
-                                      "0x150bca44f718e4e6df12e28b9ef029dbf4d7ddbf",
-                                      2, {from: accounts[0], gas: 1000000}
-                                    )
-      .then(res => { console.log(res) })
-      .catch(err => { console.log(err) })
-    })
+    this.setState(prevState => ({ isTransferring: !prevState.isTransferring }))
   }
 
   render() {
@@ -157,6 +150,14 @@ class App extends Component {
               </div>
             )
           })
+        }
+
+        {
+          this.state.isTransferring &&
+          <Transfer
+            instance={this.state.instance}
+            web3={this.web3}
+          />
         }
       </div>
     );
