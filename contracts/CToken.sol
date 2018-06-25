@@ -20,12 +20,16 @@ contract CToken is ERC721BasicToken, ERC721Token, Ownable {
         return getOwnedTokens(_from);
     }
 
-    function mint(address _sender, uint256 _horseId) public {
-        _mint(_sender, _horseId);
+    function mint(address _sender, uint256 _tokenId) public {
+        _mint(_sender, _tokenId);
     }
 
-    function _transferTo(address _from, address _to, uint256 _horseId) public {
-        approve(_to, _horseId);
-        safeTransferFrom(_from, _to, _horseId);
+    function _transferTo(address _from, address _to, uint256 _tokenId) public {
+        approve(_to, _tokenId);
+        safeTransferFrom(_from, _to, _tokenId);
+    }
+
+    function _ownerOf(uint256 _tokenId) public view returns(address) {
+        return ownerOf(_tokenId);
     }
 }
