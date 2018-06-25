@@ -31,8 +31,6 @@ contract("CryptofieldBaseContract", accounts => {
   })
 
   it("should be able to buy a stallion", async () => {
-
-    // We're not specifying 'value' nor 'gas' here.
     instance.buyStallion(buyer, bio, 15, byteParams, {from: buyer, value: value});
 
     let stallionsAvailable = await instance.getStallionsAvailable();
@@ -53,7 +51,6 @@ contract("CryptofieldBaseContract", accounts => {
 
     horsesOwned.map((id, index) => { horsesOwnedIds[index] = id.toString() })
 
-    // User bought a horse in the previous test, the state remains between tests.
     assert.deepEqual(horsesOwnedIds, ["1"]);
   })
 
