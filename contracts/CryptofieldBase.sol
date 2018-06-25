@@ -80,15 +80,15 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         horse.rank = _byteParams[6];
         horse.pedigree = _byteParams[7];
 
-        horses.push(horse);
-
-        stallionsAvailable -= 1;
-
         // "mint" sends a Transfer event
         mint(msg.sender, newHorseId);
+
+        // If all operations were succesfull.
+        horses.push(horse);
+        stallionsAvailable -= 1;
     }
 
-    function sendHorse(address _from, address _to, uint256 _horseId) public {
+    function sendHorse(address _from, address _to, uint256 _horseId) public payable {
         _transferTo(_from, _to, _horseId);
     }
 
@@ -108,5 +108,9 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         Horse memory horse = horses[_horseId];
 
         return (horse.name, horse.runningStyle);
+    }
+
+    function ownerOfHorse(uint256 _horseId) public view returns(address) {
+        return _ownerOf(_horseId);
     }
 }
