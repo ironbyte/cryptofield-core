@@ -74,8 +74,6 @@ class App extends Component {
       byteParams[i] = this.web3.fromAscii(byteParams[i], 32)
     }
 
-    console.log(byteParams);
-
     this.web3.eth.getAccounts((err, accounts) => {
       this.state.instance.buyStallion(accounts[0], bio, 12, byteParams, {from: accounts[0], value: amount, gas: 1000000})
       .then(res => { console.log(res) })
@@ -89,7 +87,6 @@ class App extends Component {
     this.web3.eth.getAccounts((err, accounts) => {
       this.state.instance.getHorsesOwned.call(accounts[0], {from: accounts[0]})
       .then(res => {
-        console.log(accounts)
         res.forEach(horseId => { horsesArr.push(horseId) })
 
         this.setState({ horsesOwned: horsesArr })
