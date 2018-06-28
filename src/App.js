@@ -58,7 +58,6 @@ class App extends Component {
 
   buy() {
     let amount = this.web3.toWei(1, "finney");
-    let bio = "Some biography"
     let byteParams = [
       "Sundance Dancer",
       "Red",
@@ -75,7 +74,7 @@ class App extends Component {
     }
 
     this.web3.eth.getAccounts((err, accounts) => {
-      this.state.instance.buyStallion(accounts[0], bio, 12, byteParams, {from: accounts[0], value: amount, gas: 1000000})
+      this.state.instance.buyStallion(accounts[0], 12, byteParams, {from: accounts[0], value: amount, gas: 1000000})
       .then(res => { console.log(res) })
       .catch(err => { console.log(err) })
     })

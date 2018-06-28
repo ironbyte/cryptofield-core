@@ -28,7 +28,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         uint8[] grandparents;
         uint8[] greatgrandparents;
 
-        string bio;
         string previousOwner;
         string horseType;
 
@@ -57,7 +56,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     // Mapping horse Ids to addresses.
     mapping(uint256 => address) horseOwner;
 
-    function buyStallion(address _buyerAddress, string _bio, uint256 _height, bytes32[8] _byteParams) public payable {
+    function buyStallion(address _buyerAddress, uint256 _height, bytes32[8] _byteParams) public payable {
         require(stallionsAvailable > 0);
 
         /* @dev Just a counter to have an upgoing value of ids starting from 1 up to 1111
@@ -69,7 +68,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         horse.saleId = newHorseId;
         horse.timestamp = now;
         horse.height = _height;
-        horse.bio = _bio;
         horse.horseType = "G1P"; // G1P lack some of the initial values
         horse.name = _byteParams[0];
         horse.color = _byteParams[1];
