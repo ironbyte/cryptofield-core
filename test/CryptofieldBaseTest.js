@@ -8,22 +8,22 @@ contract("CryptofieldBaseContract", accounts => {
   let buyer = accounts[1];
   let value = web3.toWei(1, "finney");
 
-    // This array should be returned by the API server,
-    // we're not using it in tests.
-    let byteParams = [
-      "Sundance Dancer",
-      "Red",
-      "Stallion",
-      "Fast",
-      "Canada",
-      "Male",
-      "2",
-      "pedigree"
-    ];
+  // This array should be returned by the API server,
+  // we're not using it in tests.
+  let byteParams = [
+    "Sundance Dancer",
+    "Red",
+    "Stallion",
+    "Fast",
+    "Canada",
+    "Male",
+    "2",
+    "pedigree"
+  ];
 
-    for(let i = 0; i < byteParams.length; i++) {
-      byteParams[i] = web3.fromAscii(byteParams[i], 32)
-    }
+  for(let i = 0; i < byteParams.length; i++) {
+    byteParams[i] = web3.fromAscii(byteParams[i], 32)
+  }
 
   beforeEach("setup contract instance", async () => {
     instance = await CryptofieldBase.deployed();
