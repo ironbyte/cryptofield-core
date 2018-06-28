@@ -4,6 +4,9 @@ import CryptofieldBase from "./../build/contracts/CryptofieldBase.json";
 import CToken from "./../build/contracts/CToken.json";
 import Transfer from "./components/Transfer";
 
+const IPFS = require("ipfs-api");
+const ipfs;
+
 class App extends Component {
   constructor(props) {
     super(props)
@@ -13,7 +16,7 @@ class App extends Component {
       stallionsAvailable: null,
       horsesOwned: [],
       CToken: null,
-      isTransferring: false
+      isTransferring: false,
     }
 
     this.myHorses = this.myHorses.bind(this);
@@ -28,6 +31,9 @@ class App extends Component {
 
       // Instantiate contract once web3 provided.
       this.instantiateContract()
+
+      // Creates a new instance of IPFS.
+      ipfs = new IPFS({ host: "ipfs.infura.io", port: 5001, protocol: "https" })
     })
     .catch(() => {
       console.log('Error finding web3.')
