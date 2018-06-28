@@ -6,7 +6,6 @@ contract("CryptofieldBaseContract", accounts => {
   let instance;
   let owner = accounts[0];
   let buyer = accounts[1];
-  let bio = "Some short biography";
   let value = web3.toWei(1, "finney");
 
     // This array should be returned by the API server,
@@ -31,7 +30,7 @@ contract("CryptofieldBaseContract", accounts => {
   })
 
   it("should be able to buy a stallion", async () => {
-    instance.buyStallion(buyer, bio, 15, byteParams, {from: buyer, value: value});
+    instance.buyStallion(buyer, 15, byteParams, {from: buyer, value: value});
 
     let stallionsAvailable = await instance.getStallionsAvailable();
     let ownerOf = await instance.ownerOfHorse(1);
@@ -44,8 +43,8 @@ contract("CryptofieldBaseContract", accounts => {
     let horsesOwnedIds = [];
 
     // Just buy two horses
-    instance.buyStallion(buyer, bio, 16, byteParams);
-    instance.buyStallion(buyer, bio, 17, byteParams);
+    instance.buyStallion(buyer, 16, byteParams);
+    instance.buyStallion(buyer, 17, byteParams);
 
     let horsesOwned = await instance.getHorsesOwned(buyer);
 
@@ -58,7 +57,7 @@ contract("CryptofieldBaseContract", accounts => {
     let secondBuyer = accounts[2];
 
     // Buy a horse with the main buyer account
-    instance.buyStallion(buyer, bio, 15, byteParams);
+    instance.buyStallion(buyer, 15, byteParams);
 
     let ownerOf = await instance.ownerOfHorse(1);
 
