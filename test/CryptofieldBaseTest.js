@@ -4,33 +4,18 @@ const CryptofieldBase = artifacts.require("./CryptofieldBase");
 
 contract("CryptofieldBaseContract", accounts => {
   let instance;
+  let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let owner = accounts[0];
   let buyer = accounts[1];
   let value = web3.toWei(1, "finney");
 
-  // This array should be returned by the API server,
-  // we're not using it in tests.
-  let byteParams = [
-    "Sundance Dancer",
-    "Red",
-    "Stallion",
-    "Fast",
-    "Canada",
-    "Male",
-    "2",
-    "pedigree"
-  ];
-
-  for(let i = 0; i < byteParams.length; i++) {
-    byteParams[i] = web3.fromAscii(byteParams[i], 32)
-  }
 
   beforeEach("setup contract instance", async () => {
     instance = await CryptofieldBase.deployed();
   })
 
   it("should be able to buy a stallion", async () => {
-    instance.buyStallion(buyer, 15, byteParams, {from: buyer, value: value});
+    instance.buyG1P(buyer, hash, {from: buyer, value: value});
 
     let stallionsAvailable = await instance.getStallionsAvailable();
     let ownerOf = await instance.ownerOfHorse(1);
@@ -43,21 +28,21 @@ contract("CryptofieldBaseContract", accounts => {
     let horsesOwnedIds = [];
 
     // Just buy two horses
-    instance.buyStallion(buyer, 16, byteParams);
-    instance.buyStallion(buyer, 17, byteParams);
+    instance.buyG1P(buyer, hash, {from: buyer, value: value});
+    instance.buyG1P(buyer, hash, {from: buyer, value: value});
 
     let horsesOwned = await instance.getHorsesOwned(buyer);
 
     horsesOwned.map((id, index) => { horsesOwnedIds[index] = id.toString() })
 
-    assert.deepEqual(horsesOwnedIds, ["1"]);
+    assert.deepEqual(horsesOwnedIds, ["1", "2", "3"]);
   })
 
   it("should be able to transfer a horse", async () => {
     let secondBuyer = accounts[2];
 
     // Buy a horse with the main buyer account
-    instance.buyStallion(buyer, 15, byteParams);
+    instance.buyG1P(buyer, hash);
 
     let ownerOf = await instance.ownerOfHorse(1);
 
