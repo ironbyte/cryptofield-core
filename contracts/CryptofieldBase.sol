@@ -8,10 +8,11 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
     uint256 G1PAvailable = 1111;
 
-    /* TODO:
-        1. Check value types from this struct.
-        2. Add Phenotypes and Genotypes fields
-    @dev 'timestamp' is used to calculate the age of the horse. */
+    /*
+    TODO:
+    1. Add Phenotypes and Genotypes fields
+    @dev 'timestamp' is used to calculate the age of the horse.
+    */
     struct Horse {
         address buyer;
 
@@ -28,7 +29,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         uint8[] grandparents;
         uint8[] greatgrandparents;
 
-        // string previousOwner;
+        string previousOwner;
         string horseType;
         string horseHash;
         string breed;
@@ -76,6 +77,9 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         G1PAvailable -= 1;
     }
 
+    /*
+    @dev Transfer ownership of given _horseId, from _from, to _to.
+    */
     function sendHorse(address _from, address _to, uint256 _horseId) public payable {
         _transferTo(_from, _to, _horseId);
     }
@@ -86,9 +90,19 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         return _getHorsesOwned(_from);
     }
 
-    function getStallionsAvailable() public view returns(uint256) {
+    /*
+    @returns G1P available.
+    */
+
+    function getG1PAvailable() public view returns(uint256) {
         return G1PAvailable;
     }
+
+    /*
+    @dev Only returns the hash containing basic information of horse (name, color, origin, etc...)
+    @param _horseId Token of the ID to retrieve hash from.
+    @returns string, ipfs hash
+    */
 
     function getHorse(uint256 _horseId) public view returns(string) {
         require(_horseId < horses.length);
@@ -97,6 +111,10 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
         return (horse.horseHash);
     }
+
+    /*
+    @returns The owner of the given _horseId
+    */
 
     function ownerOfHorse(uint256 _horseId) public view returns(address) {
         return _ownerOf(_horseId);
