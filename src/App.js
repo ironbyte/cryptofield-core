@@ -4,8 +4,9 @@ import CryptofieldBase from "./../build/contracts/CryptofieldBase.json";
 import CToken from "./../build/contracts/CToken.json";
 import Transfer from "./components/Transfer";
 
-const IPFS = require("ipfs-api");
-const ipfs;
+// Creates a new instance of IPFS.
+const IPFS = require("ipfs-mini");
+window.ipfs = new IPFS({ host: "ipfs.infura.io", port: 5001, protocol: "https" })
 
 class App extends Component {
   constructor(props) {
@@ -17,6 +18,7 @@ class App extends Component {
       horsesOwned: [],
       CToken: null,
       isTransferring: false,
+      ipfs: null
     }
 
     this.myHorses = this.myHorses.bind(this);
@@ -31,9 +33,6 @@ class App extends Component {
 
       // Instantiate contract once web3 provided.
       this.instantiateContract()
-
-      // Creates a new instance of IPFS.
-      ipfs = new IPFS({ host: "ipfs.infura.io", port: 5001, protocol: "https" })
     })
     .catch(() => {
       console.log('Error finding web3.')
@@ -63,27 +62,42 @@ class App extends Component {
   }
 
   buy() {
+    // TODO: Send request to API server to generate random stats
+    // Upload to IPFS and send hash to blockchain.
+
     let amount = this.web3.toWei(1, "finney");
-    let byteParams = [
-      "Sundance Dancer",
-      "Red",
-      "Stallion",
-      "Fast",
-      "Canada",
-      "Male",
-      "2",
-      "pedigree"
-    ];
+    // let byteParams = {
+    //   name: "Sundance Dancer",
+    //   color: "Red",
+    //   horseType: "Stallion",
+    //   runningStyle: "Fast",
+    //   origin: "Canada",
+    //   gender: "Male",
+    //   rank: "2",
+    //   pedigree: "pedigree"
+    // };
 
-    for(let i = 0; i < byteParams.length; i++) {
-      byteParams[i] = this.web3.fromAscii(byteParams[i], 32)
-    }
 
-    this.web3.eth.getAccounts((err, accounts) => {
-      this.state.instance.buyStallion(accounts[0], 12, byteParams, {from: accounts[0], value: amount, gas: 1000000})
-      .then(res => { console.log(res) })
-      .catch(err => { console.log(err) })
+
+    // for(let i = 0; i < byteParams.length; i++) {
+    //   byteParams[i] = this.web3.fromAscii(byteParams[i], 32)
+    // }
+
+    fetch("http://localhost:4000/generator/generate_horse")
+    .then(result => { return result.json() })
+    .then(res => {
+      window.ipfs.addJSON(res, (err, _hash) => {
+        console.log("sending data")
+        console.log(_hash)
+
+        this.web3.eth.getAccounts((web3Err, accounts) => {
+          this.state.instance.buyStallion(accounts[0], _hash, {from: accounts[0], value: amount, gas: 1000000})
+          .then(res => { console.log(res) })
+          .catch(err => { console.log(err) })
+        })
+      })
     })
+    .catch(err => { console.log("There was an error processing the request", err) })
   }
 
   myHorses() {
@@ -101,15 +115,11 @@ class App extends Component {
   }
 
   showHorseInfo(horseId) {
-    let response = [];
-
     this.state.instance.getHorse.call(horseId - 1)
     .then(res => {
-      res.forEach((ele, index) => {
-        response[index] = this.web3.toAscii(ele).replace(/\0/g, "")
+      window.ipfs.cat(res, (err, horseInfo) => {
+        console.log(JSON.parse(horseInfo))
       })
-
-      console.log(response)
     })
     .catch(err => { console.log(err) })
   }
