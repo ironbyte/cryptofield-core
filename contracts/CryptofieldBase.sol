@@ -16,7 +16,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
         uint256 saleId;
         uint256 timestamp;
-        uint256 height; // Hands
         uint256 reserveValue;
         uint256 saleValue;
         uint256 feeValue;
@@ -30,15 +29,20 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
         string previousOwner;
         string horseType;
+        string horseHash;
 
+        // Rank is based on awards.
+        bytes32 rank;
+
+        /*
+        uint256 height; // Hands
         bytes32 name;
         bytes32 color;
         bytes32 breed;
         bytes32 runningStyle;
         bytes32 origin;
         bytes32 gender;
-        bytes32 rank;
-        bytes32 pedigree;
+        bytes32 pedigree; */
 
     }
 
@@ -56,7 +60,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     // Mapping horse Ids to addresses.
     mapping(uint256 => address) horseOwner;
 
-    function buyStallion(address _buyerAddress, uint256 _height, bytes32[8] _byteParams) public payable {
+    function buyStallion(address _buyerAddress, string _horseHash) public payable {
         require(stallionsAvailable > 0);
 
         /* @dev Just a counter to have an upgoing value of ids starting from 1 up to 1111
@@ -67,16 +71,9 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         horse.buyer = _buyerAddress;
         horse.saleId = newHorseId;
         horse.timestamp = now;
-        horse.height = _height;
         horse.horseType = "G1P"; // G1P lack some of the initial values
-        horse.name = _byteParams[0];
-        horse.color = _byteParams[1];
-        horse.breed = _byteParams[2];
-        horse.runningStyle = _byteParams[3];
-        horse.origin = _byteParams[4];
-        horse.gender = _byteParams[5];
-        horse.rank = _byteParams[6];
-        horse.pedigree = _byteParams[7];
+        horse.horseHash = _horseHash;
+
 
         // "mint" sends a Transfer event
         mint(msg.sender, newHorseId);
@@ -100,12 +97,12 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         return stallionsAvailable;
     }
 
-    function getHorse(uint256 _horseId) public view returns(bytes32, bytes32) {
+    function getHorse(uint256 _horseId) public view returns(string) {
         require(_horseId < horses.length);
 
         Horse memory horse = horses[_horseId];
 
-        return (horse.name, horse.runningStyle);
+        return (horse.horseHash);
     }
 
     function ownerOfHorse(uint256 _horseId) public view returns(address) {
