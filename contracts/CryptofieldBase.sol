@@ -6,10 +6,11 @@ import "./CToken.sol";
 contract CryptofieldBase is ERC721BasicToken, CToken {
     using SafeMath for uint256;
 
-    uint256 stallionsAvailable = 1111;
+    uint256 G1PAvailable = 1111;
 
-    /* TODO: 1. Check value types from this struct.
-    2. Add Phenotypes and Genotypes fields
+    /* TODO:
+        1. Check value types from this struct.
+        2. Add Phenotypes and Genotypes fields
     @dev 'timestamp' is used to calculate the age of the horse. */
     struct Horse {
         address buyer;
@@ -27,22 +28,13 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         uint8[] grandparents;
         uint8[] greatgrandparents;
 
-        string previousOwner;
+        // string previousOwner;
         string horseType;
         string horseHash;
+        string breed;
 
         // Rank is based on awards.
         bytes32 rank;
-
-        /*
-        uint256 height; // Hands
-        bytes32 name;
-        bytes32 color;
-        bytes32 breed;
-        bytes32 runningStyle;
-        bytes32 origin;
-        bytes32 gender;
-        bytes32 pedigree; */
 
     }
 
@@ -60,8 +52,8 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     // Mapping horse Ids to addresses.
     mapping(uint256 => address) horseOwner;
 
-    function buyStallion(address _buyerAddress, string _horseHash) public payable {
-        require(stallionsAvailable > 0);
+    function buyG1P(address _buyerAddress, string _horseHash) public payable {
+        require(G1PAvailable > 0);
 
         /* @dev Just a counter to have an upgoing value of ids starting from 1 up to 1111
         until the 'require' above is not longer met. */
@@ -71,8 +63,9 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         horse.buyer = _buyerAddress;
         horse.saleId = newHorseId;
         horse.timestamp = now;
-        horse.horseType = "G1P"; // G1P lack some of the initial values
+        horse.horseType = "G1P"; // G1P lack some values as they're the first ones.
         horse.horseHash = _horseHash;
+        horse.breed = "Thoroughbred";
 
 
         // "mint" sends a Transfer event
@@ -80,7 +73,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
         // If all operations were succesfull.
         horses.push(horse);
-        stallionsAvailable -= 1;
+        G1PAvailable -= 1;
     }
 
     function sendHorse(address _from, address _to, uint256 _horseId) public payable {
@@ -94,7 +87,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     }
 
     function getStallionsAvailable() public view returns(uint256) {
-        return stallionsAvailable;
+        return G1PAvailable;
     }
 
     function getHorse(uint256 _horseId) public view returns(string) {
