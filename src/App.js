@@ -66,32 +66,17 @@ class App extends Component {
     // Upload to IPFS and send hash to blockchain.
 
     let amount = this.web3.toWei(1, "finney");
-    // let byteParams = {
-    //   name: "Sundance Dancer",
-    //   color: "Red",
-    //   horseType: "Stallion",
-    //   runningStyle: "Fast",
-    //   origin: "Canada",
-    //   gender: "Male",
-    //   rank: "2",
-    //   pedigree: "pedigree"
-    // };
-
-
-
-    // for(let i = 0; i < byteParams.length; i++) {
-    //   byteParams[i] = this.web3.fromAscii(byteParams[i], 32)
-    // }
 
     fetch("http://localhost:4000/generator/generate_horse")
     .then(result => { return result.json() })
     .then(res => {
+      console.log("sending data")
+
       window.ipfs.addJSON(res, (err, _hash) => {
-        console.log("sending data")
         console.log(_hash)
 
         this.web3.eth.getAccounts((web3Err, accounts) => {
-          this.state.instance.buyStallion(accounts[0], _hash, {from: accounts[0], value: amount, gas: 1000000})
+          this.state.instance.buyG1P(accounts[0], _hash, {from: accounts[0], value: amount, gas: 1000000})
           .then(res => { console.log(res) })
           .catch(err => { console.log(err) })
         })
