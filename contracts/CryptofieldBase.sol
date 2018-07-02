@@ -36,7 +36,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         string previousOwner;
         string horseType;
         string horseHash;
-        string breed;
 
         // Rank is based on awards.
         bytes32 rank;
@@ -75,9 +74,8 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         horse.buyer = _buyerAddress;
         horse.saleId = newHorseId;
         horse.timestamp = now;
-        horse.horseType = "Thoroughbred"; // G1P lack some values as they're the first ones.
+        horse.horseType = "G1P Thoroughbred"; // G1P lack some values as they're the first ones.
         horse.horseHash = _horseHash;
-        horse.breed = "Thoroughbred";
 
 
         // "mint" sends a Transfer event
