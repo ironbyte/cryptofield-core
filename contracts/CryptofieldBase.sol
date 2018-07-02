@@ -6,7 +6,11 @@ import "./CToken.sol";
 contract CryptofieldBase is ERC721BasicToken, CToken {
     using SafeMath for uint256;
 
-    uint256 G1PAvailable = 1111;
+    uint256 stallionsAvailable = 157;
+    uint256 maresAvailable = 368;
+    uint256 coltsAvailable = 219;
+    uint256 filliesAvailable =  323;
+    uint256 glendingsAvailable = 44;
 
     /*
     TODO:
@@ -53,8 +57,15 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     // Mapping horse Ids to addresses.
     mapping(uint256 => address) horseOwner;
 
-    function buyG1P(address _buyerAddress, string _horseHash) public payable {
-        require(G1PAvailable > 0);
+    modifier onlyAvailable(uint256 _horseId) {
+        require(_horseId <= horses.length);
+        _;
+    }
+
+    event Sell(address _from, address _to, uint256 _horseId, uint256 _amountOfTimesSold);
+
+    function buyStallion(address _buyerAddress, string _horseHash) public payable {
+        require(stallionsAvailable > 0);
 
         /* @dev Just a counter to have an upgoing value of ids starting from 1 up to 1111
         until the 'require' above is not longer met. */
@@ -64,7 +75,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         horse.buyer = _buyerAddress;
         horse.saleId = newHorseId;
         horse.timestamp = now;
-        horse.horseType = "G1P"; // G1P lack some values as they're the first ones.
+        horse.horseType = "Thoroughbred"; // G1P lack some values as they're the first ones.
         horse.horseHash = _horseHash;
         horse.breed = "Thoroughbred";
 
@@ -74,7 +85,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
         // If all operations were succesfull.
         horses.push(horse);
-        G1PAvailable -= 1;
+        stallionsAvailable -= 1;
     }
 
     /*
@@ -94,8 +105,8 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     @returns G1P available.
     */
 
-    function getG1PAvailable() public view returns(uint256) {
-        return G1PAvailable;
+    function getHorsesAvailable() public view returns(uint256, uint256, uint256, uint256, uint256) {
+        return (stallionsAvailable, maresAvailable, coltsAvailable, filliesAvailable, glendingsAvailable);
     }
 
     /*
@@ -104,19 +115,39 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     @returns string, ipfs hash
     */
 
-    function getHorse(uint256 _horseId) public view returns(string) {
-        require(_horseId < horses.length);
-
+    function getHorse(uint256 _horseId) onlyAvailable(_horseId) public view returns(string) {
         Horse memory horse = horses[_horseId];
 
         return (horse.horseHash);
     }
 
     /*
+    @returns all the information related to auction of a horse
+    */
+    function auctionInformation(uint256 _horseId) onlyAvailable(_horseId)
+        public view returns(uint256, uint256, uint256, uint256) {
+
+        Horse memory horse = horses[_horseId];
+
+        return (horse.reserveValue, horse.saleValue, horse.feeValue, horse.amountOfTimesSold);
+    }
+
+    /*
     @returns The owner of the given _horseId
     */
-
     function ownerOfHorse(uint256 _horseId) public view returns(address) {
         return _ownerOf(_horseId);
+    }
+
+    /*
+    @dev Adds 1 to the old amount of times sold of a given horse.
+    @returns boolean indicating success
+    */
+    function horseSell(address _from, address _to, uint256 _horseId) onlyAvailable(_horseId) public {
+        Horse memory horse = horses[_horseId];
+        sendHorse(_from, _to, _horseId);
+        horse.amountOfTimesSold += 1;
+
+        emit Sell(_from, _to, _horseId, horse.amountOfTimesSold);
     }
 }
