@@ -15,12 +15,12 @@ contract("CryptofieldBaseContract", accounts => {
   })
 
   it("should be able to buy a stallion", async () => {
-    instance.buyG1P(buyer, hash, {from: buyer, value: value});
+    instance.buyStallion(buyer, hash, {from: buyer, value: value});
 
-    let stallionsAvailable = await instance.getStallionsAvailable();
+    let stallionsAvailable = await instance.getHorsesAvailable();
     let ownerOf = await instance.ownerOfHorse(1);
 
-    assert.equal(stallionsAvailable, 1110);
+    assert.equal(stallionsAvailable[0].toString(), "156");
     assert.equal(ownerOf.toString(), buyer);
   })
 
@@ -28,8 +28,8 @@ contract("CryptofieldBaseContract", accounts => {
     let horsesOwnedIds = [];
 
     // Just buy two horses
-    instance.buyG1P(buyer, hash, {from: buyer, value: value});
-    instance.buyG1P(buyer, hash, {from: buyer, value: value});
+    instance.buyStallion(buyer, hash, {from: buyer, value: value});
+    instance.buyStallion(buyer, hash, {from: buyer, value: value});
 
     let horsesOwned = await instance.getHorsesOwned(buyer);
 
@@ -42,7 +42,7 @@ contract("CryptofieldBaseContract", accounts => {
     let secondBuyer = accounts[2];
 
     // Buy a horse with the main buyer account
-    instance.buyG1P(buyer, hash);
+    instance.buyStallion(buyer, hash, {from: buyer, value: value});
 
     let ownerOf = await instance.ownerOfHorse(1);
 
@@ -55,5 +55,20 @@ contract("CryptofieldBaseContract", accounts => {
 
     assert.notStrictEqual(newOwnerOf, buyer);
     assert.equal(newOwnerOf, secondBuyer);
+  })
+
+  it("should add 1 when a given horse is sold", async () => {
+    let secondBuyer = accounts[2];
+    let auctionInfo = await instance.auctionInformation(2);
+
+    assert.equal(auctionInfo[3].toString(), "0");
+
+    instance.horseSell(buyer, secondBuyer, 2);
+
+    let newAuctionInfo = await instance.auctionInformation(2);
+
+    console.log(newAuctionInfo[3].toString());
+
+    //assert.equal(newAuctionInfo[3].toString(), "1");
   })
 })
