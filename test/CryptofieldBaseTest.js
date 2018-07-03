@@ -1,5 +1,7 @@
 const CryptofieldBase = artifacts.require("./CryptofieldBase");
 
+// import { assertRevert } from "zeppelin-solidity/test/helpers/assertRevert.js";
+
 // TODO: Fix tests
 
 contract("CryptofieldBaseContract", accounts => {
@@ -7,6 +9,7 @@ contract("CryptofieldBaseContract", accounts => {
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let owner = accounts[0];
   let buyer = accounts[1];
+  let secondBuyer = accounts[2];
   let value = web3.toWei(1, "finney");
 
 
@@ -27,23 +30,17 @@ contract("CryptofieldBaseContract", accounts => {
   it("should return the horses owned by an address", async () => {
     let horsesOwnedIds = [];
 
-    // Just buy two horses
-    instance.buyStallion(buyer, hash, {from: buyer, value: value});
+    // At this point 'buyer' has two horses.
     instance.buyStallion(buyer, hash, {from: buyer, value: value});
 
     let horsesOwned = await instance.getHorsesOwned(buyer);
 
     horsesOwned.map((id, index) => { horsesOwnedIds[index] = id.toString() })
 
-    assert.deepEqual(horsesOwnedIds, ["1", "2", "3"]);
+    assert.deepEqual(horsesOwnedIds, ["1", "2"]);
   })
 
   it("should be able to transfer a horse", async () => {
-    let secondBuyer = accounts[2];
-
-    // Buy a horse with the main buyer account
-    instance.buyStallion(buyer, hash, {from: buyer, value: value});
-
     let ownerOf = await instance.ownerOfHorse(1);
 
     assert.equal(ownerOf, buyer)
@@ -57,18 +54,26 @@ contract("CryptofieldBaseContract", accounts => {
     assert.equal(newOwnerOf, secondBuyer);
   })
 
-  it("should add 1 when a given horse is sold", async () => {
-    let secondBuyer = accounts[2];
-    let auctionInfo = await instance.auctionInformation(2);
+  it("should add 1 to times sold when a given horse is sold", async () => {
+    let ownerOf = await instance.ownerOfHorse(1);
 
-    assert.equal(auctionInfo[3].toString(), "0");
+    // Ensure the owner of the horse.
+    assert.equal(ownerOf, secondBuyer);
 
-    instance.horseSell(buyer, secondBuyer, 2);
+    instance.horseSell(secondBuyer, buyer, 1, {from: secondBuyer, value: value});
+    let timesSold = await instance.auctionInformation(1);
 
-    let newAuctionInfo = await instance.auctionInformation(2);
+    assert.equal(timesSold[3].toString(), "1");
+  })
 
-    console.log(newAuctionInfo[3].toString());
-
-    //assert.equal(newAuctionInfo[3].toString(), "1");
+  it("should revert when horseId is higher than the available horses", async () => {
+    // OpenZeppelin implementation.
+    try {
+      await instance.auctionInformation(1234);
+      assert.fail("Expected revert not received");
+    } catch(err) {
+      const revertFound = err.message.search("revert") >= 0;
+      assert(revertFound, `Expected "revert", got ${err} instead`);
+    }
   })
 })
