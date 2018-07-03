@@ -1,10 +1,8 @@
 pragma solidity ^0.4.2;
 
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import "./CToken.sol";
 
 contract CryptofieldBase is ERC721BasicToken, CToken {
-    using SafeMath for uint256;
 
     uint256 stallionsAvailable = 157;
     uint256 maresAvailable = 368;
@@ -141,11 +139,10 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     @dev Adds 1 to the old amount of times sold of a given horse.
     @returns boolean indicating success
     */
-    function horseSell(address _from, address _to, uint256 _horseId) onlyAvailable(_horseId) public {
-        Horse memory horse = horses[_horseId];
-        sendHorse(_from, _to, _horseId);
-        horse.amountOfTimesSold += 1;
+    function horseSell(address _from, address _to, uint256 _horseId) onlyAvailable(_horseId) public payable {
+        _transferTo(_from, _to, _horseId);
 
-        emit Sell(_from, _to, _horseId, horse.amountOfTimesSold);
+        Horse storage horse = horses[_horseId];
+        horse.amountOfTimesSold += 1;
     }
 }
