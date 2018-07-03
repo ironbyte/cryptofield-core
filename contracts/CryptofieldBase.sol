@@ -11,9 +11,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     uint256 glendingsAvailable = 44;
 
     /*
-    TODO:
-    1. Add Phenotypes and Genotypes fields
-    @dev 'timestamp' is used to calculate the age of the horse.
+    @dev horseHash stores basic horse information in a hash returned by IPFS.
     */
     struct Horse {
         address buyer;
@@ -87,7 +85,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     /*
     @dev Transfer ownership of given _horseId, from _from, to _to.
     */
-    function sendHorse(address _from, address _to, uint256 _horseId) public payable {
+    function sendHorse(address _from, address _to, uint256 _horseId) onlyAvailable(_horseId) public payable {
         _transferTo(_from, _to, _horseId);
     }
 
@@ -98,7 +96,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     }
 
     /*
-    @returns G1P available.
+    @returns all G1P available.
     */
 
     function getHorsesAvailable() public view returns(uint256, uint256, uint256, uint256, uint256) {
@@ -108,7 +106,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     /*
     @dev Only returns the hash containing basic information of horse (name, color, origin, etc...)
     @param _horseId Token of the ID to retrieve hash from.
-    @returns string, ipfs hash
+    @returns string, IPFS hash
     */
 
     function getHorse(uint256 _horseId) onlyAvailable(_horseId) public view returns(string) {
@@ -131,18 +129,19 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     /*
     @returns The owner of the given _horseId
     */
-    function ownerOfHorse(uint256 _horseId) public view returns(address) {
+    function ownerOfHorse(uint256 _horseId) onlyAvailable(_horseId) public view returns(address) {
         return _ownerOf(_horseId);
     }
 
     /*
-    @dev Adds 1 to the old amount of times sold of a given horse.
-    @returns boolean indicating success
+    @dev Adds 1 to the amount of times a horse has been sold.
+    @dev Adds unix timestamp of the date the horse was sold.
     */
     function horseSell(address _from, address _to, uint256 _horseId) onlyAvailable(_horseId) public payable {
         _transferTo(_from, _to, _horseId);
 
         Horse storage horse = horses[_horseId];
         horse.amountOfTimesSold += 1;
+        horse.dateSold = now;
     }
 }
