@@ -76,4 +76,38 @@ contract("CryptofieldBaseContract", accounts => {
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
   })
+
+  it("should return array of horse parents", async () => {
+    let parents = await instance.getParents(1);
+
+    // Horse is a G1P so it has no parents :-(
+    assert.deepEqual(parents, []);
+  })
+
+  it("should return array of horse foal names", async () => {
+    let foalNames = await instance.getFoalNames(1);
+    assert.deepEqual(foalNames, []);
+  })
+
+  it("should return array of horse grandparents", async () => {
+    let grandparents = await instance.getGrandparents(1);
+    assert.deepEqual(grandparents, []);
+  })
+
+  it("should return array of horse great-grandparents", async () => {
+    let greatGrandparents = await instance.getGreatGrandparents(1);
+    assert.deepEqual(greatGrandparents, []);
+  })
+
+  it("should return the whole family from a horse", async() => {
+    let family = await instance.getHorseFamily(1);
+    assert.deepEqual(family, [[], [], [], []])
+  })
+
+  /*
+  At this point, tests above that should returns array of horse's family
+  always return an empty array because the horse we're using is a G1P.
+
+  TODO: Do above tests again when we introduce breeding to have different return values.
+  */
 })
