@@ -14,7 +14,7 @@ class App extends Component {
 
     this.state = {
       instance: null,
-      stallionsAvailable: null,
+      horsesAvailable: [],
       horsesOwned: [],
       CToken: null,
       isTransferring: false,
@@ -40,8 +40,14 @@ class App extends Component {
   }
 
   componentDidUpdate() {
-    this.state.instance.getStallionsAvailable.call()
-    .then(res => { this.setState({ stallionsAvailable: res.toString() }) })
+    let horsesAvailableArray = [];
+
+    this.state.instance.getHorsesAvailable.call()
+    .then(res => {
+      res.forEach((horse, i) => { horsesAvailableArray[i] = horse.toString() })
+
+      this.setState({ horsesAvailable: horsesAvailableArray })
+    })
   }
 
   instantiateContract() {
@@ -70,13 +76,11 @@ class App extends Component {
     fetch("http://localhost:4000/generator/generate_horse")
     .then(result => { return result.json() })
     .then(res => {
-      console.log("sending data")
-
       window.ipfs.addJSON(res, (err, _hash) => {
         console.log(_hash)
 
         this.web3.eth.getAccounts((web3Err, accounts) => {
-          this.state.instance.buyG1P(accounts[0], _hash, {from: accounts[0], value: amount, gas: 1000000})
+          this.state.instance.buyStallion(accounts[0], _hash, {from: accounts[0], value: amount, gas: 1000000})
           .then(res => { console.log(res) })
           .catch(err => { console.log(err) })
         })
@@ -121,7 +125,7 @@ class App extends Component {
             src="/horse.png"
             alt="horse"
           />
-          <h2 className="text-center"> {this.state.stallionsAvailable} stallions available! </h2>
+          <h2 className="text-center"> {this.state.horsesAvailable[0]} stallions available! </h2>
           <button
             onClick={this.buy}
             className="button expanded success"
