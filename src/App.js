@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
 import CryptofieldBase from "./../build/contracts/CryptofieldBase.json";
-import CToken from "./../build/contracts/CToken.json";
+// import CToken from "./../build/contracts/CToken.json";
 import Transfer from "./components/Transfer";
 
 // Creates a new instance of IPFS.
@@ -16,9 +16,9 @@ class App extends Component {
       instance: null,
       horsesAvailable: [],
       horsesOwned: [],
-      CToken: null,
       isTransferring: false,
-      ipfs: null
+      ipfs: null,
+      lastTx: null
     }
 
     this.myHorses = this.myHorses.bind(this);
@@ -53,18 +53,18 @@ class App extends Component {
   instantiateContract() {
     let contract = require('truffle-contract')
     let CryptofieldBaseContract = contract(CryptofieldBase);
-    let CTokenContract = contract(CToken);
+    // let CTokenContract = contract(CToken);
 
     CryptofieldBaseContract.setProvider(this.web3.currentProvider);
-    CTokenContract.setProvider(this.web3.currentProvider);
+    // CTokenContract.setProvider(this.web3.currentProvider);
 
     CryptofieldBaseContract.deployed().then(instance => {
       this.setState({ instance: instance });
     })
 
-    CTokenContract.deployed().then(instance => {
-      this.setState({ CToken: instance })
-    })
+    // CTokenContract.deployed().then(instance => {
+    //   this.setState({ CToken: instance })
+    // })
   }
 
   buy() {
@@ -81,7 +81,7 @@ class App extends Component {
 
         this.web3.eth.getAccounts((web3Err, accounts) => {
           this.state.instance.buyStallion(accounts[0], _hash, {from: accounts[0], value: amount, gas: 1000000})
-          .then(res => { console.log(res) })
+          .then(res => { this.setState({ lastTx: res.receipt.transactionHash }) })
           .catch(err => { console.log(err) })
         })
       })
@@ -118,6 +118,8 @@ class App extends Component {
   }
 
   render() {
+    let link = "https://ropsten.etherscan.io/tx/" + this.state.lastTx
+
     return (
       <div className="grid-x grid-margin-x">
         <div className="text-center cell">
@@ -159,6 +161,11 @@ class App extends Component {
             instance={this.state.instance}
             web3={this.web3}
           />
+        }
+
+        {
+          this.state.lastTx &&
+          <a href={link} target="_blank">Transaction</a>
         }
       </div>
     );
