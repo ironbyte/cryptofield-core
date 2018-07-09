@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
 import CryptofieldBase from "./../build/contracts/CryptofieldBase.json";
-// import CToken from "./../build/contracts/CToken.json";
+import Auctions from "./../build/contracts/Auctions.json";
 import Transfer from "./components/Transfer";
 
 // Creates a new instance of IPFS.
@@ -18,7 +18,8 @@ class App extends Component {
       horsesOwned: [],
       isTransferring: false,
       ipfs: null,
-      lastTx: null
+      lastTx: null,
+      auctionsInstance: null
     }
 
     this.myHorses = this.myHorses.bind(this);
@@ -53,27 +54,29 @@ class App extends Component {
   instantiateContract() {
     let contract = require('truffle-contract')
     let CryptofieldBaseContract = contract(CryptofieldBase);
-    // let CTokenContract = contract(CToken);
+    let AuctionsContract = contract(Auctions);
 
     CryptofieldBaseContract.setProvider(this.web3.currentProvider);
-    // CTokenContract.setProvider(this.web3.currentProvider);
+    AuctionsContract.setProvider(this.web3.currentProvider);
 
     CryptofieldBaseContract.deployed().then(instance => {
       this.setState({ instance: instance });
     })
 
-    // CTokenContract.deployed().then(instance => {
-    //   this.setState({ CToken: instance })
-    // })
+    AuctionsContract.deployed().then(instance => {
+      this.setState({ auctionsInstance: instance })
+    })
   }
 
   buy() {
-    // TODO: Send request to API server to generate random stats
-    // Upload to IPFS and send hash to blockchain.
-
     let amount = this.web3.toWei(1, "finney");
 
-    fetch("http://localhost:4000/generator/generate_horse")
+    this.web3.eth.getAccounts((err, accounts) => {
+      this.state.auctionsInstance.start({ from: accounts[0], value: amount })
+      .then(res => { console.log(res) })
+    })
+
+    /*fetch("http://localhost:4000/generator/generate_horse")
     .then(result => { return result.json() })
     .then(res => {
       window.ipfs.addJSON(res, (err, _hash) => {
@@ -86,7 +89,7 @@ class App extends Component {
         })
       })
     })
-    .catch(err => { console.log("There was an error processing the request", err) })
+    .catch(err => { console.log("There was an error processing the request", err) })*/
   }
 
   myHorses() {
@@ -137,6 +140,13 @@ class App extends Component {
 
           <button onClick={this.myHorses} className="button expanded success"> Your horses </button>
           <button onClick={this.transfer} className="button expanded success"> Transfer </button>
+
+          <h3 onClick={() => {
+            this.state.auctionsInstance.getIds.call()
+            .then(res => { console.log(res) })
+          }}>
+            IDS
+          </h3>
         </div>
 
         {
