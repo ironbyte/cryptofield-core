@@ -4,11 +4,10 @@ import "./CToken.sol";
 
 contract CryptofieldBase is ERC721BasicToken, CToken {
 
-    uint256 stallionsAvailable = 157;
-    uint256 maresAvailable = 368;
-    uint256 coltsAvailable = 219;
-    uint256 filliesAvailable =  323;
-    uint256 glendingsAvailable = 44;
+    uint256 stallionsAvailable = 168;
+    uint256 maresAvailable = 379;
+    uint256 coltsAvailable = 230;
+    uint256 filliesAvailable =  334;
 
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
@@ -100,8 +99,8 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     @returns all G1P available.
     */
 
-    function getHorsesAvailable() public view returns(uint256, uint256, uint256, uint256, uint256) {
-        return (stallionsAvailable, maresAvailable, coltsAvailable, filliesAvailable, glendingsAvailable);
+    function getHorsesAvailable() public view returns(uint256, uint256, uint256, uint256) {
+        return (stallionsAvailable, maresAvailable, coltsAvailable, filliesAvailable);
     }
 
     /*
