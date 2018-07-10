@@ -4,3 +4,4 @@ node_modules/
 nohup.out
 build_webpack/
 .env
+bridge.log
