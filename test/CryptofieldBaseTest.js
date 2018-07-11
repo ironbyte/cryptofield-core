@@ -23,7 +23,7 @@ contract("CryptofieldBaseContract", accounts => {
     let stallionsAvailable = await instance.getHorsesAvailable();
     let ownerOf = await instance.ownerOfHorse(1);
 
-    assert.equal(stallionsAvailable[0].toString(), "156");
+    assert.equal(stallionsAvailable[0].toString(), "167");
     assert.equal(ownerOf.toString(), buyer);
   })
 
