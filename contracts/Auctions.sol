@@ -8,7 +8,7 @@ contract Auctions is usingOraclize {
     Remove auction from address when its closed.
     */
 
-    uint256[] auctionIds;
+    uint256[] public auctionIds;
 
     struct AuctionData {
         address owner;
@@ -29,19 +29,18 @@ contract Auctions is usingOraclize {
 
         uint256 auctionId = auctionIds.push(0) - 1;
 
-        start(_duration, auctionId);
+        sendAuctionQuery(_duration, auctionId);
         auctions[auctionId] = AuctionData(_user, true);
     }
 
-    // TODO: Change function name
-    function start(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://e8a7212f.ngrok.io/api/v1/close_auction).auction_closed";
-        string memory payload = strConcat('{"auction":', uint2str(_auctionId), '}');
+    function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
+        string memory url = "json(https://2d920100.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
     }
 
-    function __callback(bytes32 _id, string _result) {
+    function __callback(bytes32 _id, string _result) public {
         require(msg.sender == oraclize_cbAddress());
 
         emit Response(_id, _result);
@@ -55,7 +54,11 @@ contract Auctions is usingOraclize {
         return oraclize_getPrice("URL");
     }
 
-    function getAuctionStatus(uint _id) public returns(bool) {
+    function getAuctionStatus(uint _id) public view returns(bool) {
         return auctions[_id].isOpen;
+    }
+
+    function getAuctionsLength() public view returns(uint) {
+        return auctionIds.length;
     }
 }
