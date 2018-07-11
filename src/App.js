@@ -69,11 +69,15 @@ class App extends Component {
   }
 
   buy() {
-    let amount = this.web3.toWei(1, "finney");
+    this.state.auctionsInstance.getQueryPrice.call()
+    .then(res => {
+      let amount = res.toNumber()
 
-    this.web3.eth.getAccounts((err, accounts) => {
-      this.state.auctionsInstance.start({ from: accounts[0], value: amount })
-      .then(res => { console.log(res) })
+      this.web3.eth.getAccounts((err, accounts) => {
+        this.state.auctionsInstance.createAuction(accounts[0], 20, {from: accounts[0], value: amount})
+
+        .then(res => { console.log(res) })
+      })
     })
 
     /*fetch("http://localhost:4000/generator/generate_horse")
@@ -142,7 +146,7 @@ class App extends Component {
           <button onClick={this.transfer} className="button expanded success"> Transfer </button>
 
           <h3 onClick={() => {
-            this.state.auctionsInstance.getIds.call()
+            this.state.auctionsInstance.getAuctionStatus.call(0)
             .then(res => { console.log(res) })
           }}>
             IDS
