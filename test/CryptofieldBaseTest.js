@@ -7,7 +7,6 @@ const CryptofieldBase = artifacts.require("./CryptofieldBase");
 contract("CryptofieldBaseContract", accounts => {
   let instance;
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
-  let owner = accounts[0];
   let buyer = accounts[1];
   let secondBuyer = accounts[2];
   let value = web3.toWei(1, "finney");
@@ -18,7 +17,7 @@ contract("CryptofieldBaseContract", accounts => {
   })
 
   it("should be able to buy a stallion", async () => {
-    instance.buyStallion(buyer, hash, {from: buyer, value: value});
+    instance.buyStallion(hash, {from: buyer, value: value});
 
     let stallionsAvailable = await instance.getHorsesAvailable();
     let ownerOf = await instance.ownerOfHorse(1);
@@ -31,7 +30,7 @@ contract("CryptofieldBaseContract", accounts => {
     let horsesOwnedIds = [];
 
     // At this point 'buyer' has two horses.
-    instance.buyStallion(buyer, hash, {from: buyer, value: value});
+    instance.buyStallion(hash, {from: buyer, value: value});
 
     let horsesOwned = await instance.getHorsesOwned(buyer);
 
