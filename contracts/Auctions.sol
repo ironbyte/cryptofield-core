@@ -1,8 +1,9 @@
 pragma solidity ^0.4.2;
 
 import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
+import "./CToken.sol";
 
-contract Auctions is usingOraclize {
+contract Auctions is usingOraclize, CToken {
     /*
     An address should be able to post one auction at a time.
     Remove auction from address when its closed.
@@ -12,26 +13,46 @@ contract Auctions is usingOraclize {
 
     struct AuctionData {
         address owner;
+
         bool isOpen;
+
         uint256 duration;
+        uint256 maxBid;
+        uint256 horse;
+
+        address maxBidder;
+        address[] bidders;
+        // Maps each address on this auction to a bid.
+        mapping(address => uint256) bids;
     }
 
     mapping(uint256 => AuctionData) auctions;
 
     event Response(bytes32 id, string result);
 
+    modifier onlyOwnerOfHorse(uint256 _id) {
+        require(ownerOf(_id) == msg.sender);
+        _;
+    }
+
     constructor() public payable {
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
-    function createAuction(address _user, uint256 _duration) public payable {
+    function createAuction(uint256 _duration, uint256 _horseId) public payable {
+        require(msg.sender == ownerOf(_horseId));
         // We ensure that the value sent can cover the Query price for later usage.
         require(msg.value >= oraclize_getPrice("URL"));
 
         uint256 auctionId = auctionIds.push(0) - 1;
 
+        AuctionData storage auction = auctions[auctionId];
+        auction.owner = msg.sender;
+        auction.isOpen = true;
+        auction.duration = _duration;
+        auction.horse = _horseId;
+
         sendAuctionQuery(_duration, auctionId);
-        auctions[auctionId] = AuctionData(_user, true, _duration);
     }
 
     /*
@@ -56,6 +77,51 @@ contract Auctions is usingOraclize {
         uint uintResult = parseInt(_result);
 
         auctions[uintResult].isOpen = false;
+    }
+
+    /*
+    @dev bid function when an auction is created
+    */
+    function bid(uint256 _auctionId, uint256 _horseId) public payable returns(bool) {
+        AuctionData storage auction = auctions[_auctionId];
+
+        require(auction.isOpen);
+        // You can only record another bid if it is higher than the previous one.
+        require(msg.value > auction.maxBid);
+
+        auction.bids[msg.sender] += msg.value;
+        auction.bidders.push(msg.sender);
+        auction.maxBid = msg.value;
+        auction.maxBidder = msg.sender;
+
+        return true;
+    }
+
+    // Withdrawals need to be manually triggered.
+    function withdraw(uint256 _auctionId) public returns(bool) {
+        AuctionData storage auction = auctions[_auctionId];
+        require(!auction.isOpen);
+
+        uint256 payout;
+
+        if(msg.sender == auction.owner) {
+            payout = auction.maxBid;
+            auction.maxBid = 0;
+        }
+
+        // We ensure the msg.sender isn't the max bidder nor the owner.
+        // If the address is the owner that would evaluate to true two times (above and this one) and 'payout' wouldn't be correct.
+        if(msg.sender != auction.maxBidder && msg.sender != auction.owner) {
+            payout = auction.bids[msg.sender];
+            auction.bids[msg.sender] = 0;
+        }
+
+        if(msg.sender == auction.maxBidder) {
+            // TODO: Send horse to winner
+        }
+
+        msg.sender.transfer(payout);
+        return true;
     }
 
     /*
