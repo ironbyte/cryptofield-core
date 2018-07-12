@@ -1,7 +1,7 @@
 pragma solidity ^0.4.2;
 
-import './ERC721Token.sol';
-import 'zeppelin-solidity/contracts/token/ERC721/ERC721BasicToken.sol';
+import "./ERC721Token.sol";
+import "zeppelin-solidity/contracts/token/ERC721/ERC721BasicToken.sol";
 
 contract CToken is ERC721BasicToken, ERC721Token {
     constructor() ERC721Token("CToken", "CT") public {
