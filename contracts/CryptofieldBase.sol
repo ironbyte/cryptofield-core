@@ -69,6 +69,8 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         Horse memory horse;
         horse.buyer = _buyerAddress;
         horse.saleId = newHorseId;
+        // The use of 'now' here shouldn't be a concern since that's only used for the timestamp of a horse
+        // which really doesn't have much effect on the horse itself.
         horse.timestamp = now;
         horse.horseType = "G1P Thoroughbred"; // G1P lack some values as they're the first ones.
         horse.horseHash = _horseHash;
