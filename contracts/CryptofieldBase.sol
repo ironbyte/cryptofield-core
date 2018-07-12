@@ -3,7 +3,6 @@ pragma solidity ^0.4.2;
 import "./CToken.sol";
 
 contract CryptofieldBase is ERC721BasicToken, CToken {
-
     uint256 stallionsAvailable = 168;
     uint256 maresAvailable = 379;
     uint256 coltsAvailable = 230;
@@ -59,7 +58,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
     event Sell(address _from, address _to, uint256 _horseId, uint256 _amountOfTimesSold);
 
-    function buyStallion(address _buyerAddress, string _horseHash) public payable {
+    function buyStallion(string _horseHash) public payable {
         require(stallionsAvailable > 0);
 
         /* @dev Just a counter to have an upgoing value of ids starting from 1 up to 1111
@@ -67,7 +66,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
         uint256 newHorseId = counter += 1;
 
         Horse memory horse;
-        horse.buyer = _buyerAddress;
+        horse.buyer = msg.sender;
         horse.saleId = newHorseId;
         // The use of 'now' here shouldn't be a concern since that's only used for the timestamp of a horse
         // which really doesn't have much effect on the horse itself.
