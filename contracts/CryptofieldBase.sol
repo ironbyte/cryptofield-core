@@ -117,38 +117,6 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     }
 
     /*
-    @returns uint8[] with horse's foalNames
-    */
-    function getFoalNames(uint256 _horseId) onlyAvailable(_horseId) public view returns(uint8[]) {
-        Horse memory horse = horses[_horseId];
-        return horse.foalNames;
-    }
-
-    /*
-    @returns uint8[] with horse's parents IDs.
-    */
-    function getParents(uint256 _horseId) onlyAvailable(_horseId) public view returns(uint8[]) {
-        Horse memory horse = horses[_horseId];
-        return horse.parents;
-    }
-
-    /*
-    @returns uint8[] with horse's grandparents IDs.
-    */
-    function getGrandparents(uint256 _horseId) onlyAvailable(_horseId) public view returns(uint8[]) {
-        Horse memory horse = horses[_horseId];
-        return horse.grandparents;
-    }
-
-    /*
-    @returns uint8[] with horse's great-grandparents IDs.
-    */
-    function getGreatGrandparents(uint256 _horseId) onlyAvailable(_horseId) public view returns(uint8[]) {
-        Horse memory horse = horses[_horseId];
-        return horse.greatgrandparents;
-    }
-
-    /*
     @dev We can use the above functions independiently or get the whole family data from this function
     @returns all the information with from a horse's family (Foal names, parents, grandparents and
         great-grandparents)
