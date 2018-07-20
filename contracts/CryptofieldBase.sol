@@ -1,12 +1,7 @@
 pragma solidity ^0.4.2;
 
-import "./CToken.sol";
-
-contract CryptofieldBase is ERC721BasicToken, CToken {
-    uint256 stallionsAvailable = 168;
-    uint256 maresAvailable = 379;
-    uint256 coltsAvailable = 230;
-    uint256 filliesAvailable =  334;
+contract CryptofieldBase {
+    uint256 saleId;
 
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
@@ -39,69 +34,27 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
 
     Horse[] horses;
 
-    // Counter for Ids
-    uint256 counter;
-
-    // Mapping for owned address to horse IDs
-    mapping(address => uint256[]) ownedHorses;
-
-    // Mapping from horse ID to index.
-    mapping(uint256 => uint256) ownedHorsesIndex;
-
-    // Mapping horse Ids to addresses.
-    mapping(uint256 => address) horseOwner;
-
-    modifier onlyAvailable(uint256 _horseId) {
-        require(_horseId <= horses.length);
-        _;
-    }
 
     event Sell(address _from, address _to, uint256 _horseId, uint256 _amountOfTimesSold);
+    event Buy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
-    function buyStallion(string _horseHash) public payable {
-        require(stallionsAvailable > 0);
-
-        /* @dev Just a counter to have an upgoing value of ids starting from 1 up to 1111
-        until the 'require' above is not longer met. */
-        uint256 newHorseId = counter += 1;
+    function buyStallion(address _buyer, string _horseHash) internal returns(bool) {
+        saleId += 1;
 
         Horse memory horse;
-        horse.buyer = msg.sender;
-        horse.saleId = newHorseId;
+        horse.buyer = _buyer;
+        horse.saleId = saleId;
         // The use of 'now' here shouldn't be a concern since that's only used for the timestamp of a horse
         // which really doesn't have much effect on the horse itself.
         horse.timestamp = now;
         horse.horseType = "G1P Thoroughbred"; // G1P lack some values as they're the first ones.
         horse.horseHash = _horseHash;
 
-
-        // "mint" sends a Transfer event
-        mint(msg.sender, newHorseId);
-
-        // If all operations were succesfull.
         horses.push(horse);
-        stallionsAvailable -= 1;
-    }
 
-    /*
-    @dev Transfer ownership of given _horseId, from _from, to _to.
-    */
-    function sendHorse(address _from, address _to, uint256 _horseId) onlyAvailable(_horseId) public payable {
-        _transferTo(_from, _to, _horseId);
-    }
+        emit Buy(_buyer, now, horse.saleId);
 
-    /* @param _from user from where we're retrieving the list of horses owned
-    @return uint256[] list of owned horses */
-    function getHorsesOwned(address _from) public view returns(uint256[]) {
-        return _getHorsesOwned(_from);
-    }
-
-    /*
-    @returns all G1P available.
-    */
-
-    function getHorsesAvailable() public view returns(uint256, uint256, uint256, uint256) {
-        return (stallionsAvailable, maresAvailable, coltsAvailable, filliesAvailable);
+        return true;
     }
 
     /*
@@ -110,7 +63,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     @returns string, IPFS hash
     */
 
-    function getHorse(uint256 _horseId) onlyAvailable(_horseId) public view returns(string) {
+    function getHorse(uint256 _horseId) public view returns(string) {
         Horse memory horse = horses[_horseId];
 
         return (horse.horseHash);
@@ -121,9 +74,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     @returns all the information with from a horse's family (Foal names, parents, grandparents and
         great-grandparents)
     */
-    function getHorseFamily(uint256 _horseId) onlyAvailable(_horseId) public view
-        returns(uint8[], uint8[], uint8[], uint8[]) {
-
+    function getHorseFamily(uint256 _horseId) public view returns(uint8[], uint8[], uint8[], uint8[]) {
         Horse memory h = horses[_horseId];
         return (h.foalNames, h.parents, h.grandparents, h.greatgrandparents);
     }
@@ -131,7 +82,7 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     /*
     @returns all the information related to auction of a horse
     */
-    function auctionInformation(uint256 _horseId) onlyAvailable(_horseId)
+    function auctionInformation(uint256 _horseId)
         public view returns(uint256, uint256, uint256, uint256) {
 
         Horse memory horse = horses[_horseId];
@@ -140,19 +91,10 @@ contract CryptofieldBase is ERC721BasicToken, CToken {
     }
 
     /*
-    @returns The owner of the given _horseId
-    */
-    function ownerOfHorse(uint256 _horseId) onlyAvailable(_horseId) public view returns(address) {
-        return _ownerOf(_horseId);
-    }
-
-    /*
     @dev Adds 1 to the amount of times a horse has been sold.
     @dev Adds unix timestamp of the date the horse was sold.
     */
-    function horseSell(address _from, address _to, uint256 _horseId) onlyAvailable(_horseId) public payable {
-        _transferTo(_from, _to, _horseId);
-
+    function horseSell(address _from, address _to, uint256 _horseId) public payable {
         Horse storage horse = horses[_horseId];
         horse.amountOfTimesSold += 1;
         horse.dateSold = now;

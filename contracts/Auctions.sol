@@ -3,12 +3,7 @@ pragma solidity ^0.4.2;
 import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
 import "./CToken.sol";
 
-contract Auctions is usingOraclize, CToken {
-    /*
-    An address should be able to post one auction at a time.
-    Remove auction from address when its closed.
-    */
-
+contract Auctions is CToken, usingOraclize {
     uint256[] public auctionIds;
 
     struct AuctionData {
@@ -29,20 +24,20 @@ contract Auctions is usingOraclize, CToken {
     mapping(uint256 => AuctionData) auctions;
 
     event Response(bytes32 id, string result);
-
-    modifier onlyOwnerOfHorse(uint256 _id) {
-        require(ownerOf(_id) == msg.sender);
-        _;
-    }
+    event Owner(address _owner);
 
     constructor() public payable {
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        OAR = OraclizeAddrResolverI(0xf0Bd23c643B420e399645fe54128A2E27915BdB9);
+    }
+
+    function __ownerOf(uint256 _horseId) public view returns(address) {
+        return ownerOf(_horseId);
     }
 
     function createAuction(uint256 _duration, uint256 _horseId) public payable {
-        require(msg.sender == ownerOf(_horseId));
         // We ensure that the value sent can cover the Query price for later usage.
         require(msg.value >= oraclize_getPrice("URL"));
+        // require(msg.sender == ownerOfHorse(_horseId));
 
         uint256 auctionId = auctionIds.push(0) - 1;
 
@@ -52,14 +47,14 @@ contract Auctions is usingOraclize, CToken {
         auction.duration = _duration;
         auction.horse = _horseId;
 
-        sendAuctionQuery(_duration, auctionId);
+        // sendAuctionQuery(_duration, auctionId);
     }
 
     /*
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://375b0412.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://e075b353.ngrok.io/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
