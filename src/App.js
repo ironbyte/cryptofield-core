@@ -74,26 +74,26 @@ class App extends Component {
       let amount = res.toNumber()
 
       this.web3.eth.getAccounts((err, accounts) => {
-        this.state.auctionsInstance.createAuction(accounts[0], 20, {from: accounts[0], value: amount})
+        this.state.auctionsInstance.createAuction(accounts[0], 120, {from: accounts[0], value: amount})
 
         .then(res => { console.log(res) })
       })
     })
 
-    /*fetch("http://localhost:4000/generator/generate_horse")
-    .then(result => { return result.json() })
-    .then(res => {
-      window.ipfs.addJSON(res, (err, _hash) => {
-        console.log(_hash)
+    // fetch("http://localhost:4000/api/v1/generate_horse")
+    // .then(result => { return result.json() })
+    // .then(res => {
+    //   window.ipfs.addJSON(res, (err, _hash) => {
+    //     console.log(_hash)
 
-        this.web3.eth.getAccounts((web3Err, accounts) => {
-          this.state.instance.buyStallion(accounts[0], _hash, {from: accounts[0], value: amount, gas: 1000000})
-          .then(res => { this.setState({ lastTx: res.receipt.transactionHash }) })
-          .catch(err => { console.log(err) })
-        })
-      })
-    })
-    .catch(err => { console.log("There was an error processing the request", err) })*/
+    //     this.web3.eth.getAccounts((web3Err, accounts) => {
+    //       this.state.instance.buyStallion(accounts[0], _hash, {from: accounts[0]})
+    //       .then(res => { this.setState({ lastTx: res.receipt.transactionHash }) })
+    //       .catch(err => { console.log(err) })
+    //     })
+    //   })
+    // })
+    // .catch(err => { console.log("There was an error processing the request", err) })
   }
 
   myHorses() {
