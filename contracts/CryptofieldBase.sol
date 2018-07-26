@@ -34,11 +34,10 @@ contract CryptofieldBase {
 
     Horse[] horses;
 
-
-    event Sell(address _from, address _to, uint256 _horseId, uint256 _amountOfTimesSold);
+    event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
     event Buy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
-    function buyStallion(address _buyer, string _horseHash) internal returns(bool) {
+    function buyHorse(address _buyer, string _horseHash) external returns(bool) {
         saleId += 1;
 
         Horse memory horse;
@@ -70,6 +69,13 @@ contract CryptofieldBase {
     }
 
     /*
+    @dev Gets the length of the horses array
+    */
+    function getHorsesLength() public view returns(uint256) {
+        return horses.length;
+    }
+
+    /*
     @dev We can use the above functions independiently or get the whole family data from this function
     @returns all the information with from a horse's family (Foal names, parents, grandparents and
         great-grandparents)
@@ -82,7 +88,7 @@ contract CryptofieldBase {
     /*
     @returns all the information related to auction of a horse
     */
-    function auctionInformation(uint256 _horseId)
+    function horseAuctionInformation(uint256 _horseId)
         public view returns(uint256, uint256, uint256, uint256) {
 
         Horse memory horse = horses[_horseId];
@@ -94,9 +100,11 @@ contract CryptofieldBase {
     @dev Adds 1 to the amount of times a horse has been sold.
     @dev Adds unix timestamp of the date the horse was sold.
     */
-    function horseSell(address _from, address _to, uint256 _horseId) public payable {
+    function horseSold(uint256 _horseId) external {
         Horse storage horse = horses[_horseId];
         horse.amountOfTimesSold += 1;
         horse.dateSold = now;
+
+        emit HorseSell(_horseId, horse.amountOfTimesSold);
     }
 }

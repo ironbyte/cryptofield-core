@@ -3,8 +3,9 @@ pragma solidity ^0.4.2;
 import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
 import "./CToken.sol";
 
-contract Auctions is CToken, usingOraclize {
+contract Auctions is usingOraclize {
     uint256[] public auctionIds;
+    address public ctoken;
 
     struct AuctionData {
         address owner;
@@ -22,22 +23,19 @@ contract Auctions is CToken, usingOraclize {
     }
 
     mapping(uint256 => AuctionData) auctions;
-
+    
     event Response(bytes32 id, string result);
     event Owner(address _owner);
 
-    constructor() public payable {
+    constructor(address _ctoken) public {
         OAR = OraclizeAddrResolverI(0xf0Bd23c643B420e399645fe54128A2E27915BdB9);
-    }
-
-    function __ownerOf(uint256 _horseId) public view returns(address) {
-        return ownerOf(_horseId);
+        ctoken = _ctoken;
     }
 
     function createAuction(uint256 _duration, uint256 _horseId) public payable {
         // We ensure that the value sent can cover the Query price for later usage.
         require(msg.value >= oraclize_getPrice("URL"));
-        // require(msg.sender == ownerOfHorse(_horseId));
+        require(msg.sender == CToken(ctoken).ownerOfToken(_horseId));
 
         uint256 auctionId = auctionIds.push(0) - 1;
 
@@ -47,7 +45,7 @@ contract Auctions is CToken, usingOraclize {
         auction.duration = _duration;
         auction.horse = _horseId;
 
-        // sendAuctionQuery(_duration, auctionId);
+        sendAuctionQuery(_duration, auctionId);
     }
 
     /*
@@ -129,7 +127,7 @@ contract Auctions is CToken, usingOraclize {
     /* 
     @dev Check if an auction is open or closed by a given ID.
     */
-    function getAuctionStatus(uint _id) public view returns(bool) {
+    function getAuctionStatus(uint256 _id) public view returns(bool) {
         return auctions[_id].isOpen;
     }
 
