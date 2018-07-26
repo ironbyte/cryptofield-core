@@ -37,7 +37,7 @@ contract CryptofieldBase {
     event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
     event Buy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
-    function buyHorse(address _buyer, string _horseHash) external returns(bool) {
+    function buyHorse(address _buyer, string _horseHash) external {
         saleId += 1;
 
         Horse memory horse;
@@ -52,8 +52,6 @@ contract CryptofieldBase {
         horses.push(horse);
 
         emit Buy(_buyer, now, horse.saleId);
-
-        return true;
     }
 
     /*
