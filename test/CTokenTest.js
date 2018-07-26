@@ -1,33 +1,42 @@
-/*const CToken = artifacts.require("./CToken");
+const CToken = artifacts.require("./CToken");
 
-import assertRevert from "zeppelin-solidity/test/helpers/assertRevert";
+contract("CToken", acc => {
+  let instance;
+  let owner = acc[0];
+  let secondBuyer = acc[1];
+  let amount = new web3.BigNumber(web3.toWei(1, "finney"));
 
-contract("CryptofieldToken", acc => {
-  it("Should make first account the owner", async () => {
-    let instance = await CToken.deployed();
-    let owner = await instance.owner();
-
-    assert.equal(owner, acc[0]);
+  beforeEach("setup instance", async () => {
+    instance = await CToken.deployed();
   })
 
-  describe("mint", () => {
-    it("creates a token with specified outer and inner colors", async () => {
-      let instance = await CToken.deployed();
-      let owner = await instance.owner();
-      let token = await instance.mint("#ff00dd", "#ddddff");
-      let tokens = await instance.tokenOfOwnerByIndex(owner, 0);
-      let gradients = await instance.getGradientData(tokens);
+  it("should mint a new token with specified params", async () => {
+    await instance.createHorse(owner, "some random hash", {value: amount});
+    let tokenOwner = await instance.ownerOfToken.call(0);
 
-      assert.deepEqual(gradients, ["#ff00dd", "#ddddff"]);
-    })
+    assert.equal(tokenOwner, owner);
+  })
 
-    it("allows new tokens to be minted only by the owner", async () => {
-      let instance = await CToken.deployed();
-      let other = acc[1];
+  it("should return the owned tokens of an address", async () => {
+    let tokens = await instance.getOwnedTokens.call(owner);
 
-      await instance.transferOwnership(other);
-      await assertRevert(instance.mint("#ff00dd", "#ddddff"));
-    })
+    // This returns the token IDS in an array, not the amount of tokens.
+    assert.equal(tokens.toString(), "0");
+  })
+
+  it("should be able to transfer a token", async () => {
+    // 'owner' has token 0.
+    await instance.transferTokenTo(owner, secondBuyer, 0);
+    let newTokenOwner = await instance.ownerOfToken.call(0);
+
+    assert.equal(secondBuyer, newTokenOwner);
+  })
+
+  it("should transfer a token when a sale is made for a given token", async () => {
+    // From 'secondBuyer' to 'owner'
+    await instance.tokenSold(secondBuyer, owner, 0, {from: secondBuyer});
+    let newTokenOwner = await instance.ownerOfToken.call(0);
+
+    assert.equal(owner, newTokenOwner);
   })
 })
-*/
