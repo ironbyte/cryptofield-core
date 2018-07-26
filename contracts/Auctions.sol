@@ -4,8 +4,8 @@ import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
 import "./CToken.sol";
 
 contract Auctions is usingOraclize {
-    uint256[] public auctionIds;
-    address public ctoken;
+    uint256[] auctionIds;
+    address ctoken;
 
     struct AuctionData {
         address owner;
@@ -20,15 +20,17 @@ contract Auctions is usingOraclize {
         address[] bidders;
         // Maps each address on this auction to a bid.
         mapping(address => uint256) bids;
+        mapping(address => bool) exists;
     }
 
     mapping(uint256 => AuctionData) auctions;
     
     event Response(bytes32 id, string result);
     event Owner(address _owner);
+    event AuctionCreated(uint256 _auctionId);
 
     constructor(address _ctoken) public {
-        OAR = OraclizeAddrResolverI(0xf0Bd23c643B420e399645fe54128A2E27915BdB9);
+        OAR = OraclizeAddrResolverI(0xFC0dF90FC691d442D3c1304BE5ba165cFd554Cb8);
         ctoken = _ctoken;
     }
 
@@ -45,14 +47,16 @@ contract Auctions is usingOraclize {
         auction.duration = _duration;
         auction.horse = _horseId;
 
-        sendAuctionQuery(_duration, auctionId);
+        sendAuctionQuery(_duration, auctionId); 
+
+        emit AuctionCreated(auctionId);
     }
 
     /*
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://e075b353.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://32333a78.ngrok.io/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
@@ -75,15 +79,24 @@ contract Auctions is usingOraclize {
     /*
     @dev bid function when an auction is created
     */
-    function bid(uint256 _auctionId, uint256 _horseId) public payable returns(bool) {
+    function bid(uint256 _auctionId) public payable returns(bool) {
         AuctionData storage auction = auctions[_auctionId];
-
         require(auction.isOpen);
-        // You can only record another bid if it is higher than the previous one.
-        require(msg.value > auction.maxBid);
 
-        auction.bids[msg.sender] += msg.value;
-        auction.bidders.push(msg.sender);
+        // 'newBid' is the current value of an user's bid and the msg.value.
+        uint256 newBid = auction.bids[msg.sender] + msg.value;
+
+        // You can only record another bid if it is higher than the max bid.
+        require(newBid > auction.maxBid);
+
+        auction.bids[msg.sender] = newBid;
+
+        // push to the array of bidders if the address doesn't exists yet.
+        if(!auction.exists[msg.sender]) {
+            auction.bidders.push(msg.sender);
+            auction.exists[msg.sender] = true;
+        }
+
         auction.maxBid = msg.value;
         auction.maxBidder = msg.sender;
 
@@ -145,5 +158,22 @@ contract Auctions is usingOraclize {
         AuctionData memory auction = auctions[_id];
 
         return auction.duration;
+    }
+
+    /*
+    @dev Gets the max bidder for an auction.
+    */
+    function getMaxBidder(uint256 _auctionId) public view returns(address, uint256) {
+        AuctionData memory auction = auctions[_auctionId];
+
+        return (auction.maxBidder, auction.maxBid);
+    }
+
+    /*
+    @dev Gets the length of the bidders in a given auction.
+    */
+    function amountOfBidders(uint256 _auctionId) public view returns(uint256) {
+        AuctionData memory auction = auctions[_auctionId];
+        return auction.bidders.length;
     }
 }
