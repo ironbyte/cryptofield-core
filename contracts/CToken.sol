@@ -34,7 +34,6 @@ contract CToken is ERC721Token {
     }
 
     function transferTokenTo(address _from, address _to, uint256 _tokenId) public {
-        approve(_to, _tokenId);
         safeTransferFrom(_from, _to, _tokenId);
     }
 
@@ -42,11 +41,14 @@ contract CToken is ERC721Token {
         return ownerOf(_tokenId);
     }
 
+    function approveAddress(address _to, uint256 _tokenId) public {
+        approve(_to, _tokenId);
+    }
+
     /*
     @dev Transfer a token of '_from' to '_to'
     */
     function tokenSold(address _from, address _to, uint256 _tokenId) public {
-        approve(_to, _tokenId);
         safeTransferFrom(_from, _to, _tokenId);
         CryptofieldBase(cryptofieldBase).horseSold(_tokenId);
     }
