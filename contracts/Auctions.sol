@@ -1,9 +1,10 @@
 pragma solidity ^0.4.2;
 
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
 import "./CToken.sol";
 
-contract Auctions is usingOraclize {
+contract Auctions is usingOraclize, Ownable {
     uint256[] auctionIds;
     address ctoken;
 
@@ -25,13 +26,13 @@ contract Auctions is usingOraclize {
 
     mapping(uint256 => AuctionData) auctions;
     
-    event Response(bytes32 id, string result);
-    event Owner(address _owner);
     event AuctionCreated(uint256 _auctionId);
+    event Withdraw(address _owner, uint256 _payout);
 
     constructor(address _ctoken) public {
         OAR = OraclizeAddrResolverI(0xFC0dF90FC691d442D3c1304BE5ba165cFd554Cb8);
         ctoken = _ctoken;
+        owner = msg.sender;
     }
 
     function createAuction(uint256 _duration, uint256 _horseId) public payable {
@@ -47,7 +48,7 @@ contract Auctions is usingOraclize {
         auction.duration = _duration;
         auction.horse = _horseId;
 
-        sendAuctionQuery(_duration, auctionId); 
+        sendAuctionQuery(_duration, auctionId);
 
         emit AuctionCreated(auctionId);
     }
@@ -68,11 +69,7 @@ contract Auctions is usingOraclize {
     */
     function __callback(bytes32 _id, string _result) public {
         require(msg.sender == oraclize_cbAddress());
-
-        emit Response(_id, _result);
-
-        uint uintResult = parseInt(_result);
-
+        uint uintResult = parseInt(_result);    
         auctions[uintResult].isOpen = false;
     }
 
@@ -82,6 +79,8 @@ contract Auctions is usingOraclize {
     function bid(uint256 _auctionId) public payable returns(bool) {
         AuctionData storage auction = auctions[_auctionId];
         require(auction.isOpen);
+        // owner can't bid on its own auction.
+        require(msg.sender != auction.owner);
 
         // 'newBid' is the current value of an user's bid and the msg.value.
         uint256 newBid = auction.bids[msg.sender] + msg.value;
@@ -104,7 +103,7 @@ contract Auctions is usingOraclize {
     }
 
     // Withdrawals need to be manually triggered.
-    function withdraw(uint256 _auctionId) public returns(bool) {
+    function withdraw(uint256 _auctionId) public {
         AuctionData storage auction = auctions[_auctionId];
         require(!auction.isOpen);
 
@@ -116,18 +115,31 @@ contract Auctions is usingOraclize {
         }
 
         // We ensure the msg.sender isn't the max bidder nor the owner.
-        // If the address is the owner that would evaluate to true two times (above and this one) and 'payout' wouldn't be correct.
+        // If the address is the owner that would evaluate to true two times (above and this one) 
+        // and 'payout' wouldn't be correct.
+        // If msg.sender didn't bid then the payout will be 0 anyhow.
         if(msg.sender != auction.maxBidder && msg.sender != auction.owner) {
             payout = auction.bids[msg.sender];
             auction.bids[msg.sender] = 0;
         }
 
         if(msg.sender == auction.maxBidder) {
-            // TODO: Send horse to winner
+            // Manually sends the token from owner to maxBidder.
+            // CToken(ctoken).transferTokenTo(auction.owner, msg.sender, auction.horse);
+            delete auction.maxBidder;
         }
 
         msg.sender.transfer(payout);
-        return true;
+        
+        emit Withdraw(msg.sender, payout);
+    }
+
+    /*
+    @dev Gives a way for the owner of the contract to close the auction manually in case of malfunction.
+    */
+    function closeAuction(uint256 _auctionId) onlyOwner() public {
+        AuctionData storage auction = auctions[_auctionId];
+        auction.isOpen = false;
     }
 
     /*
