@@ -2,8 +2,11 @@ pragma solidity ^0.4.2;
 
 import "./ERC721Token.sol";
 import "./CryptofieldBase.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract CToken is ERC721Token {
+    using SafeMath for uint256;
+
     uint256 stallionsAvailable = 168;
     uint256 maresAvailable = 379;
     uint256 coltsAvailable = 230;
@@ -30,7 +33,7 @@ contract CToken is ERC721Token {
         _mint(_owner, tokenId);
         CryptofieldBase(cryptofieldBase).buyHorse(_owner, _hash);
 
-        stallionsAvailable -= 1;
+        stallionsAvailable = stallionsAvailable.sub(1);
     }
 
     function transferTokenTo(address _from, address _to, uint256 _tokenId) public {

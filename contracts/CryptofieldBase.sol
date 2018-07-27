@@ -1,6 +1,10 @@
 pragma solidity ^0.4.2;
 
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+
 contract CryptofieldBase {
+    using SafeMath for uint256;
+
     uint256 saleId;
 
     /*
@@ -38,7 +42,7 @@ contract CryptofieldBase {
     event Buy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
     function buyHorse(address _buyer, string _horseHash) external {
-        saleId += 1;
+        saleId = saleId.add(1);
 
         Horse memory horse;
         horse.buyer = _buyer;
@@ -100,7 +104,7 @@ contract CryptofieldBase {
     */
     function horseSold(uint256 _horseId) external {
         Horse storage horse = horses[_horseId];
-        horse.amountOfTimesSold += 1;
+        horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
         horse.dateSold = now;
 
         emit HorseSell(_horseId, horse.amountOfTimesSold);
