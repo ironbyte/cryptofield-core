@@ -4,6 +4,7 @@ const CToken = artifacts.require("./CToken");
 contract("Auctions", acc => {
   let instance;
   let tokenInstance;
+  let owner = acc[0];
   let buyer = acc[1];
   let amount = new web3.BigNumber(web3.toWei(1, "ether"));
 
@@ -36,17 +37,17 @@ contract("Auctions", acc => {
     let auctionId = res.logs[0].args._auctionId.toNumber();
 
     // Auction should be open for a while, we're not calling the __callback function anyway.
-    await instance.bid(auctionId, {from: buyer, value: new web3.BigNumber(web3.toWei(0.025, "ether"))});
+    await instance.bid(auctionId, {from: acc[3], value: new web3.BigNumber(web3.toWei(0.025, "ether"))});
 
     // No one has bidded yet so the user should be the max bidder.
     let maxBidder = await instance.getMaxBidder.call(auctionId);
-    assert.equal(maxBidder[0], buyer);
+    assert.equal(maxBidder[0], acc[3]);
 
     // Record another bid for a higher amount
-    await instance.bid(auctionId, {from: acc[3], value: new web3.BigNumber(web3.toWei(0.030, "ether"))});
+    await instance.bid(auctionId, {from: acc[4], value: new web3.BigNumber(web3.toWei(0.030, "ether"))});
 
     let newMaxBidder = await instance.getMaxBidder.call(auctionId);
-    assert.equal(newMaxBidder[0], acc[3]);
+    assert.equal(newMaxBidder[0], acc[4]);
 
     // amount of bidders should be two (2)
     let bidders = await instance.amountOfBidders.call(auctionId);
@@ -67,8 +68,52 @@ contract("Auctions", acc => {
       await instance.bid(auctionId, {from: acc[3], value: web3.toWei(0.5, "finney")});
       assert.fail("Expected revert not received");
     } catch(err) {
-      const revertFound = err.message.search("revert") >= 0;
+      let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
+  })
+
+  it("should let the owner close an auction", async () => {
+    // We're going to close an already open auction
+    let status = await instance.getAuctionStatus.call(0);
+    assert.equal(status, true);
+
+    await instance.closeAuction(0, {from: owner});
+    
+    status = await instance.getAuctionStatus.call(0);
+    assert.equal(status, false);
+  })
+
+  it("should revert if not the owner tries to close an auction", async () => {
+    // Again, we're using an existing auction.
+    let status = await instance.getAuctionStatus.call(1);
+    assert.equal(status, true);
+
+    try {
+      await instance.closeAuction(1, {from: acc[1]});
+      assert.fail("Expected revert not received");
+    } catch(err) {
+      let revertFound = err.message.search("revert") >= 0;
+      assert(revertFound, `Expected "revert", got ${err} instead`);
+    }
+  })
+
+  it("should send the token to the max bidder of an auction", async () => {
+    await tokenInstance.createHorse(buyer, "fourth hash");
+
+    let res = await instance.createAuction(1, 3, {from: buyer, value: amount});
+    let auctionId = res.logs[0].args._auctionId.toNumber();
+
+    await instance.bid(auctionId, {from: acc[3], value: amount});
+
+    // Auction closed
+    await instance.closeAuction(auctionId, {from: owner});
+
+    // TODO: Fix tests
+    // maxBidder claims the reward
+    // await instance.withdraw(auctionId, {from: acc[3]});
+
+    // let tokenOwner = tokenInstance.ownerOfToken.call(3);
+    // assert.equal(tokenOwner, acc[3]);
   })
 })
