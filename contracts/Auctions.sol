@@ -25,9 +25,9 @@ contract Auctions is usingOraclize, Ownable {
     }
 
     mapping(uint256 => AuctionData) auctions;
-    
+
     event AuctionCreated(uint256 _auctionId);
-    event Withdraw(address _owner, uint256 _payout);
+    event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
         OAR = OraclizeAddrResolverI(0xFC0dF90FC691d442D3c1304BE5ba165cFd554Cb8);
@@ -39,6 +39,7 @@ contract Auctions is usingOraclize, Ownable {
         // We ensure that the value sent can cover the Query price for later usage.
         require(msg.value >= oraclize_getPrice("URL"));
         require(msg.sender == CToken(ctoken).ownerOfToken(_horseId));
+        require(CToken(ctoken).isTokenApproved(this, _horseId));
 
         uint256 auctionId = auctionIds.push(0) - 1;
 
@@ -69,7 +70,7 @@ contract Auctions is usingOraclize, Ownable {
     */
     function __callback(bytes32 _id, string _result) public {
         require(msg.sender == oraclize_cbAddress());
-        uint uintResult = parseInt(_result);    
+        uint uintResult = parseInt(_result);
         auctions[uintResult].isOpen = false;
     }
 
@@ -115,7 +116,7 @@ contract Auctions is usingOraclize, Ownable {
         }
 
         // We ensure the msg.sender isn't the max bidder nor the owner.
-        // If the address is the owner that would evaluate to true two times (above and this one) 
+        // If the address is the owner that would evaluate to true two times (above and this one)
         // and 'payout' wouldn't be correct.
         // If msg.sender didn't bid then the payout will be 0 anyhow.
         if(msg.sender != auction.maxBidder && msg.sender != auction.owner) {
@@ -125,12 +126,12 @@ contract Auctions is usingOraclize, Ownable {
 
         if(msg.sender == auction.maxBidder) {
             // Manually sends the token from owner to maxBidder.
-            // CToken(ctoken).transferTokenTo(auction.owner, msg.sender, auction.horse);
+            CToken(ctoken).transferTokenTo(auction.owner, msg.sender, auction.horse);
             delete auction.maxBidder;
         }
 
         msg.sender.transfer(payout);
-        
+
         emit Withdraw(msg.sender, payout);
     }
 
@@ -149,7 +150,7 @@ contract Auctions is usingOraclize, Ownable {
         return oraclize_getPrice("URL");
     }
 
-    /* 
+    /*
     @dev Check if an auction is open or closed by a given ID.
     */
     function getAuctionStatus(uint256 _id) public view returns(bool) {
@@ -165,7 +166,7 @@ contract Auctions is usingOraclize, Ownable {
 
     /*
     @dev Gets the duration of a given auction.
-    */  
+    */
     function getAuctionDuration(uint256 _id) public view returns(uint256) {
         AuctionData memory auction = auctions[_id];
 

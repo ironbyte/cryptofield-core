@@ -13,6 +13,7 @@ contract("Auctions", acc => {
 
     // We need this instance to mint a token.
     tokenInstance = await CToken.deployed();
+    await tokenInstance.setAuctions(instance.address);
   })
 
   /*
@@ -21,6 +22,7 @@ contract("Auctions", acc => {
   */
   it("should create an auction", async () => {
     await tokenInstance.createHorse(buyer, "some hash");
+    await tokenInstance.approveAuctions(0, {from: buyer});
     await instance.createAuction(0, 0, {from: buyer, value: amount});
 
     let auctions = await instance.getAuctionsLength.call();
@@ -32,6 +34,7 @@ contract("Auctions", acc => {
 
   it("should record a new bid for an address", async () => {
     await tokenInstance.createHorse(buyer, "other hash");
+    await tokenInstance.approveAuctions(1, {from: buyer});
     
     let res = await instance.createAuction(1, 1, {from: buyer, value: amount});
     let auctionId = res.logs[0].args._auctionId.toNumber();
@@ -56,6 +59,7 @@ contract("Auctions", acc => {
 
   it("should revert if the new bid amount is lower than the maxBid", async () => {
     await tokenInstance.createHorse(buyer, "third hash");
+    await tokenInstance.approveAuctions(2, {from: buyer});
 
     let res = await instance.createAuction(1, 2, {from: buyer, value: amount});
     let auctionId = res.logs[0].args._auctionId.toNumber();
@@ -100,6 +104,7 @@ contract("Auctions", acc => {
 
   it("should send the token to the max bidder of an auction", async () => {
     await tokenInstance.createHorse(buyer, "fourth hash");
+    await tokenInstance.approveAuctions(3, {from: buyer});
 
     let res = await instance.createAuction(1, 3, {from: buyer, value: amount});
     let auctionId = res.logs[0].args._auctionId.toNumber();
@@ -109,11 +114,51 @@ contract("Auctions", acc => {
     // Auction closed
     await instance.closeAuction(auctionId, {from: owner});
 
-    // TODO: Fix tests
     // maxBidder claims the reward
-    // await instance.withdraw(auctionId, {from: acc[3]});
+    await instance.withdraw(auctionId, {from: acc[3]});
 
-    // let tokenOwner = tokenInstance.ownerOfToken.call(3);
-    // assert.equal(tokenOwner, acc[3]);
+    let tokenOwner = await tokenInstance.ownerOfToken.call(3);
+
+    assert.equal(tokenOwner, acc[3]);
+  })
+
+  it("should send max bid to the auction owner", async () => {
+    await tokenInstance.createHorse(buyer, "fifth hash");
+    await tokenInstance.approveAuctions(4, {from: buyer});
+
+    let res = await instance.createAuction(1, 4, {from: buyer, value: amount});
+    let auction = res.logs[0].args._auctionId.toNumber();
+
+    await instance.bid(auction, {from: acc[4], value: web3.toWei(1, "finney")});
+
+    await instance.closeAuction(auction, {from: owner});
+
+    let op = await instance.withdraw(auction, {from: buyer});
+    let user = op.logs[0].args._user;
+    let payout = op.logs[0].args._payout;
+
+    assert.equal(user, buyer);
+    assert.equal(payout, web3.toWei(1, "finney"));
+  })
+
+  it("should get the amount they bid if they're not the owner or winner", async () => {
+    await tokenInstance.createHorse(buyer, "fifth hash");
+    await tokenInstance.approveAuctions(5, {from: buyer});
+
+    let res = await instance.createAuction(1, 5, {from: buyer, value: amount});
+    let auction = res.logs[0].args._auctionId.toNumber();
+
+    await instance.bid(auction, {from: acc[5], value: web3.toWei(1, "finney")});
+    await instance.bid(auction, {from: acc[4], value: web3.toWei(2, "finney")});
+
+    await instance.closeAuction(auction, {from: owner});
+
+    // Not the winner nor the owner
+    let op = await instance.withdraw(auction, {from: acc[5]});
+    let address = op.logs[0].args._user;
+    let payout = op.logs[0].args._payout;
+
+    assert.equal(address, acc[5]);
+    assert.equal(payout, web3.toWei(1, "finney"));
   })
 })
