@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Auctions from "./../../build/contracts/Auctions.json";
 import CryptofieldBase from "./../../build/contracts/CryptofieldBase.json";
+import AuctionCreator from "./AuctionCreator";
 
 export default class AuctionsComponent extends Component {
   constructor(props) {
@@ -9,7 +10,9 @@ export default class AuctionsComponent extends Component {
     this.state = {
       instance: null,
       baseInstance: null,
-      tokens: []
+      tokens: [],
+      horseInAuction: null,
+      creatingAuction: false,
     }
 
     this.setAuctions = this.setAuctions.bind(this);
@@ -60,6 +63,10 @@ export default class AuctionsComponent extends Component {
     await this.props.tokenInstance.approveAuctions(id, {from: accounts[0]});
   }
 
+  async createAuction(id) {
+    this.setState(prevState => ({ creatingAuction: !prevState.creatingAuction, horseInAuction: id }))
+  } 
+
   render() {
     return(
       <div className="cell">
@@ -76,6 +83,7 @@ export default class AuctionsComponent extends Component {
               <th>Pedigree</th>
               <th>Running style</th>
               <th>Approved?</th>
+              <th>Create Auction</th>
             </tr>
           </thead>
 
@@ -100,6 +108,12 @@ export default class AuctionsComponent extends Component {
                     >
                       {token.isApproved}
                     </td>
+
+                    {
+                      // Create this if the token is approved
+                      token.isApproved === "true" &&
+                      <td onClick={this.createAuction.bind(this, token.id)}> Click  </td>
+                    }
                   </tr>
                 )
               })
@@ -108,6 +122,15 @@ export default class AuctionsComponent extends Component {
         </table>
 
         <button className="button expanded warning" onClick={this.setAuctions}>Setup Auctions Address</button>
+
+        {
+          this.state.creatingAuction &&
+          <AuctionCreator 
+            web3={this.props.web3} 
+            instance={this.state.instance} 
+            horse={this.state.horseInAuction} 
+          />
+        }
       </div>
     )
   }
