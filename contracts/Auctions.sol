@@ -1,10 +1,13 @@
 pragma solidity ^0.4.2;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
 import "./CToken.sol";
 
 contract Auctions is usingOraclize, Ownable {
+    using SafeMath for uint256;
+
     uint256[] auctionIds;
     address ctoken;
 
@@ -85,14 +88,14 @@ contract Auctions is usingOraclize, Ownable {
         require(msg.sender != auction.owner);
 
         // 'newBid' is the current value of an user's bid and the msg.value.
-        uint256 newBid = auction.bids[msg.sender] + msg.value;
+        uint256 newBid = auction.bids[msg.sender].add(msg.value);
 
         // You can only record another bid if it is higher than the max bid.
         require(newBid > auction.maxBid);
 
         auction.bids[msg.sender] = newBid;
 
-        // push to the array of bidders if the address doesn't exists yet.
+        // push to the array of bidders if the address doesn't exist yet.
         if(!auction.exists[msg.sender]) {
             auction.bidders.push(msg.sender);
             auction.exists[msg.sender] = true;
@@ -116,17 +119,17 @@ contract Auctions is usingOraclize, Ownable {
             auction.maxBid = 0;
         }
 
-        // We ensure the msg.sender isn't the max bidder nor the owner.
+        // We ensure the msg.sender isn't either the max bidder or the owner.
         // If the address is the owner that would evaluate to true two times (above and this one)
         // and 'payout' wouldn't be correct.
-        // If msg.sender didn't bid then the payout will be 0 anyhow.
+        // If 'msg.sender' didn't bid then the payout will be 0.
         if(msg.sender != auction.maxBidder && msg.sender != auction.owner) {
             payout = auction.bids[msg.sender];
             auction.bids[msg.sender] = 0;
         }
 
         if(msg.sender == auction.maxBidder) {
-            // Manually sends the token from owner to maxBidder.
+            // Sends the token from 'auction.owner' to 'maxBidder'.
             CToken(ctoken).transferTokenTo(auction.owner, msg.sender, auction.horse);
             delete auction.maxBidder;
         }
@@ -175,7 +178,7 @@ contract Auctions is usingOraclize, Ownable {
     }
 
     /*
-    @dev Gets the max bidder for an auction.
+    @dev Gets the max bidder and the bid for a given auction.
     */
     function getMaxBidder(uint256 _auctionId) public view returns(address, uint256) {
         AuctionData memory auction = auctions[_auctionId];
@@ -189,5 +192,13 @@ contract Auctions is usingOraclize, Ownable {
     function amountOfBidders(uint256 _auctionId) public view returns(uint256) {
         AuctionData memory auction = auctions[_auctionId];
         return auction.bidders.length;
+    }
+
+    /*
+    @dev Gets the bid of a given address in a given auction.
+    */
+    function bidOfBidder(address _bidder, uint256 _auctionId) public view returns(uint256) {
+        AuctionData storage auction = auctions[_auctionId];
+        return auction.bids[_bidder];
     }
 }

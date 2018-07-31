@@ -161,4 +161,21 @@ contract("Auctions", acc => {
     assert.equal(address, acc[5]);
     assert.equal(payout, web3.toWei(1, "finney"));
   })
+
+  it("should return the bid of a given address in an auction", async () => {
+    let bidAmount = web3.toWei(1, "finney");
+    // We'll create another token and auction here
+    await tokenInstance.createHorse(acc[4], "6th hash");
+    await tokenInstance.approveAuctions(6, {from: acc[4]});
+
+    let response = await instance.createAuction(1, 6, {from: acc[4], value: amount});
+    let auction = response.logs[0].args._auctionId.toNumber();
+
+    await instance.bid(auction, {from: acc[5], value: bidAmount});
+
+    // current bid should be 1 finney
+    let currentBid = await instance.bidOfBidder.call(acc[5], auction);
+
+    assert.equal(currentBid, bidAmount);
+  })
 })
