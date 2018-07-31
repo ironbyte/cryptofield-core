@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
-import CryptofieldBase from "./../build/contracts/CryptofieldBase.json";
-import Auctions from "./../build/contracts/Auctions.json";
-import Transfer from "./components/Transfer";
+import CToken from "./../build/contracts/CToken.json";
+import AuctionsComponent from "./components/AuctionsComponent";
 
 // Creates a new instance of IPFS.
 const IPFS = require("ipfs-mini");
@@ -13,18 +12,16 @@ class App extends Component {
     super(props)
 
     this.state = {
-      instance: null,
-      horsesAvailable: [],
+      tokenInstance: null,
       horsesOwned: [],
-      isTransferring: false,
+      isCreatingAuction: false,
       ipfs: null,
-      lastTx: null,
-      auctionsInstance: null
+      genIPFS: false,
+      newHorse: false
     }
 
-    this.myHorses = this.myHorses.bind(this);
     this.buy = this.buy.bind(this);
-    this.transfer = this.transfer.bind(this);
+    this.auctions = this.auctions.bind(this);
   }
 
   componentWillMount() {
@@ -40,74 +37,40 @@ class App extends Component {
     })
   }
 
-  componentDidUpdate() {
-    let horsesAvailableArray = [];
-
-    this.state.instance.getHorsesAvailable.call()
-    .then(res => {
-      res.forEach((horse, i) => { horsesAvailableArray[i] = horse.toString() })
-
-      this.setState({ horsesAvailable: horsesAvailableArray })
-    })
-  }
-
   instantiateContract() {
     let contract = require('truffle-contract')
-    let CryptofieldBaseContract = contract(CryptofieldBase);
-    let AuctionsContract = contract(Auctions);
+    let CTokenContract = contract(CToken);
 
-    CryptofieldBaseContract.setProvider(this.web3.currentProvider);
-    AuctionsContract.setProvider(this.web3.currentProvider);
+    CTokenContract.setProvider(this.web3.currentProvider);
 
-    CryptofieldBaseContract.deployed().then(instance => {
-      this.setState({ instance: instance });
-    })
-
-    AuctionsContract.deployed().then(instance => {
-      this.setState({ auctionsInstance: instance })
+    CTokenContract.deployed().then(instance => {
+      this.setState({ tokenInstance: instance });
     })
   }
 
   buy() {
-    this.state.auctionsInstance.getQueryPrice.call()
+    fetch("http://localhost:4000/api/v1/generate_horse")
+    .then(result => { return result.json() })
     .then(res => {
-      let amount = res.toNumber()
+      this.setState({ genIPFS: true })
 
-      this.web3.eth.getAccounts((err, accounts) => {
-        this.state.auctionsInstance.createAuction(accounts[0], 120, {from: accounts[0], value: amount})
+      window.ipfs.addJSON(res, (err, _hash) => {
+        console.log(_hash)
 
-        .then(res => { console.log(res) })
+        this.web3.eth.getAccounts((web3Err, accounts) => {
+          this.state.tokenInstance.createHorse(accounts[0], _hash, {from: accounts[0]})
+          .then(res => { 
+            this.setState({ newHorse: true, genIPFS: false }) 
+          })
+          .catch(err => { console.log(err) })
+        })
       })
     })
-
-    // fetch("http://localhost:4000/api/v1/generate_horse")
-    // .then(result => { return result.json() })
-    // .then(res => {
-    //   window.ipfs.addJSON(res, (err, _hash) => {
-    //     console.log(_hash)
-
-    //     this.web3.eth.getAccounts((web3Err, accounts) => {
-    //       this.state.instance.buyStallion(accounts[0], _hash, {from: accounts[0]})
-    //       .then(res => { this.setState({ lastTx: res.receipt.transactionHash }) })
-    //       .catch(err => { console.log(err) })
-    //     })
-    //   })
-    // })
-    // .catch(err => { console.log("There was an error processing the request", err) })
+    .catch(err => { console.log("There was an error processing the request", err) })
   }
 
-  myHorses() {
-    let horsesArr = [];
-
-    this.web3.eth.getAccounts((err, accounts) => {
-      this.state.instance.getHorsesOwned.call(accounts[0], {from: accounts[0]})
-      .then(res => {
-        res.forEach(horseId => { horsesArr.push(horseId) })
-
-        this.setState({ horsesOwned: horsesArr })
-      })
-      .catch(err => { console.log(err) })
-    })
+  auctions() {
+    this.setState(prevState => ({ isCreatingAuction: !prevState.isCreatingAuction }));
   }
 
   showHorseInfo(horseId) {
@@ -120,21 +83,15 @@ class App extends Component {
     .catch(err => { console.log(err) })
   }
 
-  transfer() {
-    this.setState(prevState => ({ isTransferring: !prevState.isTransferring }))
-  }
-
   render() {
-    let link = "https://ropsten.etherscan.io/tx/" + this.state.lastTx
-
-    return (
+    return(
       <div className="grid-x grid-margin-x">
         <div className="text-center cell">
           <img
             src="/horse.png"
             alt="horse"
           />
-          <h2 className="text-center"> {this.state.horsesAvailable[0]} stallions available! </h2>
+          <h2 className="text-center"> Buy a new horse now! </h2>
           <button
             onClick={this.buy}
             className="button expanded success"
@@ -142,15 +99,22 @@ class App extends Component {
             Buy
           </button>
 
-          <button onClick={this.myHorses} className="button expanded success"> Your horses </button>
-          <button onClick={this.transfer} className="button expanded success"> Transfer </button>
+          {
+            this.state.genIPFS &&
+            <h2> Your horse is being generated, please wait a moment </h2>
+          }
 
-          <h3 onClick={() => {
-            this.state.auctionsInstance.getAuctionStatus.call(0)
-            .then(res => { console.log(res) })
-          }}>
-            IDS
-          </h3>
+          {
+            this.state.newHorse &&
+            <h2>Your new horse has been created!</h2>
+          }
+
+          <button
+            onClick={this.auctions}
+            className="button expanded success"
+          >
+            Create Auction
+          </button>
         </div>
 
         {
@@ -170,16 +134,8 @@ class App extends Component {
         }
 
         {
-          this.state.isTransferring &&
-          <Transfer
-            instance={this.state.instance}
-            web3={this.web3}
-          />
-        }
-
-        {
-          this.state.lastTx &&
-          <a href={link} target="_blank">Transaction</a>
+          this.state.isCreatingAuction &&
+          <AuctionsComponent web3={this.web3} tokenInstance={this.state.tokenInstance} />
         }
       </div>
     );
