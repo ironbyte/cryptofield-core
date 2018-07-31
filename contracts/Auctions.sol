@@ -27,6 +27,7 @@ contract Auctions is usingOraclize, Ownable {
     mapping(uint256 => AuctionData) auctions;
 
     event AuctionCreated(uint256 _auctionId);
+    event Bid(address _bidder, uint256 _amount);
     event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
@@ -58,7 +59,7 @@ contract Auctions is usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://32333a78.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://9720a22c.ngrok.io/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
@@ -77,7 +78,7 @@ contract Auctions is usingOraclize, Ownable {
     /*
     @dev bid function when an auction is created
     */
-    function bid(uint256 _auctionId) public payable returns(bool) {
+    function bid(uint256 _auctionId) public payable {
         AuctionData storage auction = auctions[_auctionId];
         require(auction.isOpen);
         // owner can't bid on its own auction.
@@ -100,7 +101,7 @@ contract Auctions is usingOraclize, Ownable {
         auction.maxBid = msg.value;
         auction.maxBidder = msg.sender;
 
-        return true;
+        emit Bid(msg.sender, newBid);
     }
 
     // Withdrawals need to be manually triggered.
