@@ -1,6 +1,8 @@
 import React, { Component } from "react";
+import Countdown from "react-countdown-moment";
 import Auctions from "./../../build/contracts/Auctions.json";
 import getWeb3 from "./../utils/getWeb3";
+import moment from "moment";
 
 /*
 @dev Component to show the open auctions at the moment.
@@ -15,6 +17,8 @@ export default class OpenAuctions extends Component {
       instance: null,
       web3: null
     }
+
+    this.calculateTimeLeft = this.calculateTimeLeft.bind(this);
   }
 
   async componentDidMount() {
@@ -28,8 +32,6 @@ export default class OpenAuctions extends Component {
       let amountOfBidders = await this.state.instance.amountOfBidders.call(currAuction);
 
       auction = auction.concat(amountOfBidders);
-
-      console.log(auction);
 
       await this.setState(prevState => ({ auctions: [...prevState.auctions, auction] })); 
     }
@@ -53,6 +55,10 @@ export default class OpenAuctions extends Component {
   }
 
   // HTML rendering functions
+  calculateTimeLeft(start, duration) {
+    return  <Countdown endDate={moment.unix(start).add(duration, "seconds")} />
+  }
+
   auctionsTable() {
     return(
       <div>
@@ -62,9 +68,10 @@ export default class OpenAuctions extends Component {
           <thead>
             <tr>
               <th>Auctioner</th>
-              <th>Duration</th>
-              <th>Horse</th>
-              <th>Bidders</th>
+              <th>Created</th>
+              <th>Time left</th>
+              <th>Horse ID</th>
+              <th>Amount of Bidders</th>
             </tr>
           </thead>
 
@@ -74,9 +81,10 @@ export default class OpenAuctions extends Component {
                 return(
                   <tr key={index}>
                     <td>{auction[0].toString()}</td>
-                    <td>{auction[1].toString()}</td>
-                    <td>{auction[2].toString()}</td>
+                    <td>{moment.unix(auction[1].toNumber()).format("LLL")}</td>
+                    <td>{this.calculateTimeLeft(auction[1].toNumber(), auction[2].toNumber())}</td>
                     <td>{auction[3].toString()}</td>
+                    <td>{auction[4].toString()}</td>
                   </tr> 
                 )
               })
