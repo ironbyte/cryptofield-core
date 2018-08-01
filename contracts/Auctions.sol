@@ -18,6 +18,7 @@ contract Auctions is usingOraclize, Ownable {
         bool isOpen;
 
         uint256 duration;
+        uint256 createdAt;
         uint256 maxBid;
         uint256 horse;
 
@@ -56,6 +57,7 @@ contract Auctions is usingOraclize, Ownable {
         auction.isOpen = true;
         auction.duration = _duration;
         auction.horse = _horseId;
+        auction.createdAt = now;
 
         sendAuctionQuery(_duration, auctionId);
 
@@ -168,9 +170,9 @@ contract Auctions is usingOraclize, Ownable {
     /*
     @dev Gets some fields about a given auction.
     */
-    function getAuction(uint256 _auctionId) public view returns(address, uint256, uint256) {
+    function getAuction(uint256 _auctionId) public view returns(address, uint256, uint256, uint256) {
         AuctionData memory auction = auctions[_auctionId];
-        return(auction.owner, auction.duration, auction.horse);
+        return(auction.owner, auction.createdAt, auction.duration, auction.horse);
     }
 
     /*
