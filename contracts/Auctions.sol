@@ -234,6 +234,14 @@ contract Auctions is usingOraclize, Ownable {
     }
 
     /*
+    @dev Gets the minimum asking price for an auction.
+    */
+    function getMinimumAuctionPrice(uint256 _auctionId) public view returns(uint256) {
+        AuctionData memory auction = auctions[_auctionId];
+        return auction.minimum;
+    }
+
+    /*
     @dev Zeppelin implementation.
     @dev Here we're swapping the auction at a given '_index' for the last element
     and removing it from the array by reducing it.
