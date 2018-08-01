@@ -49,7 +49,7 @@ export default class AuctionsComponent extends Component {
         obj.isApproved = result.toString();
         obj.id = ownedTokens[i].toNumber();
 
-        this.setState({ tokens: [...this.state.tokens, obj] });
+        this.setState(prevState => ({ tokens: [...prevState.tokens, obj] }));
       })
     }
   }
