@@ -69,7 +69,7 @@ contract Auctions is usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://6ffa738c.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://399059c0.ngrok.io/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
@@ -163,6 +163,14 @@ contract Auctions is usingOraclize, Ownable {
     */
     function getQueryPrice() public returns(uint) {
         return oraclize_getPrice("URL");
+    }
+
+    /*
+    @dev Gets some fields about a given auction.
+    */
+    function getAuction(uint256 _auctionId) public view returns(address, uint256, uint256) {
+        AuctionData memory auction = auctions[_auctionId];
+        return(auction.owner, auction.duration, auction.horse);
     }
 
     /*
