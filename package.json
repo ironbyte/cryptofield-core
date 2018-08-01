@@ -63,6 +63,7 @@
     "moment": "^2.22.2",
     "openzeppelin-solidity": "1.10.0",
     "react": "^15.4.2",
+    "react-countdown-moment": "^0.0.4",
     "react-dom": "^15.4.2",
     "truffle-hdwallet-provider": "^0.0.5",
     "web3": "^1.0.0-beta.35"
