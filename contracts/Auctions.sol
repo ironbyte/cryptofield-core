@@ -9,6 +9,7 @@ contract Auctions is usingOraclize, Ownable {
     using SafeMath for uint256;
 
     uint256[] auctionIds;
+    uint256[] openAuctions;
     address ctoken;
 
     struct AuctionData {
@@ -28,6 +29,9 @@ contract Auctions is usingOraclize, Ownable {
     }
 
     mapping(uint256 => AuctionData) auctions;
+
+    // Maps an auction ID to an index.
+    mapping(uint256 => uint256) auctionIndex;
 
     event AuctionCreated(uint256 _auctionId);
     event Bid(address _bidder, uint256 _amount);
@@ -55,6 +59,9 @@ contract Auctions is usingOraclize, Ownable {
 
         sendAuctionQuery(_duration, auctionId);
 
+        uint256 index = openAuctions.push(auctionId) - 1;
+        auctionIndex[auctionId] = index;
+
         emit AuctionCreated(auctionId);
     }
 
@@ -62,7 +69,7 @@ contract Auctions is usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://9720a22c.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://6ffa738c.ngrok.io/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
@@ -70,12 +77,15 @@ contract Auctions is usingOraclize, Ownable {
 
     /*
     @dev Only one Query is being sent, when we get a response back we automatically
-    close the given auction.
+    close the given auction and remove it from the 'openAuctions' array.
     */
     function __callback(bytes32 _id, string _result) public {
         require(msg.sender == oraclize_cbAddress());
-        uint uintResult = parseInt(_result);
-        auctions[uintResult].isOpen = false;
+        uint auctionId = parseInt(_result);
+
+        _removeAuction(auctionId);
+
+        auctions[auctionId].isOpen = false;
     }
 
     /*
@@ -144,6 +154,7 @@ contract Auctions is usingOraclize, Ownable {
     */
     function closeAuction(uint256 _auctionId) onlyOwner() public {
         AuctionData storage auction = auctions[_auctionId];
+        _removeAuction(_auctionId);
         auction.isOpen = false;
     }
 
@@ -200,5 +211,26 @@ contract Auctions is usingOraclize, Ownable {
     function bidOfBidder(address _bidder, uint256 _auctionId) public view returns(uint256) {
         AuctionData storage auction = auctions[_auctionId];
         return auction.bids[_bidder];
+    }
+
+    /*
+    @dev Returns a list of the open auctions.
+    */
+    function getOpenAuctions() public view returns(uint256[]) {
+        return openAuctions;
+    }
+
+    /*
+    @dev Zeppelin implementation.
+    @dev Here we're swapping the auction at a given '_index' for the last element
+    and removing it from the array by reducing it.
+    */
+    function _removeAuction(uint256 _tokenId) private {
+        uint256 index = auctionIndex[_tokenId];
+        uint256 lastAuctionIndex = openAuctions.length.sub(1);
+        uint256 lastAuction = openAuctions[lastAuctionIndex];
+        openAuctions[index] = lastAuction;
+        delete openAuctions[lastAuctionIndex];
+        openAuctions.length--;
     }
 }

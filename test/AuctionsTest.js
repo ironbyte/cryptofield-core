@@ -30,6 +30,8 @@ contract("Auctions", acc => {
 
     let status = await instance.getAuctionStatus.call(0);
     assert.equal(status, true);
+
+    // 0
   })
 
   it("should record a new bid for an address", async () => {
@@ -55,6 +57,8 @@ contract("Auctions", acc => {
     // amount of bidders should be two (2)
     let bidders = await instance.amountOfBidders.call(auctionId);
     assert.equal(bidders.toString(), "2");
+
+    // 0, 1
   })
 
   it("should revert if the new bid amount is lower than the maxBid", async () => {
@@ -75,6 +79,8 @@ contract("Auctions", acc => {
       let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
+
+    // 0, 1, 2
   })
 
   it("should let the owner close an auction", async () => {
@@ -86,6 +92,8 @@ contract("Auctions", acc => {
     
     status = await instance.getAuctionStatus.call(0);
     assert.equal(status, false);
+
+    // 1, 2
   })
 
   it("should revert if not the owner tries to close an auction", async () => {
@@ -100,6 +108,8 @@ contract("Auctions", acc => {
       let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
+
+    // 1, 2
   })
 
   it("should send the token to the max bidder of an auction", async () => {
@@ -120,6 +130,8 @@ contract("Auctions", acc => {
     let tokenOwner = await tokenInstance.ownerOfToken.call(3);
 
     assert.equal(tokenOwner, acc[3]);
+
+    // 1, 2
   })
 
   it("should send max bid to the auction owner", async () => {
@@ -139,6 +151,8 @@ contract("Auctions", acc => {
 
     assert.equal(user, buyer);
     assert.equal(payout, web3.toWei(1, "finney"));
+
+    // 1, 2
   })
 
   it("should get the amount they bid if they're not the owner or winner", async () => {
@@ -160,6 +174,8 @@ contract("Auctions", acc => {
 
     assert.equal(address, acc[5]);
     assert.equal(payout, web3.toWei(1, "finney"));
+
+    // 1, 2
   })
 
   it("should return the bid of a given address in an auction", async () => {
@@ -177,5 +193,15 @@ contract("Auctions", acc => {
     let currentBid = await instance.bidOfBidder.call(acc[5], auction);
 
     assert.equal(currentBid, bidAmount);
+
+    // 1, 2, 6
+  })
+
+  it("should return the open auctions", async () => {
+    // last line comments on test above show the auctions that should be open at that time
+    // above this, auction 1, 2 and 6 should be open in no particular order.
+    let openAuctions = await instance.getOpenAuctions.call();
+
+    assert.equal(openAuctions.length, 3);
   })
 })
