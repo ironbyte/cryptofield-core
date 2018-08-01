@@ -30,8 +30,15 @@ export default class OpenAuctions extends Component {
       let currAuction = auctionsOpen[i];
       let auction = await this.state.instance.getAuction.call(currAuction);
       let amountOfBidders = await this.state.instance.amountOfBidders.call(currAuction);
+      let minimum = await this.state.instance.getMinimumAuctionPrice.call(currAuction);
+      let maxBid = await this.state.instance.getMaxBidder.call(currAuction); // Array of two elements.
 
-      auction = auction.concat(amountOfBidders);
+      console.log(minimum)
+
+      auction = auction
+                .concat(amountOfBidders)
+                .concat(this.state.web3.utils.fromWei(minimum.toString()))
+                .concat(maxBid[1].toString());
 
       await this.setState(prevState => ({ auctions: [...prevState.auctions, auction] })); 
     }
@@ -72,6 +79,8 @@ export default class OpenAuctions extends Component {
               <th>Time left</th>
               <th>Horse ID</th>
               <th>Amount of Bidders</th>
+              <th>Asking price (Ether)</th>
+              <th>Max Bid</th>
             </tr>
           </thead>
 
@@ -85,6 +94,8 @@ export default class OpenAuctions extends Component {
                     <td>{this.calculateTimeLeft(auction[1].toNumber(), auction[2].toNumber())}</td>
                     <td>{auction[3].toString()}</td>
                     <td>{auction[4].toString()}</td>
+                    <td>{auction[5].toString()}</td>
+                    <td>{auction[6].toString()}</td>
                   </tr> 
                 )
               })
