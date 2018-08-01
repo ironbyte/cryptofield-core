@@ -16,7 +16,7 @@ export default class AuctionCreator extends Component {
   async handleSubmit(e) {
     await e.preventDefault();
 
-    let duration = moment().add(20, "seconds").diff(moment(), "seconds") + 1;
+    let duration = moment().add(1, "day").diff(moment(), "seconds") + 1;
     let accounts = await this.props.web3.eth.getAccounts();
     let price = await this.props.instance.getQueryPrice.call();
 

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
 import CToken from "./../build/contracts/CToken.json";
 import AuctionsComponent from "./components/AuctionsComponent";
+import OpenAuctions from "./components/OpenAuctions";
 
 // Creates a new instance of IPFS.
 const IPFS = require("ipfs-mini");
@@ -24,7 +25,7 @@ class App extends Component {
     this.auctions = this.auctions.bind(this);
   }
 
-  componentWillMount() {
+  componentDidMount() {
     getWeb3
     .then(results => {
       this.web3 = results.web3;
@@ -86,6 +87,8 @@ class App extends Component {
   render() {
     return(
       <div className="grid-x grid-margin-x">
+        <OpenAuctions />
+
         <div className="text-center cell">
           <img
             src="/horse.png"
@@ -135,7 +138,10 @@ class App extends Component {
 
         {
           this.state.isCreatingAuction &&
-          <AuctionsComponent web3={this.web3} tokenInstance={this.state.tokenInstance} />
+          <AuctionsComponent 
+            web3={this.web3} 
+            tokenInstance={this.state.tokenInstance} 
+          />
         }
       </div>
     );
