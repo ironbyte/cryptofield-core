@@ -21,6 +21,7 @@ contract Auctions is usingOraclize, Ownable {
         uint256 createdAt;
         uint256 maxBid;
         uint256 horse;
+        uint256 minimum; // Minimum price to be match to make a bid.
 
         address maxBidder;
         address[] bidders;
@@ -44,7 +45,7 @@ contract Auctions is usingOraclize, Ownable {
         owner = msg.sender;
     }
 
-    function createAuction(uint256 _duration, uint256 _horseId) public payable {
+    function createAuction(uint256 _duration, uint256 _horseId, uint256 _minimum) public payable {
         // We ensure that the value sent can cover the Query price for later usage.
         require(msg.value >= oraclize_getPrice("URL"));
         require(msg.sender == CToken(ctoken).ownerOfToken(_horseId));
@@ -58,6 +59,7 @@ contract Auctions is usingOraclize, Ownable {
         auction.duration = _duration;
         auction.horse = _horseId;
         auction.createdAt = now;
+        auction.minimum = _minimum;
 
         sendAuctionQuery(_duration, auctionId);
 
@@ -104,6 +106,7 @@ contract Auctions is usingOraclize, Ownable {
 
         // You can only record another bid if it is higher than the max bid.
         require(newBid > auction.maxBid);
+        require(msg.value >= auction.minimum);
 
         auction.bids[msg.sender] = newBid;
 
