@@ -25,7 +25,7 @@ export default class AuctionCreator extends Component {
     await this.props.instance.createAuction(
                                 duration, 
                                 this.props.horse, 
-                                web3.toWei(this.state.minimum, "ether"),
+                                this.props.web3.utils.toWei(this.state.minimum, "ether"),
                                 {from: accounts[0], value: price}
     );
   }
