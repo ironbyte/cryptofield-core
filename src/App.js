@@ -3,6 +3,8 @@ import getWeb3 from './utils/getWeb3';
 import CToken from "./../build/contracts/CToken.json";
 import AuctionsComponent from "./components/AuctionsComponent";
 import OpenAuctions from "./components/OpenAuctions";
+import AuctionClosing from "./components/AuctionClosing";
+import ParticipatingAuctions from "./components/ParticipatingAuctions";
 
 // Creates a new instance of IPFS.
 const IPFS = require("ipfs-mini");
@@ -16,6 +18,7 @@ class App extends Component {
       tokenInstance: null,
       horsesOwned: [],
       isCreatingAuction: false,
+      isClosingAuction: false,
       ipfs: null,
       genIPFS: false,
       newHorse: false
@@ -23,6 +26,7 @@ class App extends Component {
 
     this.buy = this.buy.bind(this);
     this.auctions = this.auctions.bind(this);
+    this.closeAuction = this.closeAuction.bind(this);
   }
 
   componentDidMount() {
@@ -84,10 +88,16 @@ class App extends Component {
     .catch(err => { console.log(err) })
   }
 
+  closeAuction() {
+    this.setState(prevState => ({ isClosingAuction: !prevState.isClosingAuction }));
+  }
+
   render() {
     return(
       <div className="grid-x grid-margin-x">
         <OpenAuctions />
+
+        <ParticipatingAuctions />
 
         <div className="text-center cell">
           <img
@@ -143,6 +153,21 @@ class App extends Component {
             tokenInstance={this.state.tokenInstance} 
           />
         }
+
+        <div className="medium-12 cell">
+          <button 
+            onClick={this.closeAuction}
+            className="button expanded alert"
+          >
+            Close Auction
+          </button>
+          {
+            this.state.isClosingAuction &&
+            <AuctionClosing
+              web3={this.web3}
+            />            
+          }
+        </div>
       </div>
     );
   }
