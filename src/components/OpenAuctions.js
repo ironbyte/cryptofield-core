@@ -85,7 +85,7 @@ export default class OpenAuctions extends Component {
   auctionsTable() {
     return(
       <div>
-        <h2>Open Auctions!</h2>
+        <h2 className="text-center">Open Auctions!</h2>
 
         <table>
           <thead>
