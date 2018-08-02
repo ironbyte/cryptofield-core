@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import "web3";
 
 export default class AuctionBid extends Component {
   constructor(props) {
@@ -6,6 +7,7 @@ export default class AuctionBid extends Component {
 
     this.state = {
       bidAmount: "",
+      currBid: null
     }
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -13,7 +15,13 @@ export default class AuctionBid extends Component {
   }
 
   async componentDidMount() {
-    await this.setState({ bidAmount: this.props.askingPrice })
+    let accounts = await this.props.web3.eth.getAccounts();
+    let bid = await this.props.instance.bidOfBidder.call(accounts[0], this.props.auction)
+
+    await this.setState({ 
+      bidAmount: this.props.askingPrice,
+      currBid: this.props.web3.utils.fromWei(bid.toString())
+     })
   }
 
   async handleSubmit(e) {
@@ -45,14 +53,25 @@ export default class AuctionBid extends Component {
                   value={this.state.bidAmount} 
                   name="bidAmount" 
                   placeholder="Bid is in ether"
-                  min={this.props.askingPrice}
                   step="any" />
               </label>
+            </div>
+            
+            <div className="text-center cell">
+              <h2>Your current bid is: {this.state.currBid}</h2>
+              
+              {
+                this.state.bidAmount !== "" &&
+                <h3>
+                  If you bid {this.state.bidAmount} then your total bid would be {+this.state.currBid + +this.state.bidAmount}
+                </h3>
+              }
             </div>
 
             <input type="submit" value="Submit bid" className="button expanded success" />
           </div>
         </form>
+
       </div>
     )
   }
