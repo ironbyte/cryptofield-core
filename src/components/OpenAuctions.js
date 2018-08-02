@@ -3,6 +3,7 @@ import Countdown from "react-countdown-moment";
 import Auctions from "./../../build/contracts/Auctions.json";
 import getWeb3 from "./../utils/getWeb3";
 import moment from "moment";
+import AuctionBid from "./AuctionBid";
 
 /*
 @dev Component to show the open auctions at the moment.
@@ -15,7 +16,11 @@ export default class OpenAuctions extends Component {
     this.state = {
       auctions: [],
       instance: null,
-      web3: null
+      web3: null,
+      currAddress: null,
+      isBidding: false,
+      biddingAuctionId: null,
+      askingPrice: null,
     }
 
     this.calculateTimeLeft = this.calculateTimeLeft.bind(this);
@@ -25,6 +30,7 @@ export default class OpenAuctions extends Component {
     await this.initWeb3();
 
     let auctionsOpen = await this.state.instance.getOpenAuctions.call();
+    let accounts = await this.state.web3.eth.getAccounts();
     
     for(let i = 0; i < auctionsOpen.length; i++) {
       let currAuction = auctionsOpen[i];
@@ -33,14 +39,16 @@ export default class OpenAuctions extends Component {
       let minimum = await this.state.instance.getMinimumAuctionPrice.call(currAuction);
       let maxBid = await this.state.instance.getMaxBidder.call(currAuction); // Array of two elements.
 
-      console.log(minimum)
+      auction = auction // 4
+                .concat(amountOfBidders) // 5
+                .concat(this.state.web3.utils.fromWei(minimum.toString())) // 6
+                .concat(this.state.web3.utils.fromWei(maxBid[1].toString())) // 7
+                .concat(currAuction); // Auction ID // 8
 
-      auction = auction
-                .concat(amountOfBidders)
-                .concat(this.state.web3.utils.fromWei(minimum.toString()))
-                .concat(maxBid[1].toString());
-
-      await this.setState(prevState => ({ auctions: [...prevState.auctions, auction] })); 
+      await this.setState(prevState => ({ 
+        auctions: [...prevState.auctions, auction],
+        currAddress: accounts[0]
+      })); 
     }
   }
 
@@ -66,6 +74,14 @@ export default class OpenAuctions extends Component {
     return  <Countdown endDate={moment.unix(start).add(duration, "seconds")} />
   }
 
+  bid(id, asking) {
+    this.setState(prevState => ({
+      isBidding: !prevState.isBidding,
+      biddingAuctionId: id.toString(),
+      askingPrice: asking
+    }))
+  }
+
   auctionsTable() {
     return(
       <div>
@@ -81,6 +97,7 @@ export default class OpenAuctions extends Component {
               <th>Amount of Bidders</th>
               <th>Asking price (Ether)</th>
               <th>Max Bid</th>
+              <th>Bid!</th>
             </tr>
           </thead>
 
@@ -89,19 +106,33 @@ export default class OpenAuctions extends Component {
               this.state.auctions.map((auction, index) => {
                 return(
                   <tr key={index}>
-                    <td>{auction[0].toString()}</td>
+                    <td>{auction[0]}</td>
                     <td>{moment.unix(auction[1].toNumber()).format("LLL")}</td>
                     <td>{this.calculateTimeLeft(auction[1].toNumber(), auction[2].toNumber())}</td>
                     <td>{auction[3].toString()}</td>
                     <td>{auction[4].toString()}</td>
-                    <td>{auction[5].toString()}</td>
-                    <td>{auction[6].toString()}</td>
+                    <td>{auction[5]}</td>
+                    <td>{auction[6]}</td>
+
+                    {
+                      auction[0] !== this.state.currAddress &&
+                      <td onClick={this.bid.bind(this, auction[7], auction[5])}>Click to bid</td>
+                    }
                   </tr> 
                 )
               })
             }
           </tbody>
-        </table> 
+        </table>
+
+        {
+          this.state.isBidding &&
+          <AuctionBid 
+            instance={this.state.instance}
+            auction={this.state.biddingAuctionId}
+            askingPrice={this.state.askingPrice}
+            web3={this.state.web3} />
+        }
       </div>
     )
   }
