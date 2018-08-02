@@ -40,7 +40,7 @@ contract Auctions is usingOraclize, Ownable {
     event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
-        OAR = OraclizeAddrResolverI(0xFC0dF90FC691d442D3c1304BE5ba165cFd554Cb8);
+        OAR = OraclizeAddrResolverI(0x9000657E7eD9265c2758D875e1f213B19A616636);
         ctoken = _ctoken;
         owner = msg.sender;
     }
@@ -106,7 +106,12 @@ contract Auctions is usingOraclize, Ownable {
 
         // You can only record another bid if it is higher than the max bid.
         require(newBid > auction.maxBid);
-        require(msg.value >= auction.minimum);
+
+        // We're going to do this 'require' only if the auction has no
+        // bids yet.
+        if(auction.bidders.length == 0) {
+            require(msg.value >= auction.minimum); 
+        }
 
         auction.bids[msg.sender] = newBid;
 
@@ -116,7 +121,7 @@ contract Auctions is usingOraclize, Ownable {
             auction.exists[msg.sender] = true;
         }
 
-        auction.maxBid = msg.value;
+        auction.maxBid = newBid;
         auction.maxBidder = msg.sender;
 
         emit Bid(msg.sender, newBid);
