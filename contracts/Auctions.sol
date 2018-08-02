@@ -40,7 +40,7 @@ contract Auctions is usingOraclize, Ownable {
     event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
-        OAR = OraclizeAddrResolverI(0x9000657E7eD9265c2758D875e1f213B19A616636);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
         ctoken = _ctoken;
         owner = msg.sender;
     }
@@ -73,7 +73,7 @@ contract Auctions is usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://399059c0.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://b1554444.ngrok.io/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
@@ -160,15 +160,6 @@ contract Auctions is usingOraclize, Ownable {
     }
 
     /*
-    @dev Gives a way for the owner of the contract to close the auction manually in case of malfunction.
-    */
-    function closeAuction(uint256 _auctionId) onlyOwner() public {
-        AuctionData storage auction = auctions[_auctionId];
-        _removeAuction(_auctionId);
-        auction.isOpen = false;
-    }
-
-    /*
     @return Returns the price of the Query so the contract has enough Ether when the query is sent.
     */
     function getQueryPrice() public returns(uint) {
@@ -244,6 +235,17 @@ contract Auctions is usingOraclize, Ownable {
     function getMinimumAuctionPrice(uint256 _auctionId) public view returns(uint256) {
         AuctionData memory auction = auctions[_auctionId];
         return auction.minimum;
+    }
+
+    /*     RESTRICTED FUNCTIONS A.K.A. ONLY OWNER CAN EXECUTE     */
+    
+    /*
+    @dev Gives a way for the owner of the contract to close the auction manually in case of malfunction.
+    */
+    function closeAuction(uint256 _auctionId) onlyOwner() public {
+        AuctionData storage auction = auctions[_auctionId];
+        _removeAuction(_auctionId);
+        auction.isOpen = false;
     }
 
     /*
