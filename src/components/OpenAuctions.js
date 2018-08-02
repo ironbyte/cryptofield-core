@@ -140,12 +140,13 @@ export default class OpenAuctions extends Component {
   render() {
     let auctionMessage = 
       this.state.auctions.length === 0 ? 
-      <h2>There are no auctions open yet.</h2> : 
+      <h2 className="text-center">There are no auctions open yet.</h2> : 
       this.auctionsTable();
 
     return(
       <div className="cell">
         {auctionMessage}
+
         <hr />
       </div>
     )
