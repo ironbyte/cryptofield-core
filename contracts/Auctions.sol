@@ -35,6 +35,9 @@ contract Auctions is usingOraclize, Ownable {
     // Maps an auction ID to an index.
     mapping(uint256 => uint256) auctionIndex;
 
+    // Maps address to auction
+    mapping(address => uint256[]) auctionsParticipating;
+
     event AuctionCreated(uint256 _auctionId);
     event Bid(address _bidder, uint256 _amount);
     event Withdraw(address _user, uint256 _payout);
@@ -119,6 +122,9 @@ contract Auctions is usingOraclize, Ownable {
         if(!auction.exists[msg.sender]) {
             auction.bidders.push(msg.sender);
             auction.exists[msg.sender] = true;
+
+            // Adds to the auctions where the user is participating
+            auctionsParticipating[msg.sender].push(_auctionId);
         }
 
         auction.maxBid = newBid;
@@ -237,8 +243,17 @@ contract Auctions is usingOraclize, Ownable {
         return auction.minimum;
     }
 
+    /*
+    @dev Gets a list of auctions ID where the address is/was participating.
+    We can get this information with all the auctions and then proceed to filter the ones we're
+    interested about.
+    */
+    function participatingIn(address _user) public view returns(uint256[]) {
+        return auctionsParticipating[_user];
+    }
+
     /*     RESTRICTED FUNCTIONS A.K.A. ONLY OWNER CAN EXECUTE     */
-    
+
     /*
     @dev Gives a way for the owner of the contract to close the auction manually in case of malfunction.
     */

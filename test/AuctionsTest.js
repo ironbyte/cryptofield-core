@@ -221,7 +221,21 @@ contract("Auctions", acc => {
       let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
+
+    // 1, 2, 6, 7
   })
 
-  // 1, 2, 6, 7
+  it("should return the correct list of auctions where a user is participating", async () => {
+    // we're going to user an existing token for this op.
+    let response = await instance.createAuction(1, 6, minimum, {from: acc[4], value: amount});
+    let auction = response.logs[0].args._auctionId.toNumber();
+
+    let participating = await instance.participatingIn.call(acc[6]);
+    assert.deepEqual(participating.length, 0);
+
+    await instance.bid(auction, {from: acc[6], value: web3.toWei(3, "ether")});
+
+    participating = await instance.participatingIn.call(acc[6]);
+    assert.equal(participating.length, 1);
+  })
 })
