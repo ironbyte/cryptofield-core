@@ -28,7 +28,7 @@ export default class AuctionClosing extends Component {
   async handleSubmit(e) {
     await e.preventDefault();
     let accounts = await this.props.web3.eth.getAccounts();
-    await this.state.instance.closeAuction(this.state.auctionId, {from: accounts[0]});
+    await this.state.instance.closeAuction(this.state.auctionId, {from: accounts[0], gas: 100000});
   }
 
   handleChange(e) {
