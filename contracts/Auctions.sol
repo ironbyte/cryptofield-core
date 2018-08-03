@@ -134,7 +134,7 @@ contract Auctions is usingOraclize, Ownable {
     }
 
     // Withdrawals need to be manually triggered.
-    function withdraw(uint256 _auctionId) public {
+    function withdraw(uint256 _auctionId) public returns(bool) {
         AuctionData storage auction = auctions[_auctionId];
         require(!auction.isOpen);
 
@@ -158,11 +158,16 @@ contract Auctions is usingOraclize, Ownable {
             // Sends the token from 'auction.owner' to 'maxBidder'.
             CToken(ctoken).transferTokenTo(auction.owner, msg.sender, auction.horse);
             delete auction.maxBidder;
+
+            // Return so we don't send an innecesary transfer, the token is the prize.
+            return true;
         }
 
         msg.sender.transfer(payout);
 
         emit Withdraw(msg.sender, payout);
+
+        return true;
     }
 
     /*
