@@ -39,7 +39,7 @@ export default class AuctionBid extends Component {
   render() {
     return(
       <div>
-        <h2 className="text-center">Creating auction for auction nº {this.props.auction}</h2>
+        <h2 className="text-center">Creating bid for auction nº {this.props.auction}</h2>
 
         <form onSubmit={this.handleSubmit}>
           <div className="grid-x grid-margin-x">
