@@ -28,7 +28,15 @@ module.exports = {
       provider: () => {
         return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/" + process.env.infura_token)
       },
-      network_id: 3
+      network_id: 3,
+      gas: 4712388
+    },
+    kovan: {
+      provider: () => {
+        return new HDWalletProvider(mnemonic, "https://kovan.infura.io/" + process.env.kovan_token)
+      },
+      network_id: 4,
+      gas: 4712388
     }
   }
 };
