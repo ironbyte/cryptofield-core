@@ -14,6 +14,7 @@ export default class ParticipatingAuctions extends Component {
     }
 
     this.auctionStatus = this.auctionStatus.bind(this);
+    // this.withdraw = this.withdraw.bind(this);
   }
 
   async componentDidMount() {
@@ -22,14 +23,12 @@ export default class ParticipatingAuctions extends Component {
     let accounts = await this.state.web3.eth.getAccounts();
     let participatingAuctions = await this.state.instance.participatingIn.call(accounts[0]);
 
-    console.log(accounts)
-
     for(let i = 0; i < participatingAuctions.length; i++) {
       let currAuction = participatingAuctions[i];
       let auction = await this.state.instance.getAuction.call(currAuction);
       let status = await this.state.instance.getAuctionStatus.call(currAuction);
 
-      auction = auction.concat(status);
+      auction = auction.concat(status).concat(currAuction.toString());
 
       await this.setState(prevState => ({ auctions: [...prevState.auctions, auction] }));
     }
@@ -56,11 +55,18 @@ export default class ParticipatingAuctions extends Component {
     return status === true ? "Open" : "Closed"
   }
 
+  // TODO: Token is not being sent
+  async withdraw(auction) {
+    let accounts = await this.state.web3.eth.getAccounts();
+
+    this.state.instance.withdraw(auction, {from: accounts[0]})
+  } 
+
   // HTML RENDERING FUNCTIONS
   renderUserAuctions() {
     return(
       <div>
-        <h2 className="text-center">Here are the auctons where you're participating!</h2>
+        <h2 className="text-center">Here are the auctions where you've participated!</h2>
         <table>
           <thead>
             <tr>
@@ -68,6 +74,7 @@ export default class ParticipatingAuctions extends Component {
               <td>Created at</td>
               <td>Horse</td>
               <td>Status</td>
+              <td>Withdraw?</td>
             </tr>
           </thead>
 
@@ -80,6 +87,11 @@ export default class ParticipatingAuctions extends Component {
                     <td>{moment.unix(auction[1].toNumber()).format("LLL")}</td>
                     <td>{auction[3].toString()}</td>
                     <td>{this.auctionStatus(auction[4])}</td>
+
+                    {
+                      auction[4].toString() === "false" &&
+                      <td onClick={this.withdraw.bind(this, auction[5])}>Click to withdraw</td>
+                    }
                   </tr>
                 )
               })
