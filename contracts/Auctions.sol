@@ -43,16 +43,16 @@ contract Auctions is usingOraclize, Ownable {
     event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        OAR = OraclizeAddrResolverI(0xfc9B664393F9a273EcD31637fc47164387187AF4);
         ctoken = _ctoken;
         owner = msg.sender;
     }
 
     function createAuction(uint256 _duration, uint256 _horseId, uint256 _minimum) public payable {
         // We ensure that the value sent can cover the Query price for later usage.
-        require(msg.value >= oraclize_getPrice("URL"));
-        require(msg.sender == CToken(ctoken).ownerOfToken(_horseId));
-        require(CToken(ctoken).isTokenApproved(this, _horseId));
+        require(msg.value >= oraclize_getPrice("URL"), "oraclizePrice");
+        require(msg.sender == CToken(ctoken).ownerOfToken(_horseId), "notTokenOwner");
+        require(CToken(ctoken).isTokenApproved(this, _horseId), "auctionsNotApproved");
 
         uint256 auctionId = auctionIds.push(0) - 1;
 
@@ -76,7 +76,7 @@ contract Auctions is usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://b1554444.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://f4f1f5fd.ngrok.io/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
@@ -87,7 +87,7 @@ contract Auctions is usingOraclize, Ownable {
     close the given auction and remove it from the 'openAuctions' array.
     */
     function __callback(bytes32 _id, string _result) public {
-        require(msg.sender == oraclize_cbAddress());
+        require(msg.sender == oraclize_cbAddress(), "notOraclizeAddr");
         uint auctionId = parseInt(_result);
 
         _removeAuction(auctionId);
@@ -100,20 +100,20 @@ contract Auctions is usingOraclize, Ownable {
     */
     function bid(uint256 _auctionId) public payable {
         AuctionData storage auction = auctions[_auctionId];
-        require(auction.isOpen);
+        require(auction.isOpen, "auctionClosed");
         // owner can't bid on its own auction.
-        require(msg.sender != auction.owner);
+        require(msg.sender != auction.owner, "notAuctionOwner");
 
         // 'newBid' is the current value of an user's bid and the msg.value.
         uint256 newBid = auction.bids[msg.sender].add(msg.value);
 
         // You can only record another bid if it is higher than the max bid.
-        require(newBid > auction.maxBid);
+        require(newBid > auction.maxBid, "lowerBidThanMaximum");
 
         // We're going to do this 'require' only if the auction has no
         // bids yet.
         if(auction.bidders.length == 0) {
-            require(msg.value >= auction.minimum); 
+            require(msg.value >= auction.minimum, "lowerBidThanMinimum"); 
         }
 
         auction.bids[msg.sender] = newBid;
@@ -136,7 +136,7 @@ contract Auctions is usingOraclize, Ownable {
     // Withdrawals need to be manually triggered.
     function withdraw(uint256 _auctionId) public returns(bool) {
         AuctionData storage auction = auctions[_auctionId];
-        require(!auction.isOpen);
+        require(!auction.isOpen, "auctionOpen");
 
         uint256 payout;
 
@@ -262,7 +262,7 @@ contract Auctions is usingOraclize, Ownable {
     /*
     @dev Gives a way for the owner of the contract to close the auction manually in case of malfunction.
     */
-    function closeAuction(uint256 _auctionId) onlyOwner() public {
+    function closeAuction(uint256 _auctionId) public onlyOwner() {
         AuctionData storage auction = auctions[_auctionId];
         _removeAuction(_auctionId);
         auction.isOpen = false;

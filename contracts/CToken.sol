@@ -22,7 +22,7 @@ contract CToken is ERC721Token, Ownable {
         cryptofieldBase = _cryptofieldBase;
     }
 
-    function setAuctions(address _auctions) onlyOwner() public {
+    function setAuctions(address _auctions) public onlyOwner() {
         auctions = _auctions;
     }
 
