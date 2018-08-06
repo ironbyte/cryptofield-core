@@ -5,3 +5,5 @@ nohup.out
 build_webpack/
 .env
 bridge.log
+built-contracts/
+builtcontracts/
