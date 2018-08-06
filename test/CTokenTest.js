@@ -2,8 +2,8 @@ const CToken = artifacts.require("./CToken");
 
 contract("CToken", acc => {
   let instance;
-  let owner = acc[0];
-  let secondBuyer = acc[1];
+  let owner = acc[1];
+  let secondBuyer = acc[2];
   let amount = new web3.BigNumber(web3.toWei(1, "finney"));
 
   beforeEach("setup instance", async () => {
@@ -26,7 +26,7 @@ contract("CToken", acc => {
 
   it("should be able to transfer a token", async () => {
     // 'owner' has token 0.
-    await instance.transferTokenTo(owner, secondBuyer, 0);
+    await instance.transferTokenTo(owner, secondBuyer, 0, {from: owner});
     let newTokenOwner = await instance.ownerOfToken.call(0);
 
     assert.equal(secondBuyer, newTokenOwner);
@@ -38,5 +38,14 @@ contract("CToken", acc => {
     let newTokenOwner = await instance.ownerOfToken.call(0);
 
     assert.equal(owner, newTokenOwner);
+  })
+
+  it("should transfer ownershp of the contract", async () => {
+    let newOwner = acc[5];
+
+    let op = await instance.giveOwnership(newOwner, {from: owner});
+    let loggedOwner = op.logs[0].args.newOwner;
+
+    assert.equal(loggedOwner, newOwner);
   })
 })

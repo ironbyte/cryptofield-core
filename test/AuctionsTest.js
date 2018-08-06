@@ -4,17 +4,18 @@ const CToken = artifacts.require("./CToken");
 contract("Auctions", acc => {
   let instance;
   let tokenInstance;
-  let owner = acc[0];
-  let buyer = acc[1];
+  let owner = acc[1];
+  let buyer = acc[8];
   let amount = new web3.BigNumber(web3.toWei(1, "ether"));
   let minimum = web3.toWei(0.001, "ether");
 
   beforeEach("setup instance", async () => {
-    instance = await Auctions.deployed();
-
     // We need this instance to mint a token.
     tokenInstance = await CToken.deployed();
-    await tokenInstance.setAuctions(instance.address);
+
+    instance = await Auctions.deployed();
+
+    await tokenInstance.setAuctions(instance.address, {from: owner});
   })
 
   /*
@@ -103,7 +104,7 @@ contract("Auctions", acc => {
     assert.equal(status, true);
 
     try {
-      await instance.closeAuction(1, {from: acc[1]});
+      await instance.closeAuction(1, {from: acc[4]});
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
@@ -237,5 +238,14 @@ contract("Auctions", acc => {
 
     participating = await instance.participatingIn.call(acc[6]);
     assert.equal(participating.length, 1);
+  })
+
+  it("should transfer ownershp of the contract", async () => {
+    let newOwner = acc[5];
+
+    let op = await instance.giveOwnership(newOwner, {from: owner});
+    let loggedOwner = op.logs[0].args.newOwner;
+
+    assert.equal(loggedOwner, newOwner);
   })
 })

@@ -20,6 +20,7 @@ contract CToken is ERC721Token, Ownable {
 
     constructor(address _cryptofieldBase) ERC721Token("CToken", "CT") public {
         cryptofieldBase = _cryptofieldBase;
+        owner = msg.sender;
     }
 
     function setAuctions(address _auctions) public onlyOwner() {
@@ -69,5 +70,12 @@ contract CToken is ERC721Token, Ownable {
     function tokenSold(address _from, address _to, uint256 _tokenId) public {
         safeTransferFrom(_from, _to, _tokenId);
         CryptofieldBase(cryptofieldBase).horseSold(_tokenId);
+    }
+
+    /*
+    @dev Transfer ownership of contract to a given address.
+    */
+    function giveOwnership(address _to) public onlyOwner() {
+        transferOwnership(_to);
     }
 }

@@ -43,7 +43,7 @@ contract Auctions is usingOraclize, Ownable {
     event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
-        OAR = OraclizeAddrResolverI(0xfc9B664393F9a273EcD31637fc47164387187AF4);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
         ctoken = _ctoken;
         owner = msg.sender;
     }
@@ -280,5 +280,12 @@ contract Auctions is usingOraclize, Ownable {
         openAuctions[index] = lastAuction;
         delete openAuctions[lastAuctionIndex];
         openAuctions.length--;
+    }
+
+    /*
+    @dev Transfer ownership of the contract to a given address.
+    */
+    function giveOwnership(address _to) public onlyOwner() {
+        transferOwnership(_to);
     }
 }
