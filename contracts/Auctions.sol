@@ -43,7 +43,7 @@ contract Auctions is usingOraclize, Ownable {
     event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        // OAR = OraclizeAddrResolverI(0x19B77fB5994D988660be8E9c4b9653E0937033A6);
         ctoken = _ctoken;
         owner = msg.sender;
     }
@@ -76,7 +76,7 @@ contract Auctions is usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://f4f1f5fd.ngrok.io/api/v1/close_auction).auction_closed";
+        string memory url = "json(http://206.189.225.161/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
