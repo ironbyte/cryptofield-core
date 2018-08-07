@@ -5,6 +5,7 @@ import AuctionsComponent from "./components/AuctionsComponent";
 import OpenAuctions from "./components/OpenAuctions";
 import AuctionClosing from "./components/AuctionClosing";
 import ParticipatingAuctions from "./components/ParticipatingAuctions";
+import Ownership from "./components/Ownership";
 
 // Creates a new instance of IPFS.
 const IPFS = require("ipfs-mini");
@@ -19,6 +20,7 @@ class App extends Component {
       horsesOwned: [],
       isCreatingAuction: false,
       isClosingAuction: false,
+      isTransfering: false,
       ipfs: null,
       genIPFS: false,
       newHorse: false
@@ -27,6 +29,7 @@ class App extends Component {
     this.buy = this.buy.bind(this);
     this.auctions = this.auctions.bind(this);
     this.closeAuction = this.closeAuction.bind(this);
+    this.transferOwnership = this.transferOwnership.bind(this);
   }
 
   componentDidMount() {
@@ -90,6 +93,10 @@ class App extends Component {
 
   closeAuction() {
     this.setState(prevState => ({ isClosingAuction: !prevState.isClosingAuction }));
+  }
+
+  transferOwnership() {
+    this.setState(prevState => ({ isTransfering: !prevState.isTransfering }));
   }
 
   render() {
@@ -166,6 +173,19 @@ class App extends Component {
             <AuctionClosing
               web3={this.web3}
             />            
+          }
+        </div>
+
+        <div className="medium-12 cell">
+          <button
+            onClick={this.transferOwnership}
+            className="button expanded alert"
+          >
+            Transfer Ownership
+          </button>
+          {
+            this.state.isTransfering &&
+            <Ownership web3={this.web3} tokenInstance={this.state.tokenInstance} />
           }
         </div>
       </div>
