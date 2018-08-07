@@ -22,7 +22,7 @@ export default class Ownership extends Component {
 
     await AuctionsContract.setProvider(this.props.web3.currentProvider);
 
-    let instance = AuctionsContract.deployed();
+    let instance = await AuctionsContract.deployed();
 
     await this.setState({ instance: instance, currAddr: accounts[0] });
   }
