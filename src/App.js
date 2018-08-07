@@ -108,7 +108,7 @@ class App extends Component {
 
         <div className="text-center cell">
           <img
-            src="/horse.png"
+            src="/horse.svg"
             alt="horse"
           />
           <h2 className="text-center"> Buy a new horse now! </h2>

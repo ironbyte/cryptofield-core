@@ -1,0 +1,29 @@
+body {
+  background-color: #1C2A32;
+  color: #FFFFFF;
+}
+
+table {
+  color: #000000;
+}
+
+label {
+  color: #FFFFFF;
+}
+
+button.success {
+  background-color: #B6F3E8 !important;
+}
+
+.button.success {
+  background-color: #B6F3E8 !important;
+}
+
+button.alert {
+  background-color: #F3B6B6 !important;
+  color: #000000 !important;
+}
+
+button.warning {
+  background-color: #DCEB91 !important;
+}

@@ -95,8 +95,8 @@ export default class OpenAuctions extends Component {
               <th>Time left</th>
               <th>Horse ID</th>
               <th>Amount of Bidders</th>
-              <th>Asking price (Ether)</th>
-              <th>Max Bid</th>
+              <th>Reserve Price (Ether)</th>
+              <th>Highest Bid</th>
               <th>Bid!</th>
             </tr>
           </thead>
