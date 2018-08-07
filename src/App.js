@@ -57,7 +57,7 @@ class App extends Component {
   }
 
   buy() {
-    fetch("http://localhost:4000/api/v1/generate_horse")
+    fetch("http://206.189.225.161//api/v1/generate_horse")
     .then(result => { return result.json() })
     .then(res => {
       this.setState({ genIPFS: true })
