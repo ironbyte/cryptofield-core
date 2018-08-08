@@ -57,7 +57,7 @@ class App extends Component {
   }
 
   buy() {
-    fetch("http://206.189.225.161//api/v1/generate_horse")
+    fetch("https://cryptofield.app/api/v1/generate_horse")
     .then(result => { return result.json() })
     .then(res => {
       this.setState({ genIPFS: true })
