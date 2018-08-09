@@ -129,7 +129,7 @@ contract("Auctions", acc => {
     // maxBidder claims the reward
     await instance.withdraw(auctionId, {from: acc[3]});
 
-    let tokenOwner = await tokenInstance.ownerOfToken.call(3);
+    let tokenOwner = await tokenInstance.ownerOf(3);
 
     assert.equal(tokenOwner, acc[3]);
 
