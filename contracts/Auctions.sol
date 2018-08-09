@@ -1,4 +1,4 @@
-pragma solidity ^0.4.2;
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -43,7 +43,7 @@ contract Auctions is usingOraclize, Ownable {
     event Withdraw(address _user, uint256 _payout);
 
     constructor(address _ctoken) public {
-        // OAR = OraclizeAddrResolverI(0x19B77fB5994D988660be8E9c4b9653E0937033A6);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
         ctoken = _ctoken;
         owner = msg.sender;
     }

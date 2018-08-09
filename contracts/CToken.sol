@@ -1,4 +1,4 @@
-pragma solidity ^0.4.2;
+pragma solidity 0.4.24;
 
 import "./ERC721Token.sol";
 import "./CryptofieldBase.sol";
@@ -35,7 +35,7 @@ contract CToken is ERC721Token, Ownable {
     /*
     @dev Simply creates a new token and calls base contract to add the horse information.
     */
-    function createHorse(address _owner, string _hash) public payable {
+    function createHorse(address _owner, string _hash) external payable {
         uint256 tokenId = addresses.push(_owner) - 1;
 
         _mint(_owner, tokenId);
@@ -49,7 +49,7 @@ contract CToken is ERC721Token, Ownable {
 
     // @dev returns owner of a token
     function ownerOfToken(uint256 _tokenId) public view returns(address) {
-        return ownerOf(_tokenId);
+        return super.ownerOf(_tokenId);
     }
 
     // @dev Approves the auctions contract to transfer the given token,
@@ -61,7 +61,7 @@ contract CToken is ERC721Token, Ownable {
 
     // Check if an address has been granted approval of a token.
     function isTokenApproved(address _spender, uint256 _tokenId) public view returns(bool) {
-        return isApprovedOrOwner(_spender, _tokenId);
+        return super.isApprovedOrOwner(_spender, _tokenId);
     }
 
     /*
@@ -70,12 +70,5 @@ contract CToken is ERC721Token, Ownable {
     function tokenSold(address _from, address _to, uint256 _tokenId) public {
         safeTransferFrom(_from, _to, _tokenId);
         CryptofieldBase(cryptofieldBase).horseSold(_tokenId);
-    }
-
-    /*
-    @dev Transfer ownership of contract to a given address.
-    */
-    function giveOwnership(address _to) public onlyOwner() {
-        transferOwnership(_to);
     }
 }
