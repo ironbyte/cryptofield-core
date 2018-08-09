@@ -6,12 +6,12 @@ contract("Breeding", acc => {
   let token;
   let owner = acc[1];
 
-  before(() => {
+  before(async () => {
     instance = await Breeding.deployed();
     token = await CToken.deployed();
 
     // Creating a genesis token since we can't mix with a genesis horse.
-    await token.createHorse(owner, "first hash"); 
+    await token.createHorse(owner, "first hash");
   })
 
   it("should init a new horse", async () => {
@@ -22,14 +22,14 @@ contract("Breeding", acc => {
     assert.equal(tracking, 1212);
   })
 
-  it("should mix two horses", async () => {
-    // Mint two tokens.
-    await token.createHorse(owner, "hash");
-    await token.createHorse(owner, "another hash");
+  // it("should mix two horses", async () => {
+  //   // Mint two tokens.
+  //   await token.createHorse(owner, "hash");
+  //   await token.createHorse(owner, "another hash");
 
-    await instance.mix(1, 2, {from: acc[1]}); // This should create another token with other stuff specified.
+  //   await instance.mix(1, 2, {from: acc[1]}); // This should create another token with other stuff specified.
 
-    let owner = await token.ownerOf(3);
-    assert.equal(owner, acc[1]);
-  })
+  //   let owner = await token.ownerOf(3);
+  //   assert.equal(owner, acc[1]);
+  // })
 })
