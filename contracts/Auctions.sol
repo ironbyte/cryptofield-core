@@ -76,7 +76,7 @@ contract Auctions is usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(http://206.189.225.161/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://cryptofield.app/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);
@@ -113,7 +113,7 @@ contract Auctions is usingOraclize, Ownable {
         // We're going to do this 'require' only if the auction has no
         // bids yet.
         if(auction.bidders.length == 0) {
-            require(msg.value >= auction.minimum, "lowerBidThanMinimum"); 
+            require(msg.value >= auction.minimum, "lowerBidThanMinimum");
         }
 
         auction.bids[msg.sender] = newBid;
