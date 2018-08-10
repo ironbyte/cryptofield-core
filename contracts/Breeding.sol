@@ -4,7 +4,6 @@ pragma solidity 0.4.24;
 @dev Breeding contract in charge of generating new horses and stats for breeding.
 */
 contract Breeding {
-    address token;
 
     // All this is subject to a change
     struct HorseBreed {
@@ -31,10 +30,6 @@ contract Breeding {
 
     // Maps the horseID to a specific HorseBreed struct.
     mapping(uint256 => HorseBreed) internal horseBreedById;
-
-    constructor(address _token) public {
-        token = _token;
-    }
 
     /*
     @dev Creates a struct for a given horseId.

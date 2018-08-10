@@ -2,15 +2,17 @@ pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
+import "./usingOraclize.sol";
 import "./CToken.sol";
+import "./SaleAuction.sol";
 
-contract Auctions is usingOraclize, Ownable {
+contract Auctions is usingOraclize, Ownable, CToken {
     using SafeMath for uint256;
 
     uint256[] auctionIds;
     uint256[] openAuctions;
-    address ctoken;
+
+    address nft;
 
     struct AuctionData {
         address owner;
@@ -42,17 +44,17 @@ contract Auctions is usingOraclize, Ownable {
     event Bid(address _bidder, uint256 _amount);
     event Withdraw(address _user, uint256 _payout);
 
-    constructor(address _ctoken) public {
+    constructor() public {
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
-        ctoken = _ctoken;
         owner = msg.sender;
     }
 
     function createAuction(uint256 _duration, uint256 _horseId, uint256 _minimum) public payable {
         // We ensure that the value sent can cover the Query price for later usage.
         require(msg.value >= oraclize_getPrice("URL"), "oraclizePrice");
-        require(msg.sender == CToken(ctoken).ownerOfToken(_horseId), "notTokenOwner");
-        require(CToken(ctoken).isTokenApproved(this, _horseId), "auctionsNotApproved");
+        require(msg.sender == ownerOf(_horseId), "notTokenOwner");
+
+        _escrow(msg.sender, _horseId);
 
         uint256 auctionId = auctionIds.push(0) - 1;
 
@@ -63,6 +65,7 @@ contract Auctions is usingOraclize, Ownable {
         auction.horse = _horseId;
         auction.createdAt = now;
         auction.minimum = _minimum;
+
 
         sendAuctionQuery(_duration, auctionId);
 
@@ -156,7 +159,7 @@ contract Auctions is usingOraclize, Ownable {
 
         if(msg.sender == auction.maxBidder) {
             // Sends the token from 'auction.owner' to 'maxBidder'.
-            CToken(ctoken).transferTokenTo(auction.owner, msg.sender, auction.horse);
+            SaleAuction(nft).transferFrom(msg.sender, auction.horse);
             delete auction.maxBidder;
 
             // Return so we don't send an innecesary transfer, the token is the prize.
@@ -269,6 +272,19 @@ contract Auctions is usingOraclize, Ownable {
     }
 
     /*
+    @dev Transfer ownership of the contract to a given address.
+    */
+    function giveOwnership(address _to) public onlyOwner() {
+        transferOwnership(_to);
+    }
+
+    function setNft(address _nft) public onlyOwner() {
+        nft = _nft;
+    }
+
+    /*   PRIVATE FUNCTIONS   */
+
+    /*
     @dev Zeppelin implementation.
     @dev Here we're swapping the auction at a given '_index' for the last element
     and removing it from the array by reducing it.
@@ -282,10 +298,7 @@ contract Auctions is usingOraclize, Ownable {
         openAuctions.length--;
     }
 
-    /*
-    @dev Transfer ownership of the contract to a given address.
-    */
-    function giveOwnership(address _to) public onlyOwner() {
-        transferOwnership(_to);
+    function _escrow(address _owner, uint256 _tokenId) private {
+        safeTransferFrom(_owner, nft, _tokenId);
     }
 }
