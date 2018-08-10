@@ -4,8 +4,9 @@ import "./ERC721Token.sol";
 import "./CryptofieldBase.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/ERC721Holder.sol";
 
-contract CToken is ERC721Token, Ownable {
+contract CToken is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     using SafeMath for uint256;
 
     uint256 stallionsAvailable = 168;
@@ -15,21 +16,9 @@ contract CToken is ERC721Token, Ownable {
 
     // Variable for enumeration.
     address[] addresses;
-    address cryptofieldBase;
-    address auctions;
 
-    constructor(address _cryptofieldBase) ERC721Token("CToken", "CT") public {
-        cryptofieldBase = _cryptofieldBase;
+    constructor() ERC721Token("CToken", "CT") public {
         owner = msg.sender;
-    }
-
-    function setAuctions(address _auctions) public onlyOwner() {
-        auctions = _auctions;
-    }
-
-    /* @dev Returns an array of ids of horses owned by '_from' */
-    function getOwnedTokens(address _from) public view returns(uint256[]) {
-        return super.getOwnedTokens(_from);
     }
 
     /*
@@ -38,25 +27,8 @@ contract CToken is ERC721Token, Ownable {
     function createHorse(address _owner, string _hash) external payable {
         uint256 tokenId = addresses.push(_owner) - 1;
 
-        super._mint(_owner, tokenId);
-        CryptofieldBase(cryptofieldBase).buyHorse(_owner, _hash);
-    }
-
-    // @dev Safely transfer  token from the current owner to another address
-    function transferTokenTo(address _from, address _to, uint256 _tokenId) public {
-        super.safeTransferFrom(_from, _to, _tokenId);
-    }
-
-    // @dev returns owner of a token
-    function ownerOfToken(uint256 _tokenId) public view returns(address) {
-        return super.ownerOf(_tokenId);
-    }
-
-    // @dev Approves the auctions contract to transfer the given token,
-    // that way we can use the address of the contract to perform that transaction when
-    // transfering ownership of a token.
-    function approveAuctions(uint256 _tokenId) public {
-        super.approve(auctions, _tokenId);
+        _mint(_owner, tokenId);
+        buyHorse(_owner, _hash);
     }
 
     // Check if an address has been granted approval of a token.
@@ -69,6 +41,6 @@ contract CToken is ERC721Token, Ownable {
     */
     function tokenSold(address _from, address _to, uint256 _tokenId) public {
         super.safeTransferFrom(_from, _to, _tokenId);
-        CryptofieldBase(cryptofieldBase).horseSold(_tokenId);
+        horseSold(_tokenId);
     }
 }
