@@ -1,4 +1,4 @@
-const CryptofieldBase = artifacts.require("./CryptofieldBase");
+const Auctions = artifacts.require("./Auctions");
 
 contract("CryptofieldBaseContract", accounts => {
   let instance;
@@ -10,7 +10,7 @@ contract("CryptofieldBaseContract", accounts => {
 
 
   beforeEach("setup contract instance", async () => {
-    instance = await CryptofieldBase.deployed();
+    instance = await Auctions.deployed();
   })
 
   it("should be able to buy a horse", async () => {

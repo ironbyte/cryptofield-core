@@ -1,4 +1,4 @@
-const CToken = artifacts.require("./CToken");
+const Auctions = artifacts.require("./Auctions");
 
 contract("CToken", acc => {
   let instance;
@@ -7,7 +7,7 @@ contract("CToken", acc => {
   let amount = new web3.BigNumber(web3.toWei(1, "finney"));
 
   beforeEach("setup instance", async () => {
-    instance = await CToken.deployed();
+    instance = await Auctions.deployed();
   })
 
   it("should mint a new token with specified params", async () => {
@@ -26,7 +26,7 @@ contract("CToken", acc => {
 
   it("should be able to transfer a token", async () => {
     // 'owner' has token 0.
-    await instance.transferTokenTo(owner, secondBuyer, 0, {from: owner});
+    await instance.safeTransferFrom(owner, secondBuyer, 0, {from: owner});
     let newTokenOwner = await instance.ownerOf(0);
 
     assert.equal(secondBuyer, newTokenOwner);

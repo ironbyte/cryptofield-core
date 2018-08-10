@@ -1,21 +1,19 @@
 const Auctions = artifacts.require("./Auctions");
-const CToken = artifacts.require("./CToken");
+const SaleAuction = artifacts.require("./SaleAuction");
 
 contract("Auctions", acc => {
   let instance;
-  let tokenInstance;
   let owner = acc[1];
   let buyer = acc[8];
   let amount = new web3.BigNumber(web3.toWei(1, "ether"));
   let minimum = web3.toWei(0.001, "ether");
 
-  beforeEach("setup instance", async () => {
+  before("setup instance", async () => {
     // We need this instance to mint a token.
-    tokenInstance = await CToken.deployed();
-
     instance = await Auctions.deployed();
+    let sale = await SaleAuction.address;
 
-    await tokenInstance.setAuctions(instance.address, {from: owner});
+    await instance.setNft(sale, {from: owner});
   })
 
   /*
@@ -23,8 +21,7 @@ contract("Auctions", acc => {
   the function.
   */
   it("should create an auction", async () => {
-    await tokenInstance.createHorse(buyer, "some hash");
-    await tokenInstance.approveAuctions(0, {from: buyer});
+    await instance.createHorse(buyer, "some hash");
     await instance.createAuction(0, 0, minimum, {from: buyer, value: amount});
 
     let auctions = await instance.getAuctionsLength.call();
@@ -37,11 +34,11 @@ contract("Auctions", acc => {
   })
 
   it("should record a new bid for an address", async () => {
-    await tokenInstance.createHorse(buyer, "other hash");
-    await tokenInstance.approveAuctions(1, {from: buyer});
+    await instance.createHorse(buyer, "other hash");
     
     let res = await instance.createAuction(1, 1, minimum, {from: buyer, value: amount});
-    let auctionId = res.logs[0].args._auctionId.toNumber();
+    let auctionId = res.logs[1].args._auctionId.toNumber();
+
 
     // Auction should be open for a while, we're not calling the __callback function anyway.
     await instance.bid(auctionId, {from: acc[3], value: new web3.BigNumber(web3.toWei(0.025, "ether"))});
@@ -64,11 +61,10 @@ contract("Auctions", acc => {
   })
 
   it("should revert if the new bid amount is lower than the maxBid", async () => {
-    await tokenInstance.createHorse(buyer, "third hash");
-    await tokenInstance.approveAuctions(2, {from: buyer});
+    await instance.createHorse(buyer, "third hash");
 
     let res = await instance.createAuction(1, 2, minimum, {from: buyer, value: amount});
-    let auctionId = res.logs[0].args._auctionId.toNumber();
+    let auctionId = res.logs[1].args._auctionId.toNumber();
 
     // Record a new bid.
     await instance.bid(auctionId, {from: acc[2], value: web3.toWei(1, "finney")});
@@ -101,6 +97,7 @@ contract("Auctions", acc => {
   it("should revert if not the owner tries to close an auction", async () => {
     // Again, we're using an existing auction.
     let status = await instance.getAuctionStatus.call(1);
+
     assert.equal(status, true);
 
     try {
@@ -115,11 +112,10 @@ contract("Auctions", acc => {
   })
 
   it("should send the token to the max bidder of an auction", async () => {
-    await tokenInstance.createHorse(buyer, "fourth hash");
-    await tokenInstance.approveAuctions(3, {from: buyer});
+    await instance.createHorse(buyer, "fourth hash");
 
     let res = await instance.createAuction(1, 3, minimum, {from: buyer, value: amount});
-    let auctionId = res.logs[0].args._auctionId.toNumber();
+    let auctionId = res.logs[1].args._auctionId.toNumber();
 
     await instance.bid(auctionId, {from: acc[3], value: amount});
 
@@ -129,7 +125,7 @@ contract("Auctions", acc => {
     // maxBidder claims the reward
     await instance.withdraw(auctionId, {from: acc[3]});
 
-    let tokenOwner = await tokenInstance.ownerOf(3);
+    let tokenOwner = await instance.ownerOf(3);
 
     assert.equal(tokenOwner, acc[3]);
 
@@ -137,11 +133,10 @@ contract("Auctions", acc => {
   })
 
   it("should send max bid to the auction owner", async () => {
-    await tokenInstance.createHorse(buyer, "fifth hash");
-    await tokenInstance.approveAuctions(4, {from: buyer});
+    await instance.createHorse(buyer, "fifth hash");
 
     let res = await instance.createAuction(1, 4, minimum, {from: buyer, value: amount});
-    let auction = res.logs[0].args._auctionId.toNumber();
+    let auction = res.logs[1].args._auctionId.toNumber();
 
     await instance.bid(auction, {from: acc[4], value: web3.toWei(1, "finney")});
 
@@ -158,11 +153,10 @@ contract("Auctions", acc => {
   })
 
   it("should get the amount they bid if they're not the owner or winner", async () => {
-    await tokenInstance.createHorse(buyer, "fifth hash");
-    await tokenInstance.approveAuctions(5, {from: buyer});
+    await instance.createHorse(buyer, "fifth hash");
 
     let res = await instance.createAuction(1, 5, minimum, {from: buyer, value: amount});
-    let auction = res.logs[0].args._auctionId.toNumber();
+    let auction = res.logs[1].args._auctionId.toNumber();
 
     await instance.bid(auction, {from: acc[5], value: web3.toWei(1, "finney")});
     await instance.bid(auction, {from: acc[4], value: web3.toWei(2, "finney")});
@@ -183,11 +177,10 @@ contract("Auctions", acc => {
   it("should return the bid of a given address in an auction", async () => {
     let bidAmount = web3.toWei(1, "finney");
     // We'll create another token and auction here
-    await tokenInstance.createHorse(acc[4], "6th hash");
-    await tokenInstance.approveAuctions(6, {from: acc[4]});
+    await instance.createHorse(acc[4], "6th hash");
 
     let response = await instance.createAuction(1, 6, minimum, {from: acc[4], value: amount});
-    let auction = response.logs[0].args._auctionId.toNumber();
+    let auction = response.logs[1].args._auctionId.toNumber();
 
     await instance.bid(auction, {from: acc[5], value: bidAmount});
 
@@ -209,14 +202,13 @@ contract("Auctions", acc => {
 
   it("should revert when the minimum is not met in a bid", async () =>{
     let newMinimum = web3.toWei(2, "ether");
-    await tokenInstance.createHorse(acc[4], "7th hash");
-    await tokenInstance.approveAuctions(7, {from: acc[4]});
+    await instance.createHorse(acc[9], "7th hash");;
 
-    let response = await instance.createAuction(1, 6, newMinimum, {from: acc[4], value: amount});
-    let auction = response.logs[0].args._auctionId.toNumber();
+    let response = await instance.createAuction(10, 7, newMinimum, {from: acc[9], value: amount});
+    let auction = response.logs[1].args._auctionId.toNumber();
 
     try {
-      await instance.bid(auction, {from: acc[3], value: web3.toWei(1, "ether")});
+      await instance.bid(auction, {from: acc[1], value: web3.toWei(1, "ether")});
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
@@ -227,9 +219,10 @@ contract("Auctions", acc => {
   })
 
   it("should return the correct list of auctions where a user is participating", async () => {
-    // we're going to user an existing token for this op.
-    let response = await instance.createAuction(1, 6, minimum, {from: acc[4], value: amount});
-    let auction = response.logs[0].args._auctionId.toNumber();
+    await instance.createHorse(acc[4], "8th hash");
+
+    let response = await instance.createAuction(1, 8, minimum, {from: acc[4], value: amount});
+    let auction = response.logs[1].args._auctionId.toNumber();
 
     let participating = await instance.participatingIn.call(acc[6]);
     assert.deepEqual(participating.length, 0);
@@ -238,6 +231,8 @@ contract("Auctions", acc => {
 
     participating = await instance.participatingIn.call(acc[6]);
     assert.equal(participating.length, 1);
+
+    // 1, 2, 6, 7, 8
   })
 
   it("should transfer ownershp of the contract", async () => {
