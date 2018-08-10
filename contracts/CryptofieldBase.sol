@@ -41,7 +41,7 @@ contract CryptofieldBase {
     event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
     event Buy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
-    function buyHorse(address _buyer, string _horseHash) external {
+    function buyHorse(address _buyer, string _horseHash) public {
         saleId = saleId.add(1);
 
         Horse memory horse;
@@ -102,7 +102,7 @@ contract CryptofieldBase {
     @dev Adds 1 to the amount of times a horse has been sold.
     @dev Adds unix timestamp of the date the horse was sold.
     */
-    function horseSold(uint256 _horseId) external {
+    function horseSold(uint256 _horseId) public {
         Horse storage horse = horses[_horseId];
         horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
         horse.dateSold = now;
