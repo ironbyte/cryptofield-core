@@ -14,15 +14,18 @@ var mnemonic = process.env.mnemonic
 module.exports = {
   solc: {
     optimizer: {
-      enabled: true,
-      runs: 200
+        enabled: true,
+        runs: 200
     }
   },
   networks: {
     development: {
       host: "127.0.0.1",
       port: 8545,
-      network_id: "*"
+      network_id: "*",
+      gas: 6721975,
+      gasPrice: 20000000000,
+      from: "0x7a15288396769932d2967f08b4ca5ce9f27bcc85"
     },
     ropsten: {
       provider: () => {
