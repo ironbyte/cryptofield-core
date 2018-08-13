@@ -5,7 +5,9 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract CryptofieldBase {
     using SafeMath for uint256;
 
-    uint256 saleId;
+    uint256 private saleId;
+
+    bytes32 private lastSex;
 
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
@@ -30,6 +32,7 @@ contract CryptofieldBase {
         string previousOwner;
         string horseType;
         string horseHash;
+        string sex;
 
         // Rank is based on awards.
         bytes32 rank;
@@ -39,7 +42,7 @@ contract CryptofieldBase {
     Horse[] horses;
 
     event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
-    event Buy(address _buyer, uint256 _timestamp, uint256 _saleId);
+    event HorseBuy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
     function buyHorse(address _buyer, string _horseHash) public {
         saleId = saleId.add(1);
@@ -52,10 +55,13 @@ contract CryptofieldBase {
         horse.timestamp = now;
         horse.horseType = "G1P Thoroughbred"; // G1P lack some values as they're the first ones.
         horse.horseHash = _horseHash;
+        horse.sex = (lastSex == "M" ? "F" : "M");
+
+        if(lastSex == "M") {lastSex = "F";} else {lastSex = "M";}
 
         horses.push(horse);
 
-        emit Buy(_buyer, now, horse.saleId);
+        emit HorseBuy(_buyer, now, horse.saleId);
     }
 
     /*
@@ -68,6 +74,14 @@ contract CryptofieldBase {
         Horse memory horse = horses[_horseId];
 
         return (horse.horseHash);
+    }
+
+    /*
+    @dev Returns sex of horse.
+    */
+    function getHorseSex(uint256 _horseId) public view returns(string) {
+        Horse memory h = horses[_horseId];
+        return h.sex;
     }
 
     /*
@@ -90,8 +104,7 @@ contract CryptofieldBase {
     /*
     @returns all the information related to auction of a horse
     */
-    function horseAuctionInformation(uint256 _horseId)
-        public view returns(uint256, uint256, uint256, uint256) {
+    function horseAuctionInformation(uint256 _horseId) public view returns(uint256, uint256, uint256, uint256) {
 
         Horse memory horse = horses[_horseId];
 
@@ -102,6 +115,8 @@ contract CryptofieldBase {
     @dev Adds 1 to the amount of times a horse has been sold.
     @dev Adds unix timestamp of the date the horse was sold.
     */
+
+    //TODO: Add modifier in this function
     function horseSold(uint256 _horseId) public {
         Horse storage horse = horses[_horseId];
         horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
