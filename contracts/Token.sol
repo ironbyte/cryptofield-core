@@ -6,7 +6,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721Holder.sol";
 
-contract CToken is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
+contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     using SafeMath for uint256;
 
     uint256 stallionsAvailable = 168;

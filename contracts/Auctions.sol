@@ -3,10 +3,10 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./usingOraclize.sol";
-import "./CToken.sol";
+import "./Token.sol";
 import "./SaleAuction.sol";
 
-contract Auctions is usingOraclize, Ownable, CToken {
+contract Auctions is usingOraclize, Ownable, Token {
     using SafeMath for uint256;
 
     uint256[] auctionIds;

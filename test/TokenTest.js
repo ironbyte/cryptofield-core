@@ -1,6 +1,6 @@
 const Core = artifacts.require("./Core");
 
-contract("CToken", acc => {
+contract("Token", acc => {
   let instance;
   let owner = acc[1];
   let secondBuyer = acc[2];
