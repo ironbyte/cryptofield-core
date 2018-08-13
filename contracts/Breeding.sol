@@ -20,7 +20,7 @@ contract Breeding {
         uint256 offspringCounter;
         uint256 raceVariable;
         uint256 racePerfomance;
-        uint256 reaceOutcome;
+        uint256 raceOutcome;
         uint256 tieBreaker;
         uint256 oddValue;
         uint256 oddComparison;

@@ -8,6 +8,7 @@ contract SaleAuction is ERC721Holder, Ownable {
     address core;
 
     constructor(address _core) public {
+        owner = msg.sender;
         core = _core;
     }
 
