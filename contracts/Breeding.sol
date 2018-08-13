@@ -1,16 +1,24 @@
 pragma solidity 0.4.24;
 
 import "./Auctions.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+
+// TODO: PROBABLY MOVING MOST OF THIS LOGIC TO ANOTHER CONTRACT
 
 /*
 @dev Breeding contract in charge of generating new horses and stats for breeding.
 */
 contract Breeding is Auctions {
+    using SafeMath for uint256;
+
+    uint256 constant MALE_CAP = 240;
+    uint256 constant FEMALE_CAP =  48;
 
     // All this is subject to a change
     struct HorseBreed {
         uint256[2] parentsId;
 
+        uint256 firstOffspring;
         uint256 trackingNumber;
         uint256 lineageOne;
         uint256 lineageTwo;
@@ -50,16 +58,29 @@ contract Breeding is Auctions {
     @dev Creates a new token based on parents.
     */
     function mix(uint256 _maleParent, uint256 _femaleParent) external {
-        require(_maleParent != 0 || _femaleParent != 0, "Can't mix with genesis horse"); // You can't mix with the first horse.
+        HorseBreed storage male = horseBreedById[_maleParent];
+        HorseBreed storage female = horseBreedById[_femaleParent];
+
+        require(_maleParent != 0 || _femaleParent != 0, "Can't mix with genesis horse"); // You can't mix with the first horse.;
+        require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
+        require(_checkOffspringCounter(male, female), "Max cap reached");
+
+        if(female.firstOffspring == 0) {
+            female.firstOffspring = now;
+        }
+
+        if(male.firstOffspring == 0) {
+            male.firstOffspring = now;
+        }
 
         // We'll get the lineage numbers from these parents.
         uint256[3] memory maleParentLineage = _getMaleParentLineage(_maleParent);
         uint256[3] memory femaleParentLineage = _getFemaleParentLineage(_femaleParent);
 
-        // Prevents lineage collide.
+        // Prevents that lineages collide.
         require(_canBreed(maleParentLineage, femaleParentLineage), "Lineages collide");
 
-        // TODO: Token minting here
+        // TODO: Token minting
     }
 
     /*
@@ -105,9 +126,45 @@ contract Breeding is Auctions {
     }
 
     /*
+    @dev Checks whether the male or female parent have less than the max cap for offsprings for the year.
+    We're going to check the amount of years that have gone by and multiply that by the max cap,
+    and check if the horse has not met its maximum cap yet.
+    */
+    function _checkOffspringCounter(HorseBreed male, HorseBreed female) private returns(bool) {
+        uint256 maleYearsGoneBy = now.sub(male.firstOffspring).div(365 days);
+        uint256 maleCapAllowed = maleYearsGoneBy.mul(MALE_CAP);
+
+        uint256 femaleYearsGoneBy = now.sub(female.firstOffspring).div(365 days);
+        uint256 femaleCapAllowed = femaleYearsGoneBy.mul(FEMALE_CAP);
+
+        require(male.offspringCounter <= maleCapAllowed, "Male cap reached");
+        require(female.offspringCounter <= femaleCapAllowed, "Female cap reached");
+    }
+
+    /*
+    @dev Check if the horses have the correct sex for breeding.
+    */
+    function _checkGenders(uint256 first, uint256 second) private returns(bool) {
+        // TODO: After checking if bodies from this contract will be moved out of Core
+        // Add calling to Core/Base
+        string memory firstHorseSex = getHorseSex(first);
+        string memory secondHorseSex = getHorseSex(second);
+
+        require(keccak256(firstHorseSex) != keccak256(secondHorseSex), "Genders are the same");
+    }
+
+    /*
     @dev Returns a given horse tracking number
     */
     function getTrackingNumber(uint256 _id) public view returns(uint256) {
         return horseBreedById[_id].trackingNumber;
+    }
+
+    /*
+    @dev Returns a horse stats for breeding.
+    */
+    function getHorseOffspringStats(uint256 _horseId) public returns(uint256, uint256) {
+        HorseBreed memory h = horseBreedById[_horseId];
+        return(h.offspringCounter, h.firstOffspring);
     }
 }
