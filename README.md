@@ -19,3 +19,6 @@ ganache-cli # or testrpc on another window
 ethereum-bridge
 truffle test
 ```
+
+## TODO:
+-[ ] Remove irrelevant fields to breeding from API.
