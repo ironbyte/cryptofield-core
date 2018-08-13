@@ -1,17 +1,15 @@
 const Breeding = artifacts.require("./Breeding");
-const Auctions = artifacts.require("./Auctions");
+const Core = artifacts.require("./Core");
 
 contract("Breeding", acc => {
   let instance;
-  let core;
   let owner = acc[1];
 
   before(async () => {
-    instance = await Breeding.deployed();
-    core = await Auctions.deployed();
+    instance = await Core.deployed();
 
     // Creating a genesis token since we can't mix with a genesis horse.
-    await core.createHorse(owner, "first hash");
+    await instance.createHorse(owner, "first hash");
   })
 
   it("should init a new horse", async () => {

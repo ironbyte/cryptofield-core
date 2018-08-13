@@ -1,4 +1,4 @@
-const Auctions = artifacts.require("./Auctions");
+const Core = artifacts.require("./Core");
 const SaleAuction = artifacts.require("./SaleAuction");
 
 contract("Auctions", acc => {
@@ -10,7 +10,7 @@ contract("Auctions", acc => {
 
   before("setup instance", async () => {
     // We need this instance to mint a token.
-    instance = await Auctions.deployed();
+    instance = await Core.deployed();
     let sale = await SaleAuction.address;
 
     await instance.setNft(sale, {from: owner});

@@ -1,16 +1,13 @@
-const Auctions = artifacts.require("./Auctions");
+const Core = artifacts.require("./Core");
 
 contract("CryptofieldBaseContract", accounts => {
   let instance;
-  let tokenInstance;
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let buyer = accounts[1];
-  let secondBuyer = accounts[2];
-  let value = web3.toWei(1, "finney");
 
 
   beforeEach("setup contract instance", async () => {
-    instance = await Auctions.deployed();
+    instance = await Core.deployed();
   })
 
   it("should be able to buy a horse", async () => {

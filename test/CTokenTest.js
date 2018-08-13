@@ -1,4 +1,4 @@
-const Auctions = artifacts.require("./Auctions");
+const Core = artifacts.require("./Core");
 
 contract("CToken", acc => {
   let instance;
@@ -7,7 +7,7 @@ contract("CToken", acc => {
   let amount = new web3.BigNumber(web3.toWei(1, "finney"));
 
   beforeEach("setup instance", async () => {
-    instance = await Auctions.deployed();
+    instance = await Core.deployed();
   })
 
   it("should mint a new token with specified params", async () => {
