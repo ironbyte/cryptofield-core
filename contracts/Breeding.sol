@@ -1,9 +1,11 @@
 pragma solidity 0.4.24;
 
+import "./Auctions.sol";
+
 /*
 @dev Breeding contract in charge of generating new horses and stats for breeding.
 */
-contract Breeding {
+contract Breeding is Auctions {
 
     // All this is subject to a change
     struct HorseBreed {
