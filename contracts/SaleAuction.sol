@@ -137,7 +137,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
         if(msg.sender == auction.maxBidder) {
             // Sends the token from 'auction.owner' to 'maxBidder'.
-            core.transferFrom(this, msg.sender, auction.horse);
+            core.safeTransferFrom(auction.owner, msg.sender, auction.horse);
             delete auction.maxBidder;
 
             // Return so we don't send an innecesary transfer, the token is the prize.
