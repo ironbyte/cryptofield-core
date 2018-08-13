@@ -9,11 +9,6 @@ import "openzeppelin-solidity/contracts/token/ERC721/ERC721Holder.sol";
 contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     using SafeMath for uint256;
 
-    uint256 stallionsAvailable = 168;
-    uint256 maresAvailable = 379;
-    uint256 coltsAvailable = 230;
-    uint256 filliesAvailable =  334;
-
     // Variable for enumeration.
     address[] addresses;
 
