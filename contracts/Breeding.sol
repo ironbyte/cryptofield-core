@@ -41,15 +41,17 @@ contract Breeding is Auctions {
     // Maps the horseID to a specific HorseBreed struct.
     mapping(uint256 => HorseBreed) internal horseBreedById;
 
+    event OffspringCreated(uint256 _father, uint256 _mother, uint256 _offspring);
+
     /*
     @dev Creates a struct for a given horseId.
     @dev There are two ways to initialize horses, with this function or calling 'mix' which takes the parent's id
     and some other values to create another horse.
     */
-    function initHorse(uint256 _horseId, uint256 _trackingNumber) external {
+    function initHorse(uint256 _horseId) external {
         // TODO: Add tracking number for new horse
         HorseBreed memory horse;
-        horse.trackingNumber = _trackingNumber;
+        horse.trackingNumber = now;
 
         horseBreedById[_horseId] = horse;
     }
@@ -63,7 +65,7 @@ contract Breeding is Auctions {
 
         require(_maleParent != 0 || _femaleParent != 0, "Can't mix with genesis horse"); // You can't mix with the first horse.;
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
-        require(_checkOffspringCounter(male, female), "Max cap reached");
+        // require(_checkOffspringCounter(male, female), "Max cap reached");
 
         if(female.firstOffspring == 0) {
             female.firstOffspring = now;
@@ -80,7 +82,16 @@ contract Breeding is Auctions {
         // Prevents that lineages collide.
         require(_canBreed(maleParentLineage, femaleParentLineage), "Lineages collide");
 
-        // TODO: Token minting
+        // The offspring belongs to the owner of the female horse.
+        uint256 tokenId = allTokensLength();
+        address offspringOwner = ownerOf(_femaleParent);
+        _mint(offspringOwner, tokenId);
+        // buyHorse(offspringOwner)
+
+        male.offspringCounter = male.offspringCounter.add(1);
+        female.offspringCounter = female.offspringCounter.add(1);
+
+        emit OffspringCreated(_maleParent, _femaleParent, tokenId);
     }
 
     /*
@@ -117,9 +128,15 @@ contract Breeding is Auctions {
     */
     function _canBreed(uint256[3] _male, uint256[3] _female) private pure returns(bool) {
         for(uint i = 0; i < 2; i++) {
-            // If the current element from '_male' is the same as one of those on '_female'
-            // return 'false' so the 'require' isn't met.
-            if(_male[i] == _female[0] || _male[i] == _female[1] || _male[i] == _female[2]) {return false;}
+            // We're going to ignore the 0 as it is a default value or Genesis horse.
+            if(_male[i] == 0 || _female[i] == 0) {
+                return true;
+            } else {
+                // If the current element from '_male' is the same as one of those on '_female'
+                // return 'false' so the 'require' isn't met.
+                if(_male[i] == _female[0] || _male[i] == _female[1] || _male[i] == _female[2]) {return false;}
+            }
+
         }
 
         return true;
@@ -144,13 +161,13 @@ contract Breeding is Auctions {
     /*
     @dev Check if the horses have the correct sex for breeding.
     */
-    function _checkGenders(uint256 first, uint256 second) private returns(bool) {
+    function _checkGenders(uint256 _first, uint256 _second) private returns(bool) {
         // TODO: After checking if bodies from this contract will be moved out of Core
         // Add calling to Core/Base
-        string memory firstHorseSex = getHorseSex(first);
-        string memory secondHorseSex = getHorseSex(second);
+        string memory firstHorseSex = getHorseSex(_first);
+        string memory secondHorseSex = getHorseSex(_second);
 
-        require(keccak256(firstHorseSex) != keccak256(secondHorseSex), "Genders are the same");
+        return keccak256(abi.encodePacked(firstHorseSex)) != keccak256(abi.encodePacked(secondHorseSex));
     }
 
     /*
