@@ -10,7 +10,7 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     using SafeMath for uint256;
 
     // Variable for enumeration.
-    address[] addresses;
+    uint256[] addresses;
 
     constructor() ERC721Token("CToken", "CT") public {
         owner = msg.sender;
@@ -20,7 +20,7 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     @dev Simply creates a new token and calls base contract to add the horse information.
     */
     function createHorse(address _owner, string _hash) external payable {
-        uint256 tokenId = addresses.push(_owner) - 1;
+        uint256 tokenId = allTokensLength();
 
         _mint(_owner, tokenId);
         buyHorse(_owner, _hash);
