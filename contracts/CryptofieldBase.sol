@@ -2,6 +2,9 @@ pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
+// TODO: Evaluate use of IPFS hash when creating horses, this limits us when creating offsprings as we're not able
+// to get an IPFS hash unless we do an external query.
+
 contract CryptofieldBase {
     using SafeMath for uint256;
 
