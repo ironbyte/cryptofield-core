@@ -142,12 +142,18 @@ contract ERC721Token is ERC721, ERC721BasicToken {
         ownedTokensIndex[lastToken] = tokenIndex;
     }
 
+    /*
+    @dev Returns a list with the owned tokens of a given address.
+    */
     function getOwnedTokens(address _from) public view returns(uint256[]) {
         return ownedTokens[_from];
     }
 
-    function ownerOf(uint256 _tokenId) public view returns(address) {
-        return super.ownerOf(_tokenId);
+    /*
+    @dev Returns the length of all tokens.
+    */
+    function allTokensLength() public view returns(uint256) {
+        return allTokens.length;
     }
 
     /**
