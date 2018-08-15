@@ -19,11 +19,13 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     /*
     @dev Simply creates a new token and calls base contract to add the horse information.
     */
-    function createHorse(address _owner, string _hash) external payable {
+    function createHorse(address _owner, string _hash) public payable returns(uint256) {
         uint256 tokenId = allTokensLength();
 
         _mint(_owner, tokenId);
-        buyHorse(_owner, _hash);
+        buyHorse(_owner, _hash, tokenId);
+
+        return tokenId;
     }
 
     // Check if an address has been granted approval of a token.
