@@ -72,12 +72,12 @@ contract Breeding is Auctions {
         // Since this means that it is the first offspring of either one, we get their timestamp here and use
         // it as their tracking number.
         if(female.firstOffspring == 0) {
-            female.trackingNumber = getTimestamp(_femaleParent);
+            female.trackingNumber = _genTrackingNumber(_femaleParent);
             female.firstOffspring = now;
         }
 
         if(male.firstOffspring == 0) {
-            male.trackingNumber = getTimestamp(_maleParent);
+            male.trackingNumber = _genTrackingNumber(_maleParent);
             male.firstOffspring = now;
         }
 
@@ -101,7 +101,7 @@ contract Breeding is Auctions {
 
         // offspring data
         HorseBreed storage o = horseBreedById[tokenId];
-        o.trackingNumber = now;
+        o.trackingNumber = _genFirstTrackingNumber();
         o.parentsId = [_maleParent, _femaleParent];
         o.lineageOne = male.trackingNumber;
         o.lineageTwo = female.trackingNumber;
@@ -126,7 +126,10 @@ contract Breeding is Auctions {
 
         return lineageParents;
     }
-
+ 
+    /*
+    @dev Returns the lineage numbers of the female parent.
+    */
     function _getFemaleParentLineage(HorseBreed _parent) private view returns(uint256[3]) {
         // We do this manually since we know they're just numbers we're getting.
         uint256[3] memory lineageParents = [
@@ -199,6 +202,30 @@ contract Breeding is Auctions {
         string memory secondHorseSex = getHorseSex(_second);
 
         return keccak256(abi.encodePacked(firstHorseSex)) != keccak256(abi.encodePacked(secondHorseSex));
+    }
+
+    /*
+    @dev Gets a random tracking number by dividing the current timestamp by a random number.
+    */
+    function _genFirstTrackingNumber() private returns(uint256) {
+        return now.div(_getRanNum());
+    }
+
+    /*
+    @dev Gets a random tracking number by using the timestamp of an already generated horse. 
+    */
+    function _genTrackingNumber(uint256 _horseId) private returns(uint256) {
+        uint256 ts = getTimestamp(_horseId);
+        uint256 rand = _getRanNum();
+        return ts.div(rand);
+    }
+
+    /*
+    @dev Gets a random number between 1 and 100, there are not security concerns here so we're using the
+    block.blockhash and block.number.
+    */
+    function _getRanNum() private view returns(uint256) {
+        return uint256(blockhash(block.number.sub(1))) % 100 + 1;
     }
 
     /*
