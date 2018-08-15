@@ -11,10 +11,10 @@ contract("CryptofieldBaseContract", accounts => {
   })
 
   it("should be able to buy a horse", async () => {
-    await instance.buyHorse(buyer, hash);
-    let horses = await instance.getHorsesLength.call()
+    await instance.buyHorse(buyer, hash, 0);
+    let horse = await instance.getHorse.call(0)
 
-    assert.equal(horses, 1);
+    assert.equal(horse, hash);
   })
 
   it("should add 1 to times sold when a given horse is sold", async () => {
