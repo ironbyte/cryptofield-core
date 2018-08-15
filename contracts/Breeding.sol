@@ -49,7 +49,6 @@ contract Breeding is Auctions {
     and some other values to create another horse.
     */
     function initHorse(uint256 _horseId) external {
-        // TODO: Add tracking number for new horse
         HorseBreed memory horse;
         horse.trackingNumber = now;
 
@@ -59,37 +58,57 @@ contract Breeding is Auctions {
     /*
     @dev Creates a new token based on parents.
     */
-    function mix(uint256 _maleParent, uint256 _femaleParent) external {
+    function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external {
         HorseBreed storage male = horseBreedById[_maleParent];
         HorseBreed storage female = horseBreedById[_femaleParent];
 
+        // The offspring belongs to the owner of the female horse.
+        address offspringOwner = ownerOf(_femaleParent);
+
+        require(msg.sender == offspringOwner, "Not owner of female horse");
         require(_maleParent != 0 || _femaleParent != 0, "Can't mix with genesis horse"); // You can't mix with the first horse.;
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
-        // require(_checkOffspringCounter(male, female), "Max cap reached");
 
+        // Since this means that it is the first offspring of either one, we get their timestamp here and use
+        // it as their tracking number.
         if(female.firstOffspring == 0) {
             female.firstOffspring = now;
+            female.trackingNumber = getTimestamp(_femaleParent);
         }
 
         if(male.firstOffspring == 0) {
             male.firstOffspring = now;
+            male.trackingNumber = getTimestamp(_maleParent);
         }
 
         // We'll get the lineage numbers from these parents.
-        uint256[3] memory maleParentLineage = _getMaleParentLineage(_maleParent);
-        uint256[3] memory femaleParentLineage = _getFemaleParentLineage(_femaleParent);
+        uint256[3] memory maleParentLineage = _getMaleParentLineage(male);
+        uint256[3] memory femaleParentLineage = _getFemaleParentLineage(female);
 
         // Prevents that lineages collide.
         require(_canBreed(maleParentLineage, femaleParentLineage), "Lineages collide");
 
-        // The offspring belongs to the owner of the female horse.
-        uint256 tokenId = allTokensLength();
-        address offspringOwner = ownerOf(_femaleParent);
-        _mint(offspringOwner, tokenId);
-        // buyHorse(offspringOwner)
+        uint256 tokenId = createHorse(offspringOwner, _hash);
 
         male.offspringCounter = male.offspringCounter.add(1);
         female.offspringCounter = female.offspringCounter.add(1);
+
+        require(_notRelated(_maleParent, _femaleParent, male, female), "Horses are directly related");
+
+        // Default is 0, the firstOffspring key needs to yield something else than 0 otherwise this
+        // 'require' will never be met.
+        require(_checkOffspringCounter(male, female), "Max cap reached");
+
+        // offspring data
+        HorseBreed storage o = horseBreedById[tokenId];
+        o.trackingNumber = now;
+        o.parentsId = [_maleParent, _femaleParent];
+        o.lineageOne = male.trackingNumber;
+        o.lineageTwo = female.trackingNumber;
+        o.lineageThree = male.lineageOne;
+        o.lineageFour = male.lineageTwo;
+        o.lineageFive = female.lineageOne;
+        o.lineageSix = female.lineageTwo;
 
         emit OffspringCreated(_maleParent, _femaleParent, tokenId);
     }
@@ -97,27 +116,23 @@ contract Breeding is Auctions {
     /*
     @dev Returns the lineage numbers of the male parent.
     */
-    function _getMaleParentLineage(uint256 _id) private view returns(uint256[3]) {
-        HorseBreed memory parent = horseBreedById[_id];
-
+    function _getMaleParentLineage(HorseBreed _parent) private view returns(uint256[3]) {
         // We do this manually since we know they're just numbers we're getting.
         uint256[3] memory lineageParents = [
-            parent.trackingNumber,
-            parent.lineageOne,
-            parent.lineageTwo
+            _parent.trackingNumber,
+            _parent.lineageOne,
+            _parent.lineageTwo
         ];
 
         return lineageParents;
     }
 
-    function _getFemaleParentLineage(uint256 _id) private view returns(uint256[3]) {
-        HorseBreed memory parent = horseBreedById[_id];
-
+    function _getFemaleParentLineage(HorseBreed _parent) private view returns(uint256[3]) {
         // We do this manually since we know they're just numbers we're getting.
         uint256[3] memory lineageParents = [
-            parent.trackingNumber,
-            parent.lineageOne,
-            parent.lineageTwo
+            _parent.trackingNumber,
+            _parent.lineageOne,
+            _parent.lineageTwo
         ];
 
         return lineageParents;
@@ -127,16 +142,33 @@ contract Breeding is Auctions {
     Based on the lineages sent check if there is no coallison between them, i.e. one being equal to another.
     */
     function _canBreed(uint256[3] _male, uint256[3] _female) private pure returns(bool) {
+        // Checks that tracking numbers aren't the same from lineageOne to lineageSix on male and female.
         for(uint i = 0; i < 2; i++) {
             // We're going to ignore the 0 as it is a default value or Genesis horse.
             if(_male[i] == 0 || _female[i] == 0) {
-                return true;
+                continue;
             } else {
                 // If the current element from '_male' is the same as one of those on '_female'
                 // return 'false' so the 'require' isn't met.
                 if(_male[i] == _female[0] || _male[i] == _female[1] || _male[i] == _female[2]) {return false;}
             }
+        }
 
+        return true;
+    }
+
+    /*
+    @dev Checks that none of the horses are related, i.e. One is not an offspring of another
+    */
+    function _notRelated(
+        uint256 _maleId,
+        uint256 _femaleId,
+        HorseBreed m,
+        HorseBreed f
+    ) private returns(bool) 
+    {
+        if(m.parentsId[0] == _maleId || m.parentsId[0] == _femaleId || f.parentsId[0] == _maleId || f.parentsId[1] == _femaleId) {
+            return false;
         }
 
         return true;
@@ -148,14 +180,13 @@ contract Breeding is Auctions {
     and check if the horse has not met its maximum cap yet.
     */
     function _checkOffspringCounter(HorseBreed male, HorseBreed female) private returns(bool) {
-        uint256 maleYearsGoneBy = now.sub(male.firstOffspring).div(365 days);
+        uint256 maleYearsGoneBy = now.sub(male.firstOffspring).div(365 days).add(1);
         uint256 maleCapAllowed = maleYearsGoneBy.mul(MALE_CAP);
 
-        uint256 femaleYearsGoneBy = now.sub(female.firstOffspring).div(365 days);
+        uint256 femaleYearsGoneBy = now.sub(female.firstOffspring).div(365 days).add(1);
         uint256 femaleCapAllowed = femaleYearsGoneBy.mul(FEMALE_CAP);
 
-        require(male.offspringCounter <= maleCapAllowed, "Male cap reached");
-        require(female.offspringCounter <= femaleCapAllowed, "Female cap reached");
+        return male.offspringCounter <= maleCapAllowed || female.offspringCounter <= femaleCapAllowed;
     }
 
     /*
@@ -183,5 +214,13 @@ contract Breeding is Auctions {
     function getHorseOffspringStats(uint256 _horseId) public returns(uint256, uint256) {
         HorseBreed memory h = horseBreedById[_horseId];
         return(h.offspringCounter, h.firstOffspring);
+    }
+
+    /*
+    @dev Get lineages of a horse
+    */
+    function getLineage(uint256 _horseId) public view returns(uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+        HorseBreed memory h = horseBreedById[_horseId];
+        return(h.trackingNumber, h.lineageOne, h.lineageTwo, h.lineageThree, h.lineageFour, h.lineageFive, h.lineageSix);
     }
 }
