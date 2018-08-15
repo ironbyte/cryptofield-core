@@ -2,15 +2,12 @@ pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-// TODO: Evaluate use of IPFS hash when creating horses, this limits us when creating offsprings as we're not able
-// to get an IPFS hash unless we do an external query.
-
 contract CryptofieldBase {
     using SafeMath for uint256;
 
     uint256 private saleId;
 
-    bytes32 private lastSex;
+    bytes32 private lastSex = "F"; // First horse is a male.
 
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
@@ -32,8 +29,9 @@ contract CryptofieldBase {
         uint8[] grandparents;
         uint8[] greatgrandparents;
 
+        uint256[7] characteristics;
+
         string previousOwner;
-        string horseType;
         string horseHash;
         string sex;
 
@@ -42,12 +40,12 @@ contract CryptofieldBase {
 
     }
 
-    Horse[] horses;
+    mapping(uint256 => Horse) public horses;
 
     event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
     event HorseBuy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
-    function buyHorse(address _buyer, string _horseHash) public {
+    function buyHorse(address _buyer, string _horseHash, uint256 _tokenId) public {
         saleId = saleId.add(1);
 
         Horse memory horse;
@@ -56,13 +54,13 @@ contract CryptofieldBase {
         // The use of 'now' here shouldn't be a concern since that's only used for the timestamp of a horse
         // which really doesn't have much effect on the horse itself.
         horse.timestamp = now;
-        horse.horseType = "G1P Thoroughbred"; // G1P lack some values as they're the first ones.
         horse.horseHash = _horseHash;
         horse.sex = (lastSex == "M" ? "F" : "M");
+        horse.characteristics = _genCharacteristics();
 
         if(lastSex == "M") {lastSex = "F";} else {lastSex = "M";}
 
-        horses.push(horse);
+        horses[_tokenId] = horse;
 
         emit HorseBuy(_buyer, now, horse.saleId);
     }
@@ -85,13 +83,6 @@ contract CryptofieldBase {
     function getHorseSex(uint256 _horseId) public view returns(string) {
         Horse memory h = horses[_horseId];
         return h.sex;
-    }
-
-    /*
-    @dev Gets the length of the horses array
-    */
-    function getHorsesLength() public view returns(uint256) {
-        return horses.length;
     }
 
     /*
@@ -126,5 +117,33 @@ contract CryptofieldBase {
         horse.dateSold = now;
 
         emit HorseSell(_horseId, horse.amountOfTimesSold);
+    }
+
+    function getTimestamp(uint256 _horseId) public view returns(uint256) {
+        Horse memory h = horses[_horseId];
+        return h.timestamp;
+    }
+
+    /* PRIVATE FUNCTIONS */
+
+    /*
+    @dev Generates random values for characteristics, each number represents a characteristic.
+    */
+    function _genCharacteristics() private returns(uint256[7]) {
+        uint256 hType = _getRand(2);
+        uint256 height = _getRand(3);
+        uint256 running = _getRand(21);
+        uint256 uniqCh = _getRand(555);
+        uint256 origin = _getRand(3); // TODO: May change.
+        uint256 pedigree = _getRand(5);
+        uint256 color = _getRand(19);
+
+        uint256[7] memory chars = [hType, height, running, uniqCh, origin, pedigree, color];
+
+        return chars;
+    }
+
+    function _getRand(uint max) private view returns(uint) {
+        return uint(blockhash(block.number - 1)) % max + 1;
     }
 }
