@@ -1,7 +1,4 @@
-require("babel-register")({
-  ignore: /node_modules\/(?!zeppelin-solidity)/
-});
-
+require("babel-register");
 require("babel-polyfill");
 
 if(process.env.NODE_ENV !== "production") {
