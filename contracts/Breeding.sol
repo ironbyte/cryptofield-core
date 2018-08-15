@@ -66,19 +66,19 @@ contract Breeding is Auctions {
         address offspringOwner = ownerOf(_femaleParent);
 
         require(msg.sender == offspringOwner, "Not owner of female horse");
-        require(_maleParent != 0 || _femaleParent != 0, "Can't mix with genesis horse"); // You can't mix with the first horse.;
+        require(_maleParent != 0 || _femaleParent != 0, "Can't mix with genesis horse"); // You can't mix with the first horse.
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
         // Since this means that it is the first offspring of either one, we get their timestamp here and use
         // it as their tracking number.
         if(female.firstOffspring == 0) {
-            female.firstOffspring = now;
             female.trackingNumber = getTimestamp(_femaleParent);
+            female.firstOffspring = now;
         }
 
         if(male.firstOffspring == 0) {
-            male.firstOffspring = now;
             male.trackingNumber = getTimestamp(_maleParent);
+            male.firstOffspring = now;
         }
 
         // We'll get the lineage numbers from these parents.
@@ -211,7 +211,7 @@ contract Breeding is Auctions {
     /*
     @dev Returns a horse stats for breeding.
     */
-    function getHorseOffspringStats(uint256 _horseId) public returns(uint256, uint256) {
+    function getHorseOffspringStats(uint256 _horseId) public view returns(uint256, uint256) {
         HorseBreed memory h = horseBreedById[_horseId];
         return(h.offspringCounter, h.firstOffspring);
     }
