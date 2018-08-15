@@ -120,8 +120,7 @@ contract CryptofieldBase {
     }
 
     function getTimestamp(uint256 _horseId) public view returns(uint256) {
-        Horse memory h = horses[_horseId];
-        return h.timestamp;
+        return horses[_horseId].timestamp;
     }
 
     /* PRIVATE FUNCTIONS */

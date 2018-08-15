@@ -50,7 +50,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
     constructor(address _core) public {
         owner = msg.sender;
         core = Auctions(_core);
-        OAR = OraclizeAddrResolverI(0x059e17ceb15ef8470b7184b858d356317518aab3);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     function createAuction(address _owner, uint256 _duration, uint256 _horseId, uint256 _minimum) public payable returns(uint256) {
