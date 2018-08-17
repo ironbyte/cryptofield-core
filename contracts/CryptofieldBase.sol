@@ -15,6 +15,8 @@ contract CryptofieldBase {
     struct Horse {
         address buyer;
 
+        uint256 baseValue;
+
         uint256 saleId;
         uint256 timestamp;
         uint256 reserveValue;
@@ -23,20 +25,12 @@ contract CryptofieldBase {
         uint256 dateSold;
         uint256 amountOfTimesSold;
 
-        // Check if we can use bytes32[] instead of uint8[] to store foal names.
-        uint8[] foalNames;
-        uint8[] parents;
-        uint8[] grandparents;
-        uint8[] greatgrandparents;
-
         uint256[7] characteristics;
 
         string previousOwner;
         string horseHash;
-        string sex;
 
-        // Rank is based on awards.
-        bytes32 rank;
+        bytes32 sex;
 
     }
 
@@ -48,6 +42,8 @@ contract CryptofieldBase {
     function buyHorse(address _buyer, string _horseHash, uint256 _tokenId) public {
         saleId = saleId.add(1);
 
+        bytes32[2] memory gen = [bytes32("M"), bytes32("F")];
+
         Horse memory horse;
         horse.buyer = _buyer;
         horse.saleId = saleId;
@@ -55,10 +51,10 @@ contract CryptofieldBase {
         // which really doesn't have much effect on the horse itself.
         horse.timestamp = now;
         horse.horseHash = _horseHash;
-        horse.sex = (lastSex == "M" ? "F" : "M");
-        horse.characteristics = _genCharacteristics();
+        horse.sex = (lastSex == gen[0] ? gen[1] : gen[0]);
+        horse.baseValue = _getRand();
 
-        if(lastSex == "M") {lastSex = "F";} else {lastSex = "M";}
+        if(lastSex == gen[0]) {lastSex = gen[1];} else {lastSex = gen[0];}
 
         horses[_tokenId] = horse;
 
@@ -72,37 +68,21 @@ contract CryptofieldBase {
     */
 
     function getHorse(uint256 _horseId) public view returns(string) {
-        Horse memory horse = horses[_horseId];
-
-        return (horse.horseHash);
+        return horses[_horseId].horseHash;
     }
 
     /*
     @dev Returns sex of horse.
     */
-    function getHorseSex(uint256 _horseId) public view returns(string) {
-        Horse memory h = horses[_horseId];
-        return h.sex;
+    function getHorseSex(uint256 _horseId) public view returns(bytes32) {
+        return horses[_horseId].sex;
     }
 
     /*
-    @dev We can use the above functions independiently or get the whole family data from this function
-    @returns all the information with from a horse's family (Foal names, parents, grandparents and
-        great-grandparents)
+    @dev Gets the base value of a given horse.
     */
-    function getHorseFamily(uint256 _horseId) public view returns(uint8[], uint8[], uint8[], uint8[]) {
-        Horse memory h = horses[_horseId];
-        return (h.foalNames, h.parents, h.grandparents, h.greatgrandparents);
-    }
-
-    /*
-    @returns all the information related to auction of a horse
-    */
-    function horseAuctionInformation(uint256 _horseId) public view returns(uint256, uint256, uint256, uint256) {
-
-        Horse memory horse = horses[_horseId];
-
-        return (horse.reserveValue, horse.saleValue, horse.feeValue, horse.amountOfTimesSold);
+    function getBaseValue(uint256 _horseId) public view returns(uint) {
+        return horses[_horseId].baseValue;
     }
 
     /*
@@ -123,26 +103,25 @@ contract CryptofieldBase {
         return horses[_horseId].timestamp;
     }
 
+    /* RESTRICTED FUNCTIONS /*
+
+    /*
+    @dev Changes the baseValue of a horse, this is useful when creating offspring and should be
+    allowed only by the breeding contract.
+    */
+
+    // TODO: Add Breeding contract modifier
+    function setBaseValue(uint256 _horseId, uint256 _baseValue) public {
+        Horse storage h = horses[_horseId];
+        h.baseValue = _baseValue;
+    }
+
     /* PRIVATE FUNCTIONS */
 
     /*
-    @dev Generates random values for characteristics, each number represents a characteristic.
+    @dev Gets random number between 1 and 'max'.
     */
-    function _genCharacteristics() private returns(uint256[7]) {
-        uint256 hType = _getRand(2);
-        uint256 height = _getRand(3);
-        uint256 running = _getRand(21);
-        uint256 uniqCh = _getRand(555);
-        uint256 origin = _getRand(3); // TODO: May change.
-        uint256 pedigree = _getRand(5);
-        uint256 color = _getRand(19);
-
-        uint256[7] memory chars = [hType, height, running, uniqCh, origin, pedigree, color];
-
-        return chars;
-    }
-
-    function _getRand(uint max) private view returns(uint) {
-        return uint(blockhash(block.number - 1)) % max + 1;
+    function _getRand() private view returns(uint256) {
+        return uint256(blockhash(block.number.sub(1))) % 50 + 1;
     }
 }
