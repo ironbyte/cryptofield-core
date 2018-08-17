@@ -1,6 +1,6 @@
 pragma solidity 0.4.24;
 
-import "./Auctions.sol";
+import "./Core.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 // TODO: PROBABLY MOVING MOST OF THIS LOGIC TO ANOTHER CONTRACT
@@ -8,11 +8,13 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 /*
 @dev Breeding contract in charge of generating new horses and stats for breeding.
 */
-contract Breeding is Auctions {
+contract Breeding {
     using SafeMath for uint256;
 
     uint256 constant MALE_CAP = 240;
     uint256 constant FEMALE_CAP =  48;
+
+    Core core;
 
     // All this is subject to a change
     struct HorseBreed {
@@ -43,12 +45,16 @@ contract Breeding is Auctions {
 
     event OffspringCreated(uint256 _father, uint256 _mother, uint256 _offspring);
 
+    constructor(address _core) public {
+        core = Core(_core);
+    }
+
     /*
     @dev Creates a new token based on parents.
     */
     function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external {
         // The offspring belongs to the owner of the female horse.
-        address offspringOwner = ownerOf(_femaleParent);
+        address offspringOwner = core.ownerOf(_femaleParent);
 
         HorseBreed storage male = horseBreedById[_maleParent];
         HorseBreed storage female = horseBreedById[_femaleParent];
@@ -56,12 +62,12 @@ contract Breeding is Auctions {
         // Since this means that it is the first offspring of either one, we get their timestamp here and use
         // it as their tracking number.
         if(female.firstOffspring == 0) {
-            female.trackingNumber = getTimestamp(_femaleParent).div(_getRandNum());
+            female.trackingNumber = core.getTimestamp(_femaleParent).div(_getRandNum());
             female.firstOffspring = now;
         }
 
         if(male.firstOffspring == 0) {
-            male.trackingNumber = getTimestamp(_maleParent).mul(_getRandNum());
+            male.trackingNumber = core.getTimestamp(_maleParent).mul(_getRandNum());
             male.firstOffspring = now;
         }
 
@@ -69,7 +75,7 @@ contract Breeding is Auctions {
         require(_canBreed(_getMaleParentLineage(male), _getFemaleParentLineage(female)), "Lineages collide");
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
-        uint256 tokenId = createHorse(offspringOwner, _hash);
+        uint256 tokenId = core.createHorse(offspringOwner, _hash);
 
         male.offspringCounter = male.offspringCounter.add(1);
         female.offspringCounter = female.offspringCounter.add(1);
@@ -89,7 +95,7 @@ contract Breeding is Auctions {
         o.lineageFive = female.lineageOne;
         o.lineageSix = female.lineageTwo;
 
-        setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
+        core.setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
 
         emit OffspringCreated(_maleParent, _femaleParent, tokenId);
     }
@@ -147,8 +153,8 @@ contract Breeding is Auctions {
     @dev Check if the horses have the correct sex for breeding.
     */
     function _checkGenders(uint256 _first, uint256 _second) private view returns(bool) {
-        bytes32 firstHorseSex = getHorseSex(_first);
-        bytes32 secondHorseSex = getHorseSex(_second);
+        bytes32 firstHorseSex = core.getHorseSex(_first);
+        bytes32 secondHorseSex = core.getHorseSex(_second);
 
         return keccak256(firstHorseSex) != keccak256(secondHorseSex);
     }
@@ -167,12 +173,12 @@ contract Breeding is Auctions {
     function _getBaseValue(uint256 _maleParent, uint256 _femaleParent) private view returns(uint) {
         // Create the offspring baseValue
         uint256 percentageFromMale = _getRandNum();
-        uint256 maleBaseValue = getBaseValue(_maleParent);
+        uint256 maleBaseValue = core.getBaseValue(_maleParent);
         uint256 maleValue = percentageFromMale.mul(maleBaseValue);
         uint256 finalMaleValue = maleValue.div(100);
         
         uint256 percentageFromFemale = 100 - percentageFromMale;
-        uint256 femaleBaseValue = getBaseValue(_femaleParent);
+        uint256 femaleBaseValue = core.getBaseValue(_femaleParent);
         uint256 femaleValue = percentageFromFemale.mul(femaleBaseValue);
         uint256 finalFemaleValue = femaleValue.div(100);
 
@@ -183,7 +189,7 @@ contract Breeding is Auctions {
     @dev Generates a random tracking number based on the gender of the horse
     */
     function _genTrackingNumber(uint256 _horseId) private view returns(uint256) {
-        bytes32 gender = getHorseSex(_horseId);
+        bytes32 gender = core.getHorseSex(_horseId);
 
         if(gender == bytes32("M")) {
             return now.mul(_getRandNum());

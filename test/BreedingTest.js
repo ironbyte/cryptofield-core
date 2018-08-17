@@ -1,12 +1,14 @@
 // const Breeding = artifacts.require("./Breeding");
+const Breeding = artifacts.require("./Breeding");
 const Core = artifacts.require("./Core");
 
 contract("Breeding", acc => {
-  let core;
+  let core, instance;
   let owner = acc[1];
 
   before(async () => {
     core = await Core.deployed();
+    instance = await Breeding.deployed();
 
     // Creating a genesis token since we can't mix with a genesis horse.
     await core.createHorse(owner, "male hash"); // 0 Genesis token
@@ -19,10 +21,10 @@ contract("Breeding", acc => {
     await core.createHorse(acc[2], "male hash"); // 2
 
     // This should create another token with other stuff specified.
-    await core.mix(2, 1, "female offspring hash", {from: owner}); // 3
+    await instance.mix(2, 1, "female offspring hash", {from: owner}); // 3
 
-    let firstOffspringStats = await core.getHorseOffspringStats.call(1)
-    let secondOffspringStats = await core.getHorseOffspringStats.call(2);
+    let firstOffspringStats = await instance.getHorseOffspringStats.call(1)
+    let secondOffspringStats = await instance.getHorseOffspringStats.call(2);
 
     assert.equal(firstOffspringStats[0].toNumber(), 1);
     assert.equal(secondOffspringStats[0].toNumber(), 1);
@@ -38,7 +40,7 @@ contract("Breeding", acc => {
   it("should revert when mixing with a horse in the same lineage", async () => {
     // Offspring created in the last test
     try {
-      await core.mix(2, 3, "failed female hash", {from: acc[2]});
+      await instance.mix(2, 3, "failed female hash", {from: acc[2]});
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
@@ -51,10 +53,10 @@ contract("Breeding", acc => {
     // By design, horses can't mate with a horse of the same gender.
     // Horses of the same gender and in the same block will have the same timestamp.
     // Mating with two horses from the same block isn't possible.
-    await core.mix(4, 3, "female hash", {from: owner}); // 5
+    await instance.mix(4, 3, "female hash", {from: owner}); // 5
 
     try {
-      await core.mix(2, 4, "failed female hash", {from: owner}); // Failed
+      await instance.mix(2, 4, "failed female hash", {from: owner}); // Failed
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
