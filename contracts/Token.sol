@@ -16,6 +16,11 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
         owner = msg.sender;
     }
 
+    modifier ownerOfToken(uint256 _tokenId) {
+        require(ownerOf(_tokenId) == msg.sender, "Not owner");
+        _;
+    }
+
     /*
     @dev Simply creates a new token and calls base contract to add the horse information.
     */
@@ -26,6 +31,13 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
         buyHorse(_owner, _hash, tokenId);
 
         return tokenId;
+    }
+
+    /*
+    @dev Sets the name of a horse manually, this should be done only once.
+    */
+    function setName(string _name, uint256 _tokenId) public ownerOfToken(_tokenId) {
+        setNameFor(_name, _tokenId);
     }
 
     // Check if an address has been granted approval of a token.

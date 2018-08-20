@@ -48,4 +48,21 @@ contract("Token", acc => {
 
     assert.equal(loggedOwner, newOwner);
   })
+
+  it("should use the given name if one is passed", async () => {
+    await instance.createHorse(owner, "some hash");
+    await instance.setName("Spike", 1, {from: owner});
+    let name = await instance.getHorseName.call(1);
+    
+    assert.equal(name, "Spike");
+  })
+
+  it("should generate a random name if no name is given", async () => {
+    await instance.createHorse(owner, "some hash");
+    // We're just going to pass an empty string from the front-end.
+    await instance.setName("", 2, {from: owner})
+    let name = await instance.getHorseName.call(2);
+
+    assert.notEqual(name, "");
+  })
 })
