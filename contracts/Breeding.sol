@@ -2,13 +2,14 @@ pragma solidity 0.4.24;
 
 import "./Core.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 // TODO: PROBABLY MOVING MOST OF THIS LOGIC TO ANOTHER CONTRACT
 
 /*
 @dev Breeding contract in charge of generating new horses and stats for breeding.
 */
-contract Breeding {
+contract Breeding is Ownable {
     using SafeMath for uint256;
 
     uint256 constant MALE_CAP = 240;
@@ -47,6 +48,7 @@ contract Breeding {
 
     constructor(address _core) public {
         core = Core(_core);
+        owner = msg.sender;
     }
 
     /*
@@ -75,7 +77,7 @@ contract Breeding {
         require(_canBreed(_getMaleParentLineage(male), _getFemaleParentLineage(female)), "Lineages collide");
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
-        uint256 tokenId = core.createHorse(offspringOwner, _hash);
+        uint256 tokenId = core.createOffspring(offspringOwner, _hash);
 
         male.offspringCounter = male.offspringCounter.add(1);
         female.offspringCounter = female.offspringCounter.add(1);
@@ -156,7 +158,7 @@ contract Breeding {
         bytes32 firstHorseSex = core.getHorseSex(_first);
         bytes32 secondHorseSex = core.getHorseSex(_second);
 
-        return keccak256(firstHorseSex) != keccak256(secondHorseSex);
+        return keccak256(abi.encodePacked(firstHorseSex)) != keccak256(abi.encodePacked(secondHorseSex));
     }
 
     /*
@@ -219,5 +221,11 @@ contract Breeding {
     function getLineage(uint256 _horseId) public view returns(uint256, uint256, uint256, uint256, uint256, uint256) {
         HorseBreed memory h = horseBreedById[_horseId];
         return(h.lineageOne, h.lineageTwo, h.lineageThree, h.lineageFour, h.lineageFive, h.lineageSix);
+    }
+
+    /*  RESTRICTED */
+
+    function setCore(address _core) public onlyOwner() {
+        core = Core(_core);
     }
 }

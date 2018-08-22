@@ -4,12 +4,8 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Token.sol";
 import "./SaleAuction.sol";
 
-contract Auctions is Ownable, Token {
+contract Auctions is Token {
     SaleAuction nft;
-
-    constructor() public {
-        owner = msg.sender;
-    }
 
     event AuctionCreated(uint256 _auctionId);
 
