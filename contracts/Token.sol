@@ -44,12 +44,4 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     function isTokenApproved(address _spender, uint256 _tokenId) public view returns(bool) {
         return super.isApprovedOrOwner(_spender, _tokenId);
     }
-
-    /*
-    @dev Transfers a token of '_from' to '_to'
-    */
-    function tokenSold(address _from, address _to, uint256 _tokenId) public {
-        super.safeTransferFrom(_from, _to, _tokenId);
-        horseSold(_tokenId);
-    }
 }
