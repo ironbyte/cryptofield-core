@@ -32,14 +32,6 @@ contract("Token", acc => {
     assert.equal(secondBuyer, newTokenOwner);
   })
 
-  it("should transfer a token when a sale is made for a given token", async () => {
-    // From 'secondBuyer' to 'owner'
-    await instance.tokenSold(secondBuyer, owner, 0, {from: secondBuyer});
-    let newTokenOwner = await instance.ownerOf(0);
-
-    assert.equal(owner, newTokenOwner);
-  })
-
   it("should transfer ownershp of the contract", async () => {
     let newOwner = acc[5];
 
