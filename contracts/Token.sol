@@ -12,7 +12,7 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder, Ownable {
     // Variable for enumeration.
     uint256[] addresses;
 
-    constructor() ERC721Token("CToken", "CT") public {
+    constructor() ERC721Token("Zed Token", "ZT") public {
         owner = msg.sender;
     }
 
