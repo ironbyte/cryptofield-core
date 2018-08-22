@@ -1,13 +1,23 @@
 pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract CryptofieldBase {
+contract CryptofieldBase is Ownable {
     using SafeMath for uint256;
 
-    uint256 private saleId;
-
     bytes32 private gender = "F"; // First horse is a male.
+    bytes32[2] private gen = [bytes32("M"), bytes32("F")];
+
+    // Names used for defaults in G1P.
+    string[6] private names = [
+        "Austin Riffle",
+        "Jerri Curl",
+        "Amoxi",
+        "Chase Jackson",
+        "Zeus",
+        "Apollo"
+    ];
 
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
@@ -17,9 +27,8 @@ contract CryptofieldBase {
 
         uint256 baseValue;
 
-        uint256 saleId;
         uint256 timestamp;
-        uint256 dateSold;
+        uint256 lastTimeSold;
         uint256 amountOfTimesSold;
 
         uint256[7] characteristics;
@@ -33,19 +42,50 @@ contract CryptofieldBase {
     mapping(uint256 => Horse) public horses;
 
     event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
-    event HorseBuy(address _buyer, uint256 _timestamp, uint256 _saleId);
+    event HorseBuy(address _buyer, uint256 _timestamp, uint256 _tokenId);
+    event GOPCreated(address _buyer, uint256 _timestamp, uint256 _tokenId);
 
-    // Called internally, i.e. when not creating offsprings.
-    function buyHorse(address _buyer, string _horseHash, uint256 _tokenId) internal {
-        saleId = saleId.add(1);
+    constructor() public {
+        owner = msg.sender;
+    }
 
-        bytes32[2] memory gen = [bytes32("M"), bytes32("F")];
+    // This function should have a random default name for the horse.
+    function buyGOP(address _buyer, string _horseHash, uint256 _tokenId) internal {
+        uint256 randNum = _getRand(5);
+        string memory nameChosen = names[randNum];
 
-        if(gender == gen[0]) {gender = gen[1];} else {gender = gen[0];}
+        // Pick the gender
+        if(gender == gen[0]) {
+            gender = gen[1];
+        } else {
+            gender = gen[0];
+        }
+
+        Horse memory h;
+        h.timestamp = now;
+        h.buyer = _buyer;
+        h.horseHash = _horseHash;
+        h.sex = gender;
+        h.baseValue = _getRand();
+        h.name = nameChosen;
+
+        horses[_tokenId] = h;
+
+        emit GOPCreated(_buyer, now, _tokenId);
+    }
+
+    /*
+    @dev Called internally, should only be called by 'Token'.
+    */
+    function buyOffspring(address _buyer, string _horseHash, uint256 _tokenId) internal {
+        if(gender == gen[0]) {
+            gender = gen[1];
+        } else {
+            gender = gen[0];
+        }
 
         Horse memory horse;
         horse.buyer = _buyer;
-        horse.saleId = saleId;
         // The use of 'now' here shouldn't be a concern since that's only used for the timestamp of a horse
         // which really doesn't have much effect on the horse itself.
         horse.timestamp = now;
@@ -55,7 +95,7 @@ contract CryptofieldBase {
 
         horses[_tokenId] = horse;
 
-        emit HorseBuy(_buyer, now, horse.saleId);
+        emit HorseBuy(_buyer, now, _tokenId);
     }
 
     // This function is called when the call isn't coming from an offspring.
@@ -89,11 +129,10 @@ contract CryptofieldBase {
     @dev Adds unix timestamp of the date the horse was sold.
     */
 
-    //TODO: Add modifier in this function
     function horseSold(uint256 _horseId) internal {
         Horse storage horse = horses[_horseId];
         horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
-        horse.dateSold = now;
+        horse.lastTimeSold = now;
 
         emit HorseSell(_horseId, horse.amountOfTimesSold);
     }
@@ -107,6 +146,13 @@ contract CryptofieldBase {
     */
     function getHorseName(uint256 _horseId) public view returns(string) {
         return horses[_horseId].name;
+    }
+
+    /*
+    @dev Returns the times a horse has been sold.
+    */
+    function getTimesSold(uint256 _horseId) public view returns(uint256) {
+        return horses[_horseId].amountOfTimesSold;
     }
 
     /* RESTRICTED FUNCTIONS /*
