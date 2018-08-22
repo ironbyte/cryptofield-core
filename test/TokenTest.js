@@ -11,7 +11,7 @@ contract("Token", acc => {
   })
 
   it("should mint a new token with specified params", async () => {
-    await instance.createHorse(owner, "some random hash", {value: amount});
+    await instance.createGOP(owner, "some random hash");
     let tokenOwner = await instance.ownerOf(0);
 
     assert.equal(tokenOwner, owner);
@@ -42,7 +42,7 @@ contract("Token", acc => {
   })
 
   it("should use the given name if one is passed", async () => {
-    await instance.createHorse(owner, "some hash");
+    await instance.createGOP(owner, "some hash");
     await instance.setName("Spike", 1, {from: owner});
     let name = await instance.getHorseName.call(1);
     
@@ -50,7 +50,7 @@ contract("Token", acc => {
   })
 
   it("should generate a random name if no name is given", async () => {
-    await instance.createHorse(owner, "some hash");
+    await instance.createGOP(owner, "some hash");
     // We're just going to pass an empty string from the front-end.
     await instance.setName("", 2, {from: owner})
     let name = await instance.getHorseName.call(2);

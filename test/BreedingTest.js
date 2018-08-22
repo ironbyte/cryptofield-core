@@ -11,14 +11,13 @@ contract("Breeding", acc => {
     instance = await Breeding.deployed();
 
     // Creating a genesis token since we can't mix with a genesis horse.
-    await core.createHorse(owner, "male hash"); // 0 Genesis token
+    await core.createGOP(owner, "male hash"); // 0 Genesis token
   })
   
-  // TODO: Fix test
   it("should mix two horses", async () => {
     // Mint two tokens.
-    await core.createHorse(owner, "female hash"); // 1
-    await core.createHorse(acc[2], "male hash"); // 2
+    await core.createGOP(owner, "female hash"); // 1
+    await core.createGOP(acc[2], "male hash"); // 2
 
     // This should create another token with other stuff specified.
     await instance.mix(2, 1, "female offspring hash", {from: owner}); // 3
@@ -49,7 +48,7 @@ contract("Breeding", acc => {
   })
 
   it("should revert when horses are related in lineages", async () => {
-    await core.createHorse(owner, "hash"); // 4
+    await core.createGOP(owner, "hash"); // 4
     // By design, horses can't mate with a horse of the same gender.
     // Horses of the same gender and in the same block will have the same timestamp.
     // Mating with two horses from the same block isn't possible.
