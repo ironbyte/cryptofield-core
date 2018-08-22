@@ -7,7 +7,7 @@ contract CryptofieldBase {
 
     uint256 private saleId;
 
-    bytes32 private lastSex = "F"; // First horse is a male.
+    bytes32 private gender = "F"; // First horse is a male.
 
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
@@ -35,12 +35,13 @@ contract CryptofieldBase {
     event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
     event HorseBuy(address _buyer, uint256 _timestamp, uint256 _saleId);
 
-    function buyHorse(address _buyer, string _horseHash, uint256 _tokenId) public {
+    // Called internally, i.e. when not creating offsprings.
+    function buyHorse(address _buyer, string _horseHash, uint256 _tokenId) internal {
         saleId = saleId.add(1);
 
         bytes32[2] memory gen = [bytes32("M"), bytes32("F")];
 
-        if(lastSex == gen[0]) {lastSex = gen[1];} else {lastSex = gen[0];}
+        if(gender == gen[0]) {gender = gen[1];} else {gender = gen[0];}
 
         Horse memory horse;
         horse.buyer = _buyer;
@@ -49,14 +50,15 @@ contract CryptofieldBase {
         // which really doesn't have much effect on the horse itself.
         horse.timestamp = now;
         horse.horseHash = _horseHash;
-        horse.sex = lastSex;
+        horse.sex = gender;
         horse.baseValue = _getRand();
-
 
         horses[_tokenId] = horse;
 
         emit HorseBuy(_buyer, now, horse.saleId);
     }
+
+    // This function is called when the call isn't coming from an offspring.
 
     /*
     @dev Only returns the hash containing basic information of horse (name, color, origin, etc...)
@@ -88,7 +90,7 @@ contract CryptofieldBase {
     */
 
     //TODO: Add modifier in this function
-    function horseSold(uint256 _horseId) public {
+    function horseSold(uint256 _horseId) internal {
         Horse storage horse = horses[_horseId];
         horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
         horse.dateSold = now;
@@ -127,7 +129,14 @@ contract CryptofieldBase {
     /* PRIVATE FUNCTIONS */
 
     /*
-    @dev Gets random number between 1 and 'max'.
+    @dev Gets a random number between 1 and 'max';
+    */
+    function _getRand(uint256 _max) private view returns(uint256) {
+        return uint256(blockhash(block.number.sub(1))) % _max + 1;
+    }
+
+    /*
+    @dev Gets random number between 1 and 50.
     */
     function _getRand() private view returns(uint256) {
         return uint256(blockhash(block.number.sub(1))) % 50 + 1;
