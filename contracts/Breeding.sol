@@ -73,6 +73,7 @@ contract Breeding is Ownable {
             male.firstOffspring = now;
         }
 
+        // Male horse should be in Stud so the owner of the female should send this transaction.
         require(msg.sender == offspringOwner, "Not owner of female horse");
         require(_canBreed(_getMaleParentLineage(male), _getFemaleParentLineage(female)), "Lineages collide");
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");

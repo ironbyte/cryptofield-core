@@ -98,15 +98,12 @@ contract CryptofieldBase is Ownable {
         emit HorseBuy(_buyer, now, _tokenId);
     }
 
-    // This function is called when the call isn't coming from an offspring.
-
     /*
-    @dev Only returns the hash containing basic information of horse (name, color, origin, etc...)
+    @dev Only returns the hash containing basic information of horse (color, origin, etc...)
     @param _horseId Token of the ID to retrieve hash from.
     @returns string, IPFS hash
     */
-
-    function getHorse(uint256 _horseId) public view returns(string) {
+    function getHorseHash(uint256 _horseId) public view returns(string) {
         return horses[_horseId].horseHash;
     }
 
@@ -122,19 +119,6 @@ contract CryptofieldBase is Ownable {
     */
     function getBaseValue(uint256 _horseId) public view returns(uint) {
         return horses[_horseId].baseValue;
-    }
-
-    /*
-    @dev Adds 1 to the amount of times a horse has been sold.
-    @dev Adds unix timestamp of the date the horse was sold.
-    */
-
-    function horseSold(uint256 _horseId) internal {
-        Horse storage horse = horses[_horseId];
-        horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
-        horse.lastTimeSold = now;
-
-        emit HorseSell(_horseId, horse.amountOfTimesSold);
     }
 
     function getTimestamp(uint256 _horseId) public view returns(uint256) {
@@ -155,13 +139,24 @@ contract CryptofieldBase is Ownable {
         return horses[_horseId].amountOfTimesSold;
     }
 
+    /*
+    @dev Adds 1 to the amount of times a horse has been sold.
+    @dev Adds unix timestamp of the date the horse was sold.
+    */
+    function horseSold(uint256 _horseId) internal {
+        Horse storage horse = horses[_horseId];
+        horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
+        horse.lastTimeSold = now;
+
+        emit HorseSell(_horseId, horse.amountOfTimesSold);
+    }
+
     /* RESTRICTED FUNCTIONS /*
 
     /*
     @dev Changes the baseValue of a horse, this is useful when creating offspring and should be
     allowed only by the breeding contract.
     */
-
     // TODO: Add Breeding contract modifier
     function setBaseValue(uint256 _horseId, uint256 _baseValue) external {
         Horse storage h = horses[_horseId];
