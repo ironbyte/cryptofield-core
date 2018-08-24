@@ -203,8 +203,8 @@ contract Breeding is Ownable {
     @dev Get lineages of a horse
     */
     function getLineage(uint256 _horseId) public view returns(uint256, uint256, uint256, uint256, uint256, uint256) {
-        HorseBreed memory h = horseBreedById[_horseId];
-        return(h.lineageOne, h.lineageTwo, h.lineageThree, h.lineageFour, h.lineageFive, h.lineageSix);
+        HorseBreed storage h = horseBreedById[_horseId];
+        return(h.lineages[1], h.lineages[2], h.lineages[3], h.lineages[4], h.lineages[5], h.lineages[6]);
     }
 
     /*  RESTRICTED */
