@@ -23,12 +23,6 @@ contract Breeding is Ownable {
 
         uint256 firstOffspring;
         uint256 trackingNumber;
-        uint256 lineageOne;
-        uint256 lineageTwo;
-        uint256 lineageThree;
-        uint256 lineageFour;
-        uint256 lineageFive;
-        uint256 lineageSix;
         uint256 raceCounter;
         uint256 offspringCounter;
         uint256 raceVariable;
@@ -39,6 +33,8 @@ contract Breeding is Ownable {
         uint256 oddComparison;
         uint256 racesWon;
         uint256 racesLost;
+
+        mapping(uint256 => uint256) lineages;
     }
 
     // Maps the horseID to a specific HorseBreed struct.
@@ -67,7 +63,7 @@ contract Breeding is Ownable {
             female.trackingNumber = core.getTimestamp(_femaleParent).div(_getRandNum());
             female.firstOffspring = now;
         }
-
+ 
         if(male.firstOffspring == 0) {
             male.trackingNumber = core.getTimestamp(_maleParent).mul(_getRandNum());
             male.firstOffspring = now;
@@ -75,7 +71,8 @@ contract Breeding is Ownable {
 
         // Male horse should be in Stud so the owner of the female should send this transaction.
         require(msg.sender == offspringOwner, "Not owner of female horse");
-        require(_canBreed(_getMaleParentLineage(male), _getFemaleParentLineage(female)), "Lineages collide");
+        // require(_canBreed(_getMaleParentLineage(male), _getFemaleParentLineage(female)), "Lineages collide");
+        require(_canBreed(_maleParent, _femaleParent), "Lineages collide");
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
         uint256 tokenId = core.createOffspring(offspringOwner, _hash, _maleParent, _femaleParent);
@@ -91,12 +88,12 @@ contract Breeding is Ownable {
         HorseBreed storage o = horseBreedById[tokenId];
         o.trackingNumber = _genTrackingNumber(tokenId);
         o.parentsId = [_maleParent, _femaleParent];
-        o.lineageOne = male.trackingNumber;
-        o.lineageTwo = female.trackingNumber;
-        o.lineageThree = male.lineageOne;
-        o.lineageFour = male.lineageTwo;
-        o.lineageFive = female.lineageOne;
-        o.lineageSix = female.lineageTwo;
+        o.lineages[1] = male.trackingNumber;
+        o.lineages[2] = female.trackingNumber;
+        o.lineages[3] = male.lineages[1];
+        o.lineages[4] = male.lineages[2];
+        o.lineages[5] = female.lineages[1];
+        o.lineages[6] = female.lineages[2];
 
         core.setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
 
@@ -104,33 +101,19 @@ contract Breeding is Ownable {
     }
 
     /*
-    @dev Returns the lineage numbers of the male parent.
-    */
-    function _getMaleParentLineage(HorseBreed _parent) private view returns(uint256[3]) {
-        // We do this manually since we know they're just numbers we're getting.
-        return [_parent.trackingNumber, _parent.lineageOne, _parent.lineageTwo];
-    }
- 
-    /*
-    @dev Returns the lineage numbers of the female parent.
-    */
-    function _getFemaleParentLineage(HorseBreed _parent) private view returns(uint256[3]) {
-        return [_parent.trackingNumber, _parent.lineageOne, _parent.lineageTwo];
-    }
-
-    /*
     Based on the lineages sent check if there is no coallison between them, i.e. one being equal to another.
     */
-    function _canBreed(uint256[3] _male, uint256[3] _female) private pure returns(bool) {
-        // Checks that tracking numbers aren't the same from lineageOne to lineageSix on male and female.
-        for(uint i = 0; i < 2; i++) {
-            // We're going to ignore the 0 as it is a default value or Genesis horse.
-            if(_male[i] == 0 || _female[i] == 0) {
-                continue;
-            } else {
-                // If the current element from '_male' is the same as one of those on '_female'
-                // return 'false' so the 'require' isn't met.
-                if(_male[i] == _female[0] || _male[i] == _female[1] || _male[i] == _female[2]) {return false;}
+    function _canBreed(uint256 _male, uint256 _female) private view returns(bool) {
+        HorseBreed storage male = horseBreedById[_male];
+        HorseBreed storage female = horseBreedById[_female];
+
+        for(uint256 i = 0; i < 2; i++) {
+            for(uint256 j = 0; i < 2; i++) {
+                if(male.lineages[i] == 0 || female.lineages[i] == 0) {
+                    continue;
+                } else {
+                    if(male.lineages[i] == female.lineages[j]) return false;
+                }
             }
         }
 
