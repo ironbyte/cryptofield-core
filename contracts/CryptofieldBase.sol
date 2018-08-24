@@ -3,11 +3,15 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
+// TODO: Add genotype for GOP.
+
 contract CryptofieldBase is Ownable {
     using SafeMath for uint256;
 
     bytes32 private gender = "F"; // First horse is a male.
     bytes32[2] private gen = [bytes32("M"), bytes32("F")];
+
+    uint256 constant GENOTYPE_CAP = 150;
 
     // Names used for defaults in G1P.
     string[6] private names = [
@@ -25,8 +29,8 @@ contract CryptofieldBase is Ownable {
     struct Horse {
         address buyer;
 
+        uint256 genotype;
         uint256 baseValue;
-
         uint256 timestamp;
         uint256 lastTimeSold;
         uint256 amountOfTimesSold;
@@ -77,12 +81,22 @@ contract CryptofieldBase is Ownable {
     /*
     @dev Called internally, should only be called by 'Token'.
     */
-    function buyOffspring(address _buyer, string _horseHash, uint256 _tokenId) internal {
+    function buyOffspring(
+        address _buyer, 
+        string _horseHash, 
+        uint256 _tokenId,
+        uint256 _maleParent,
+        uint256 _femaleParent
+        ) internal {
+
         if(gender == gen[0]) {
             gender = gen[1];
         } else {
             gender = gen[0];
         }
+
+        Horse memory male = horses[_maleParent];
+        Horse memory female = horses[_femaleParent];
 
         Horse memory horse;
         horse.buyer = _buyer;
@@ -92,6 +106,7 @@ contract CryptofieldBase is Ownable {
         horse.horseHash = _horseHash;
         horse.sex = gender;
         horse.baseValue = _getRand();
+        horse.genotype = _getType(male.genotype, female.genotype);
 
         horses[_tokenId] = horse;
 
@@ -140,6 +155,13 @@ contract CryptofieldBase is Ownable {
     }
 
     /*
+    @dev Returns the genotype of a given horse.
+    */
+    function getGenotype(uint256 _horseId) public view returns(uint256) {
+        return horses[_horseId].genotype;
+    }
+
+    /*
     @dev Adds 1 to the amount of times a horse has been sold.
     @dev Adds unix timestamp of the date the horse was sold.
     */
@@ -164,6 +186,8 @@ contract CryptofieldBase is Ownable {
     }
 
     function setNameFor(string _name, uint256 _horseId) internal {
+        Horse storage h = horses[_horseId];
+        require(keccak256(abi.encodePacked(h.name)) == keccak256(abi.encodePacked("")), "Name is already defined");
         horses[_horseId].name = _getName(_name, _horseId);
     }
 
@@ -194,6 +218,18 @@ contract CryptofieldBase is Ownable {
 
         return _name;
     }
+
+    /*
+    @dev Calculates the genotype for an offspring based on the type of the parents.
+    @dev It selects the greater value of both and adds 1 to it if it is not greater than the cap.
+    Otherwise just returns the greater value as is.
+    */
+    function _getType(uint256 _maleGT, uint256 _femaleGT) private returns(uint256) {
+        uint256 greater = (_maleGT > _femaleGT) ? _maleGT : _femaleGT;
+        if(greater > GENOTYPE_CAP) return greater;
+        return greater.add(1);
+    }
+
 
     /* ORACLIZE IMPLEMENTATION */
 

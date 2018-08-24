@@ -27,11 +27,11 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     @dev Simply creates a new token and calls base contract to add the horse information.
     @dev Used for offsprings mostly, called from 'Breeding'
     */
-    function createOffspring(address _owner, string _hash) external payable returns(uint256) {
+    function createOffspring(address _owner, string _hash, uint256 _male, uint256 _female) external payable returns(uint256) {
         uint256 tokenId = allTokensLength();
 
         _mint(_owner, tokenId);
-        buyOffspring(_owner, _hash, tokenId);
+        buyOffspring(_owner, _hash, tokenId, _male, _female);
 
         return tokenId;
     }

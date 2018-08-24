@@ -78,7 +78,7 @@ contract Breeding is Ownable {
         require(_canBreed(_getMaleParentLineage(male), _getFemaleParentLineage(female)), "Lineages collide");
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
-        uint256 tokenId = core.createOffspring(offspringOwner, _hash);
+        uint256 tokenId = core.createOffspring(offspringOwner, _hash, _maleParent, _femaleParent);
 
         male.offspringCounter = male.offspringCounter.add(1);
         female.offspringCounter = female.offspringCounter.add(1);
