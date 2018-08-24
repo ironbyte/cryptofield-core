@@ -51,7 +51,6 @@ contract("Breeding", acc => {
     await core.createGOP(owner, "hash"); // 4
     // By design, horses can't mate with a horse of the same gender.
     // Horses of the same gender and in the same block will have the same timestamp.
-    // Mating with two horses from the same block isn't possible.
     await instance.mix(4, 3, "female hash", {from: owner}); // 5
 
     try {
@@ -67,5 +66,14 @@ contract("Breeding", acc => {
     let baseValue = await core.getBaseValue.call(5); 
     assert.notEqual(baseValue.toNumber(), 0);
     assert.isBelow(baseValue.toNumber(), 50);
+  })
+
+  it("should return the correct genotype for a given horse", async () => {
+    // At this point we're going to use two ZED 1 (0) horses
+    await core.createGOP(owner, "male hash"); // 6
+    await instance.mix(6, 1, "female offspring hash", {from: owner}); // 7
+
+    let genotype = await core.getGenotype.call(7);
+    assert.equal(genotype.toNumber(), 1);
   })
 })
