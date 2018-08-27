@@ -38,12 +38,13 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
 
     /*
     @dev Creates a G1P.
+    @dev Mostly used for Private and public sales to calculate genotypes.
     */
     function createGOP(address _owner, string _hash) public payable returns(uint256) {
         uint256 tokenId = allTokensLength();
         uint256 genotype;
 
-        require(tokenId <= 1000, "Horse cap met");
+        require(tokenId <= 38000, "Horse cap met");
         
         if(tokenId >= 0 && tokenId <= 100) {
             genotype = 1;
@@ -51,8 +52,20 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
             genotype = 2;
         } else if(tokenId >= 301 && tokenId <= 600) {
             genotype = 3;
-        } else {
+        } else if(tokenId >= 601 && tokenId <= 1000) {
             genotype = 4;
+        } else if(tokenId >= 1001 && tokenId <= 2000) {
+            genotype = 5;
+        } else if(tokenId >= 2001 && tokenId <= 4000) {
+            genotype = 6;
+        } else if(tokenId >= 4001 && tokenId <= 8000) {
+            genotype = 7;
+        } else if(tokenId >= 8001 && tokenId <= 16000) {
+            genotype = 8;
+        } else if(tokenId >= 16001 && tokenId <= 26000) {
+            genotype = 9;
+        } else {
+            genotype = 10;
         }
 
         _mint(_owner, tokenId);
