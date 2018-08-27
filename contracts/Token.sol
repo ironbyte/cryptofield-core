@@ -41,9 +41,22 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     */
     function createGOP(address _owner, string _hash) public payable returns(uint256) {
         uint256 tokenId = allTokensLength();
+        uint256 genotype;
+
+        require(tokenId <= 1000, "Horse cap met");
+        
+        if(tokenId >= 0 && tokenId <= 100) {
+            genotype = 1;
+        } else if(tokenId >= 101 && tokenId <= 300) {
+            genotype = 2;
+        } else if(tokenId >= 301 && tokenId <= 600) {
+            genotype = 3;
+        } else {
+            genotype = 4;
+        }
 
         _mint(_owner, tokenId);
-        buyGOP(_owner, _hash, tokenId);
+        buyGOP(_owner, _hash, tokenId, genotype);
 
         return tokenId;
     }
