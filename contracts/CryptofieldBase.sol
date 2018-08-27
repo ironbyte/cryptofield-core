@@ -41,6 +41,7 @@ contract CryptofieldBase is Ownable {
         string name;
 
         bytes32 sex;
+        bytes32 bloodline;
     }
 
     mapping(uint256 => Horse) public horses;
@@ -54,7 +55,7 @@ contract CryptofieldBase is Ownable {
     }
 
     // This function should have a random default name for the horse.
-    function buyGOP(address _buyer, string _horseHash, uint256 _tokenId) internal {
+    function buyGOP(address _buyer, string _horseHash, uint256 _tokenId, uint256 _genotype) internal {
         uint256 randNum = _getRand(5);
         string memory nameChosen = names[randNum];
 
@@ -72,6 +73,7 @@ contract CryptofieldBase is Ownable {
         h.sex = gender;
         h.baseValue = _getRand();
         h.name = nameChosen;
+        h.genotype = _genotype;
 
         horses[_tokenId] = h;
 
@@ -106,7 +108,7 @@ contract CryptofieldBase is Ownable {
         horse.horseHash = _horseHash;
         horse.sex = gender;
         horse.baseValue = _getRand();
-        horse.genotype = _getType(male.genotype, female.genotype);
+        horse.genotype = male.genotype.add(female.genotype);
 
         horses[_tokenId] = horse;
 
