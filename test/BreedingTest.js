@@ -73,7 +73,7 @@ contract("Breeding", acc => {
     await core.createGOP(owner, "male hash"); // 6
     await instance.mix(6, 1, "female offspring hash", {from: owner}); // 7
 
-    let genotype = await core.getGenotype.call(7);
-    assert.equal(genotype.toNumber(), 1);
+    let genotype = await core.getGenotype.call(7); // At this point parent horses had 1 and 1 as genotype.
+    assert.equal(genotype.toNumber(), 2);
   })
 })
