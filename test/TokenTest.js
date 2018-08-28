@@ -75,20 +75,20 @@ contract("Token", acc => {
     }
   })
 
-  // it("create correct genotype based on number of sale", async () => {
-  //   // If we get the first one, we should have genotype 1.
-  //   let genotype = await instance.getGenotype.call(0);
-  //   assert.equal(genotype.toNumber(), 1);
+  it("create correct genotype based on number of sale", async () => {
+    // If we get the first one, we should have genotype 1.
+    let genotype = await instance.getGenotype.call(0);
+    assert.equal(genotype.toNumber(), 1);
 
-  //   for(let i = 1; i <= 110; i++) {
-  //     // We're going to create 700 horses so we have a different genotype
-  //     await instance.createGOP(owner, "random hash");
-  //   }
+    for(let i = 1; i <= 110; i++) {
+      // We're going to create 700 horses so we have a different genotype
+      await instance.createGOP(owner, "random hash");
+    }
 
-  //   genotype = await instance.getGenotype.call(100);
-  //   assert.equal(genotype.toNumber(), 1);
+    genotype = await instance.getGenotype.call(100);
+    assert.equal(genotype.toNumber(), 1);
 
-  //   let genotype2 = await instance.getGenotype.call(101);
-  //   assert.equal(genotype2.toNumber(), 2);
-  // })
+    let genotype2 = await instance.getGenotype.call(101);
+    assert.equal(genotype2.toNumber(), 2);
+  })
 })
