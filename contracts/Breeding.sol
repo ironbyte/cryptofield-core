@@ -38,6 +38,8 @@ contract Breeding is Ownable {
     // Maps the horseID to a specific HorseBreed struct.
     mapping(uint256 => HorseBreed) internal horseBreedById;
 
+    mapping(uint256 => mapping(uint256 => bool)) internal offspringsOf;
+
     event OffspringCreated(uint256 _father, uint256 _mother, uint256 _offspring);
 
     constructor(address _core) public {
@@ -54,7 +56,7 @@ contract Breeding is Ownable {
         address offspringOwner = core.ownerOf(_femaleParent);
 
         HorseBreed storage male = horseBreedById[_maleParent];
-        HorseBreed storage female = horseBreedById[_femaleParent];
+        HorseBreed storage female = horseBreedById[_femaleParent];  
 
         // Since this means that it is the first offspring of either one, we get their timestamp here and use
         // it as their tracking number.
@@ -70,9 +72,10 @@ contract Breeding is Ownable {
 
         // Male horse should be in Stud so the owner of the female should send this transaction.
         require(msg.sender == offspringOwner, "Not owner of female horse");
+        require(core.getHorseSex(_femaleParent) == bytes32("F"), "Expected female horse, received male as second parameter");
         require(_notBrothers(male, female), "Horses are brothers");
-        // require(_notParents(male, _femaleParent), "Horses are directly related");
-        // require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
+        require(_notParents(_maleParent, _femaleParent), "Horses are directly related");
+        require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
         uint256 tokenId = core.createOffspring(offspringOwner, _hash, _maleParent, _femaleParent);
 
@@ -83,11 +86,14 @@ contract Breeding is Ownable {
         // 'require' will never be met.
         require(_checkOffspringCounter(male, female), "Max cap reached");
 
+        // Put the new generated token into the mapping for both parents.
+        offspringsOf[_maleParent][tokenId] = true;
+        offspringsOf[_femaleParent][tokenId] = true;
+
         // Offspring data
         HorseBreed storage o = horseBreedById[tokenId];
         o.trackingNumber = _genTrackingNumber(tokenId);
         o.parentsId = [_maleParent, _femaleParent];
-
 
         core.setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
 
@@ -95,19 +101,29 @@ contract Breeding is Ownable {
     }
 
     /*
-    @dev Checks wether two given horses are brothers or not.
+    @dev Checks whether two given horses are brothers or not.
     @dev Having the same parents obviously make them directly related.
     */
     function _notBrothers(HorseBreed _male, HorseBreed _female) private view returns(bool) {
-        return keccak256(_male.parentsId[0], _male.parentsId[1]) == keccak256(_female.parentsId[0], _female.parentsId[1]);
+        // We're going to avoid the case where parents are ID 0
+        if(_male.parentsId[0] == 0 || _male.parentsId[1] == 0) return true;
+        if(_female.parentsId[0] == 0 || _female.parentsId[1] == 0) return true;
+
+        return keccak256(abi.encodePacked(_male.parentsId)) != keccak256(abi.encodePacked(_female.parentsId));
     }
 
     /*
-    @dev Checks wether a two horses are directly related, i.e. one being an offspring of another.
-    @dev If '_male' female parent ID is the same as '_female''s horses are directly related.
+    @dev Checks whether two horses are directly related, i.e. one being an offspring of another.
     */
-    function _notParents(HorseBreed _male, uint256 _female) private view returns(bool) {
-        return _male.parentsId[1] == _female;
+    function _notParents(uint256 _male, uint256 _female) private view returns(bool) {
+        if(offspringsOf[_male][_female]) return false;
+        if(offspringsOf[_female][_male]) return false;
+
+        return true;
+    }
+
+    function see(uint256 parent, uint256 son) public view returns(bool) {
+        return offspringsOf[parent][son];
     }
 
     /*
@@ -132,7 +148,7 @@ contract Breeding is Ownable {
         bytes32 firstHorseSex = core.getHorseSex(_first);
         bytes32 secondHorseSex = core.getHorseSex(_second);
 
-        return keccak256(abi.encodePacked(firstHorseSex)) != keccak256(abi.encodePacked(secondHorseSex));
+        return firstHorseSex != secondHorseSex;
     }
 
     /*
@@ -187,6 +203,13 @@ contract Breeding is Ownable {
     function getHorseOffspringStats(uint256 _horseId) public view returns(uint256, uint256) {
         HorseBreed memory h = horseBreedById[_horseId];
         return(h.offspringCounter, h.firstOffspring);
+    }
+
+    /*
+    @dev Returns the parents of a given horse
+    */
+    function getParents(uint256 _horseId) public view returns(uint256[2]) {
+        return horseBreedById[_horseId].parentsId;
     }
 
     /*  RESTRICTED */
