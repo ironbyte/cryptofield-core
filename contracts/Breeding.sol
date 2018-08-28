@@ -33,8 +33,6 @@ contract Breeding is Ownable {
         uint256 oddComparison;
         uint256 racesWon;
         uint256 racesLost;
-
-        mapping(uint256 => uint256) lineages;
     }
 
     // Maps the horseID to a specific HorseBreed struct.
@@ -49,6 +47,7 @@ contract Breeding is Ownable {
 
     /*
     @dev Creates a new token based on parents.
+    TODO: ADD CHECKS TO AVOID INSERTING INVALID HORSES
     */
     function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external {
         // The offspring belongs to the owner of the female horse.
@@ -71,9 +70,9 @@ contract Breeding is Ownable {
 
         // Male horse should be in Stud so the owner of the female should send this transaction.
         require(msg.sender == offspringOwner, "Not owner of female horse");
-        // require(_canBreed(_getMaleParentLineage(male), _getFemaleParentLineage(female)), "Lineages collide");
-        require(_canBreed(_maleParent, _femaleParent), "Lineages collide");
-        require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
+        require(_notBrothers(male, female), "Horses are brothers");
+        // require(_notParents(male, _femaleParent), "Horses are directly related");
+        // require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
         uint256 tokenId = core.createOffspring(offspringOwner, _hash, _maleParent, _femaleParent);
 
@@ -88,12 +87,7 @@ contract Breeding is Ownable {
         HorseBreed storage o = horseBreedById[tokenId];
         o.trackingNumber = _genTrackingNumber(tokenId);
         o.parentsId = [_maleParent, _femaleParent];
-        o.lineages[1] = male.trackingNumber;
-        o.lineages[2] = female.trackingNumber;
-        o.lineages[3] = male.lineages[1];
-        o.lineages[4] = male.lineages[2];
-        o.lineages[5] = female.lineages[1];
-        o.lineages[6] = female.lineages[2];
+
 
         core.setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
 
@@ -101,23 +95,19 @@ contract Breeding is Ownable {
     }
 
     /*
-    Based on the lineages sent check if there is no coallison between them, i.e. one being equal to another.
+    @dev Checks wether two given horses are brothers or not.
+    @dev Having the same parents obviously make them directly related.
     */
-    function _canBreed(uint256 _male, uint256 _female) private view returns(bool) {
-        HorseBreed storage male = horseBreedById[_male];
-        HorseBreed storage female = horseBreedById[_female];
+    function _notBrothers(HorseBreed _male, HorseBreed _female) private view returns(bool) {
+        return keccak256(_male.parentsId[0], _male.parentsId[1]) == keccak256(_female.parentsId[0], _female.parentsId[1]);
+    }
 
-        for(uint256 i = 0; i < 2; i++) {
-            for(uint256 j = 0; i < 2; i++) {
-                if(male.lineages[i] == 0 || female.lineages[i] == 0) {
-                    continue;
-                } else {
-                    if(male.lineages[i] == female.lineages[j]) return false;
-                }
-            }
-        }
-
-        return true;
+    /*
+    @dev Checks wether a two horses are directly related, i.e. one being an offspring of another.
+    @dev If '_male' female parent ID is the same as '_female''s horses are directly related.
+    */
+    function _notParents(HorseBreed _male, uint256 _female) private view returns(bool) {
+        return _male.parentsId[1] == _female;
     }
 
     /*
@@ -197,14 +187,6 @@ contract Breeding is Ownable {
     function getHorseOffspringStats(uint256 _horseId) public view returns(uint256, uint256) {
         HorseBreed memory h = horseBreedById[_horseId];
         return(h.offspringCounter, h.firstOffspring);
-    }
-
-    /*
-    @dev Get lineages of a horse
-    */
-    function getLineage(uint256 _horseId) public view returns(uint256, uint256, uint256, uint256, uint256, uint256) {
-        HorseBreed storage h = horseBreedById[_horseId];
-        return(h.lineages[1], h.lineages[2], h.lineages[3], h.lineages[4], h.lineages[5], h.lineages[6]);
     }
 
     /*  RESTRICTED */
