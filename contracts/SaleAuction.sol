@@ -53,7 +53,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
-    function createAuction(address _owner, uint256 _duration, uint256 _horseId, uint256 _minimum) public payable returns(uint256) {
+    function createAuction(address _owner, uint256 _duration, uint256 _horseId, uint256 _minimum) external payable returns(uint256) {
         // We ensure that the value sent can cover the Query price for later usage.
         require(msg.value >= oraclize_getPrice("URL"), "Oraclize Price not met");
 
