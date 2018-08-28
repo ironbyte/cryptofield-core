@@ -47,33 +47,19 @@ contract("Breeding", acc => {
     }
   })
 
-  it("should revert when horses are related in lineages", async () => {
-    await core.createGOP(owner, "hash"); // 4
-    // By design, horses can't mate with a horse of the same gender.
-    // Horses of the same gender and in the same block will have the same timestamp.
-    await instance.mix(4, 3, "female hash", {from: owner}); // 5
-
-    try {
-      await instance.mix(2, 4, "failed female hash", {from: owner}); // Failed
-      assert.fail("Expected revert not received");
-    } catch(err) {
-      let revertFound = err.message.search("revert") >= 0;
-      assert(revertFound, `Expected "revert", got ${err} instead`);
-    }
-  })
-
   it("should create a base value for the offspring", async () => {
-    let baseValue = await core.getBaseValue.call(5); 
+    let baseValue = await core.getBaseValue.call(3); 
     assert.notEqual(baseValue.toNumber(), 0);
     assert.isBelow(baseValue.toNumber(), 50);
   })
 
   it("should return the correct genotype for a given horse", async () => {
     // At this point we're going to use two ZED 1 (0) horses
-    await core.createGOP(owner, "male hash"); // 6
-    await instance.mix(6, 1, "female offspring hash", {from: owner}); // 7
+    await core.createGOP(owner, "male hash"); // 4
+    await instance.mix(4, 1, "female offspring hash", {from: owner}); // 5
 
-    let genotype = await core.getGenotype.call(7); // At this point parent horses had 1 and 1 as genotype.
+    let genotype = await core.getGenotype.call(5); // At this point parent horses had 1 and 1 as genotype.
+    console.log(genotype);
     assert.equal(genotype.toNumber(), 2);
   })
 })
