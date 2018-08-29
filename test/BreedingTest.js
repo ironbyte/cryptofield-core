@@ -121,4 +121,14 @@ contract("Breeding", acc => {
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
   })
+
+  it("should revert when using ids of horses that don't exist", async () => {
+    try {
+      await instance.mix(9999999, 99999999, "failed female hash", {from: owner});
+      assert.fail("Expected revert not received");
+    } catch(err) {
+      let revertFound = err.message.search("revert") >= 0;
+      assert(revertFound, `Expected "revert", got ${err} instead`);
+    }
+  })
 })

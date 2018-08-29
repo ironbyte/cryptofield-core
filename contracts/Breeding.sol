@@ -50,9 +50,13 @@ contract Breeding is Ownable {
 
     /*
     @dev Creates a new token based on parents.
-    TODO: ADD CHECKS TO AVOID INSERTING INVALID HORSES
+    TODO: Check for male horse being in stud.
+    TODO: Check for cover fee.
+    TODO: Check for availability of horses.
     */
     function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external {
+        require(core.exists(_maleParent) && core.exists(_femaleParent), "Horses don't exist");
+        
         // The owner of the female horse is the owner of the offspring.
         address offspringOwner = core.ownerOf(_femaleParent);
 

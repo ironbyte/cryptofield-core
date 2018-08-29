@@ -92,4 +92,11 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     function tokenSold(uint256 _tokenId) external onlyApprovedOrOwner(_tokenId) {
         horseSold(_tokenId);
     }
+
+    /*
+    @dev Returns whether a horse exists or not.
+    */
+    function exists(uint256 _tokenId) public view returns(bool) {
+        return _tokenId <= allTokensLength();
+    }
 }
