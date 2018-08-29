@@ -97,4 +97,37 @@ contract("Breeding", acc => {
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
   })
+
+  it("should revert when mixing with ancestors", async () => {
+    // Ancestors have a limit until grandparents, that would be two ancestors lines.
+    // We'll go for Paternal grandparents
+    // We'll use new horses for this.
+    await core.createGOP(owner, "male hash"); // 8
+    await core.createGOP(owner, "female hash"); // 9
+    await instance.mix(8, 9, "male offspring hash", {from: owner}); // 10
+
+    await core.createGOP(owner, "female hash"); // 11
+    await instance.mix(10, 11, "male offspring hash", {from: owner}); // 12
+
+    await core.createGOP(owner, "female hash"); // 13
+    await instance.mix(10, 13, "male offspring hash", {from: owner}); // 14
+
+    // Trying to mate 12 with 9 should revert.
+    try {
+      await instance.mix(12, 9, "failed female hash", {from: owner});
+      assert.fail("Expected revert not received");
+    } catch(err) {
+      let revertFound = err.message.search("revert") >= 0;
+      assert(revertFound, `Expected "revert", got ${err} instead`);
+    }
+
+    // Trying to mate 14 with 9 should revert.
+    try {
+      await instance.mix(14, 9, "failed female hash", {from: owner});
+      assert.fail("Expected revert not received");
+    } catch(err) {
+      let revertFound = err.message.search("revert") >= 0;
+      assert(revertFound, `Expected "revert", got ${err} instead`);
+    }
+  })
 })

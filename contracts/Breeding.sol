@@ -19,12 +19,13 @@ contract Breeding is Ownable {
 
     // All this is subject to a change
     struct HorseBreed {
-        uint256[2] parentsId;
+        uint256[2] parents;
 
         uint256 firstOffspring;
         uint256 trackingNumber;
-        uint256 raceCounter;
         uint256 offspringCounter;
+
+        uint256 raceCounter;
         uint256 raceVariable;
         uint256 racePerfomance;
         uint256 raceOutcome;
@@ -33,6 +34,8 @@ contract Breeding is Ownable {
         uint256 oddComparison;
         uint256 racesWon;
         uint256 racesLost;
+
+        mapping(uint256 => bool) grandparents;
     }
 
     // Maps the horseID to a specific HorseBreed struct.
@@ -52,11 +55,11 @@ contract Breeding is Ownable {
     TODO: ADD CHECKS TO AVOID INSERTING INVALID HORSES
     */
     function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external {
-        // The offspring belongs to the owner of the female horse.
+        // The owner of the female horse is the owner of the offspring.
         address offspringOwner = core.ownerOf(_femaleParent);
 
         HorseBreed storage male = horseBreedById[_maleParent];
-        HorseBreed storage female = horseBreedById[_femaleParent];  
+        HorseBreed storage female = horseBreedById[_femaleParent];
 
         // Since this means that it is the first offspring of either one, we get their timestamp here and use
         // it as their tracking number.
@@ -75,6 +78,7 @@ contract Breeding is Ownable {
         require(core.getHorseSex(_femaleParent) == bytes32("F"), "Expected female horse, received male as second parameter");
         require(_notBrothers(male, female), "Horses are brothers");
         require(_notParents(_maleParent, _femaleParent), "Horses are directly related");
+        require(_notGrandparents(_maleParent, _femaleParent), "Horses are directly related");
         require(_checkGenders(_maleParent, _femaleParent), "Genders are the same");
 
         uint256 tokenId = core.createOffspring(offspringOwner, _hash, _maleParent, _femaleParent);
@@ -93,7 +97,15 @@ contract Breeding is Ownable {
         // Offspring data
         HorseBreed storage o = horseBreedById[tokenId];
         o.trackingNumber = _genTrackingNumber(tokenId);
-        o.parentsId = [_maleParent, _femaleParent];
+        o.parents = [_maleParent, _femaleParent];
+
+        // Manually save ID of each on the mapping, looks uglier but this way we can perform checks
+        // more efficiently by just checking IDs instead of looping or doing another mechanism that can turn
+        // to be more expensive.
+        o.grandparents[male.parents[0]] = true;
+        o.grandparents[male.parents[1]] = true;
+        o.grandparents[female.parents[0]] = true;
+        o.grandparents[female.parents[1]] = true;
 
         core.setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
 
@@ -106,14 +118,16 @@ contract Breeding is Ownable {
     */
     function _notBrothers(HorseBreed _male, HorseBreed _female) private view returns(bool) {
         // We're going to avoid the case where parents are ID 0
-        if(_male.parentsId[0] == 0 || _male.parentsId[1] == 0) return true;
-        if(_female.parentsId[0] == 0 || _female.parentsId[1] == 0) return true;
+        if(_male.parents[0] == 0 || _male.parents[1] == 0) return true;
+        if(_female.parents[0] == 0 || _female.parents[1] == 0) return true;
 
-        return keccak256(abi.encodePacked(_male.parentsId)) != keccak256(abi.encodePacked(_female.parentsId));
+        return keccak256(abi.encodePacked(_male.parents)) != keccak256(abi.encodePacked(_female.parents));
     }
 
     /*
     @dev Checks whether two horses are directly related, i.e. one being an offspring of another.
+    The process for this verification is simple, we track offsprings of each horse in in a mapping
+    here we check if either horse is an offspring of the other one, if true then we revert the op.
     */
     function _notParents(uint256 _male, uint256 _female) private view returns(bool) {
         if(offspringsOf[_male][_female]) return false;
@@ -122,8 +136,19 @@ contract Breeding is Ownable {
         return true;
     }
 
-    function see(uint256 parent, uint256 son) public view returns(bool) {
-        return offspringsOf[parent][son];
+    /*
+    @dev Checks whether two horses are directly related, i.e. one being a grandparent of another.
+    We follow a similar approach as above, we just check for the other's sex ID on the mapping
+    of grandparents for a truthy value.
+    */
+    function _notGrandparents(uint256 _male, uint256 _female) private view returns(bool) {
+        HorseBreed storage m = horseBreedById[_male];
+        HorseBreed storage f = horseBreedById[_female];
+
+        if(m.grandparents[_female]) return false;
+        if(f.grandparents[_male]) return false;
+
+        return true;
     }
 
     /*
@@ -209,7 +234,7 @@ contract Breeding is Ownable {
     @dev Returns the parents of a given horse
     */
     function getParents(uint256 _horseId) public view returns(uint256[2]) {
-        return horseBreedById[_horseId].parentsId;
+        return horseBreedById[_horseId].parents;
     }
 
     /*  RESTRICTED */
