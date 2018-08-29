@@ -123,7 +123,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
         if(msg.sender == auction.owner) {
             payout = auction.maxBid;
-            auction.maxBid = 0;
+            delete auction.maxBid;
         }
 
         // We ensure the msg.sender isn't either the max bidder or the owner.
@@ -132,7 +132,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
         // If 'msg.sender' didn't bid then the payout will be 0.
         if(msg.sender != auction.maxBidder && msg.sender != auction.owner) {
             payout = auction.bids[msg.sender];
-            auction.bids[msg.sender] = 0;
+            delete auction.bids[msg.sender];
         }
 
         if(msg.sender == auction.maxBidder) {
