@@ -120,14 +120,5 @@ contract("Breeding", acc => {
       let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
-
-    // Trying to mate 14 with 9 should revert.
-    try {
-      await instance.mix(14, 9, "failed female hash", {from: owner});
-      assert.fail("Expected revert not received");
-    } catch(err) {
-      let revertFound = err.message.search("revert") >= 0;
-      assert(revertFound, `Expected "revert", got ${err} instead`);
-    }
   })
 })
