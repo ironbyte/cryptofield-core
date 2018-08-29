@@ -4,8 +4,6 @@ import "./Core.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-// TODO: PROBABLY MOVING MOST OF THIS LOGIC TO ANOTHER CONTRACT
-
 /*
 @dev Breeding contract in charge of generating new horses and stats for breeding.
 */
@@ -126,7 +124,7 @@ contract Breeding is Ownable {
 
     /*
     @dev Checks whether two horses are directly related, i.e. one being an offspring of another.
-    The process for this verification is simple, we track offsprings of each horse in in a mapping
+    The process for this verification is simple, we track offsprings of each horse in a mapping
     here we check if either horse is an offspring of the other one, if true then we revert the op.
     */
     function _notParents(uint256 _male, uint256 _female) private view returns(bool) {
