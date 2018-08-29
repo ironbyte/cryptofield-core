@@ -1,4 +1,3 @@
-// const Breeding = artifacts.require("./Breeding");
 const Breeding = artifacts.require("./Breeding");
 const Core = artifacts.require("./Core");
 
