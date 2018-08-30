@@ -3,15 +3,16 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-// TODO: Add genotype for GOP.
-
 contract CryptofieldBase is Ownable {
     using SafeMath for uint256;
 
-    bytes32 private gender = "F"; // First horse is a male.
-    bytes32[2] private gen = [bytes32("M"), bytes32("F")];
+    bytes32 private gender; // First horse is a male.
+    bytes32[2] private gen = [
+        bytes32("M"), 
+        bytes32("F")
+    ];
 
-    uint256 constant GENOTYPE_CAP = 150;
+    uint256 constant GENOTYPE_CAP = 268;
 
     // Names used for defaults in G1P.
     string[6] private names = [
@@ -108,7 +109,7 @@ contract CryptofieldBase is Ownable {
         horse.horseHash = _horseHash;
         horse.sex = gender;
         horse.baseValue = _getRand();
-        horse.genotype = male.genotype.add(female.genotype);
+        horse.genotype = _getType(male.genotype, female.genotype);
 
         horses[_tokenId] = horse;
 
@@ -223,13 +224,12 @@ contract CryptofieldBase is Ownable {
 
     /*
     @dev Calculates the genotype for an offspring based on the type of the parents.
-    @dev It selects the greater value of both and adds 1 to it if it is not greater than the cap.
-    Otherwise just returns the greater value as is.
+    @dev It returns the Genotype for an offspring unless it is greater than the cap, otherwise it returns the CAP.
     */
     function _getType(uint256 _maleGT, uint256 _femaleGT) private returns(uint256) {
-        uint256 greater = (_maleGT > _femaleGT) ? _maleGT : _femaleGT;
-        if(greater > GENOTYPE_CAP) return greater;
-        return greater.add(1);
+        uint256 geno = _maleGT.add(_femaleGT);
+        if(geno > GENOTYPE_CAP) return GENOTYPE_CAP;
+        return geno;
     }
 
 
