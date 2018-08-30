@@ -169,7 +169,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
     */
     function __callback(bytes32 _id, string _result) public {
         require(msg.sender == oraclize_cbAddress(), "notOraclizeAddr");
-        uint auctionId = parseInt(_result);
+        uint256 auctionId = parseInt(_result);
 
         _removeAuction(auctionId);
 
