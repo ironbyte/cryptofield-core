@@ -8,9 +8,6 @@ import "openzeppelin-solidity/contracts/token/ERC721/ERC721Holder.sol";
 contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     using SafeMath for uint256;
 
-    // Variable for enumeration.
-    uint256[] addresses;
-
     constructor() ERC721Token("Zed Token", "ZT") public {}
 
     modifier ownerOfToken(uint256 _tokenId) {
