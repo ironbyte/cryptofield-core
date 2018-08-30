@@ -2,8 +2,9 @@ const Breeding = artifacts.require("./Breeding");
 const Core = artifacts.require("./Core");
 
 contract("Breeding", acc => {
-  let core, instance;
+  let core, instance, query;
   let owner = acc[1];
+  let amount = web3.toWei(0.05, "ether");
 
   before(async () => {
     core = await Core.deployed();
@@ -11,6 +12,8 @@ contract("Breeding", acc => {
 
     // Creating a genesis token since we can't mix with a genesis horse.
     await core.createGOP(owner, "male hash"); // 0 Genesis token
+
+    query = await core.getQueryPrice.call();
   })
   
   it("should mix two horses", async () => {
@@ -18,8 +21,10 @@ contract("Breeding", acc => {
     await core.createGOP(owner, "female hash"); // 1
     await core.createGOP(owner, "male hash"); // 2
 
+    await core.putInStud(2, amount, 1000, {from: owner, value: query});
+
     // This should create another token with other stuff specified.
-    await instance.mix(2, 1, "female offspring hash", {from: owner}); // 3
+    await instance.mix(2, 1, "female offspring hash", {from: owner, value: amount}); // 3
 
     let firstOffspringStats = await instance.getHorseOffspringStats.call(1);
     let secondOffspringStats = await instance.getHorseOffspringStats.call(2);
@@ -44,7 +49,10 @@ contract("Breeding", acc => {
   it("should return the correct genotype for a given horse", async () => {
     // At this point we're going to use two ZED 1 (0) horses
     await core.createGOP(owner, "male hash"); // 4
-    await instance.mix(4, 1, "female offspring hash", {from: owner}); // 5
+
+    await core.putInStud(4, amount, 1, {from: owner, value: query});
+
+    await instance.mix(4, 1, "female offspring hash", {from: owner, value: amount}); // 5
 
     let genotype = await core.getGenotype.call(5); // At this point parents had 1 and 1 as genotype.
     assert.equal(genotype.toNumber(), 2);
@@ -52,7 +60,7 @@ contract("Breeding", acc => {
 
   // Maybe same as above tests but with a more direct approach
   it("should revert when mixing two offsprings from the same parents", async () => {
-    await instance.mix(4, 1, "male offspring hash", {from: owner}); // 6
+    await instance.mix(4, 1, "male offspring hash", {from: owner, value: amount}); // 6
 
     // Mixing the two horses from the same parents (5 and 6)
     try {
@@ -103,13 +111,20 @@ contract("Breeding", acc => {
     // We'll use new horses for this.
     await core.createGOP(owner, "male hash"); // 8
     await core.createGOP(owner, "female hash"); // 9
-    await instance.mix(8, 9, "male offspring hash", {from: owner}); // 10
+
+    await core.putInStud(8, amount, 1, {from: owner, value: query});
+
+    await instance.mix(8, 9, "male offspring hash", {from: owner, value: amount}); // 10
+
+    await core.putInStud(10, amount, 1, {from: owner, value: query});
 
     await core.createGOP(owner, "female hash"); // 11
-    await instance.mix(10, 11, "male offspring hash", {from: owner}); // 12
+    await instance.mix(10, 11, "male offspring hash", {from: owner, value: amount}); // 12
+
+    await core.putInStud(12, amount, 1, {from: owner, value: query});
 
     await core.createGOP(owner, "female hash"); // 13
-    await instance.mix(10, 13, "male offspring hash", {from: owner}); // 14
+    await instance.mix(10, 13, "male offspring hash", {from: owner, value: amount}); // 14
 
     // Trying to mate 12 with 9 should revert.
     try {

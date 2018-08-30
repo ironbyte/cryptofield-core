@@ -50,12 +50,12 @@ contract Breeding is Ownable {
 
     /*
     @dev Creates a new token based on parents.
-    TODO: Check for male horse being in stud.
-    TODO: Check for cover fee.
     TODO: Send payment to owner of male horse when operation is done.
     */
     function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external payable {
         require(core.exists(_maleParent) && core.exists(_femaleParent), "Horses don't exist");
+        require(core.isHorseInStud(_maleParent), "Male not in stud");
+        require(msg.value >= core.matingPrice(_maleParent), "Mating cover not met");
 
         // The owner of the female horse is the owner of the offspring.
         address offspringOwner = core.ownerOf(_femaleParent);
@@ -77,7 +77,7 @@ contract Breeding is Ownable {
 
         // Male horse should be in Stud so the owner of the female should send this transaction.
         require(msg.sender == offspringOwner, "Not owner of female horse");
-        require(core.getHorseSex(_femaleParent) == bytes32("F"), "Expected female horse, received male as second parameter");
+        require(bytes32("F") == core.getHorseSex(_femaleParent), "Expected female horse, received male as second parameter");
         require(_notBrothers(male, female), "Horses are brothers");
         require(_notParents(_maleParent, _femaleParent), "Horses are directly related");
         require(_notGrandparents(_maleParent, _femaleParent), "Horses are directly related");
