@@ -58,6 +58,16 @@ contract StudService is Auctions, usingOraclize {
         oraclize_query(duration, "URL", url, payload);
     }
 
+    function __callback(bytes32 _id, string result) public {
+        require(msg.sender == oraclize_cbAddress(), "Not oraclize");
+
+        uint256 horse = parseInt(result); 
+        
+        // Manually remove the horse from stud since 'removeFromStud/1' allows only the owner.
+        delete studs[horse];
+    }
+
+    // TODO: Fee for removing a horse from stud before time.
     function removeFromStud(uint256 _id) public onlyHorseOwner(_id) {
         delete studs[_id];
     }
