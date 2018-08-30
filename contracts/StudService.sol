@@ -33,6 +33,8 @@ contract StudService is Auctions, usingOraclize {
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
+    event HorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);
+
     function putInStud(uint256 _id, uint256 _amount, uint256 _duration) public payable onlyHorseOwner(_id) {
         require(msg.value >= oraclize_getPrice("URL"), "Oraclize price not met");
         require(bytes32("M") == getHorseSex(_id), "Horse is not a male");
@@ -45,17 +47,14 @@ contract StudService is Auctions, usingOraclize {
             duration = ALLOWED_TIMEFRAMES[0];
         }
 
-        StudInfo storage s;
-        s.inStud = true;
-        s.matingPrice = _amount;
-        s.duration = duration;
-
-        studs[_id] = s;
+        studs[_id] = StudInfo(true, _amount, duration);
 
         string memory url = "json(https://cryptofield.app/api/v1/remove_horse_stud).horse_id";
         string memory payload = strConcat("{\"stud_info\":", uint2str(_id), "}");
 
         oraclize_query(duration, "URL", url, payload);
+
+        emit HorseInStud(_id, _amount, duration);
     }
 
     function __callback(bytes32 _id, string result) public {
@@ -82,11 +81,15 @@ contract StudService is Auctions, usingOraclize {
     @dev Mostly used for checks in other contracts, i.e. Breeding.
     Ideally we would use 'studInfo/1'
     */
-    function isHorseInStud(uint256 _id) external view returns(bool) {
+    function isHorseInStud(uint256 _id) public view returns(bool) {
         return studs[_id].inStud;
     }
 
-    function getQueryPrice() public view returns(uint256) {
+    function matingPrice(uint256 _id) public view returns(uint256) {
+        return studs[_id].matingPrice;
+    }
+
+    function getQueryPrice() public returns(uint256) {
         return oraclize_getPrice("URL");
     }
 }
