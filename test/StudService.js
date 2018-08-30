@@ -1,9 +1,11 @@
 const Core = artifacts.require("./Core");
 
 contract("StudService", acc => {
-  let core;
+  let core, queryPrice;
   let owner = acc[1];
   let amount = web3.toWei(0.5, "ether");
+
+  let seconds = { day3: 259200, day6: 518400 }
 
   before("setup instance", async () => {
     core = await Core.deployed();
@@ -11,10 +13,12 @@ contract("StudService", acc => {
     await core.createGOP(owner, "genesis male hash"); // 0
     await core.createGOP(owner, "female horse"); // 1
     await core.createGOP(owner, "male horse"); // 2
+
+    queryPrice = await core.getQueryPrice.call();
   })
 
   it("should put the horse in stud", async () => {
-    await core.putInStud(2, amount, {from: owner});
+    await core.putInStud(2, amount, seconds.day3, {from: owner, value: queryPrice});
     let studInfo = await core.studInfo.call(2);
 
     assert.equal(studInfo[0], true);
@@ -29,7 +33,7 @@ contract("StudService", acc => {
 
   it("should revert when not the owner tries to put a horse in stud", async () => {
     try {
-      await core.putInStud(2, amount, {from: acc[2]});
+      await core.putInStud(2, amount, seconds.day6, {from: acc[2], value: queryPrice});
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
@@ -39,7 +43,7 @@ contract("StudService", acc => {
 
   it("should return valid data from stud", async () => {
     // Put the horse again in stud
-    await core.putInStud(2, amount, {from: owner});
+    await core.putInStud(2, amount, seconds.day3, {from: owner, value: queryPrice});
 
     let studInfo = await core.studInfo.call(2);
     
@@ -57,11 +61,20 @@ contract("StudService", acc => {
 
   it("should revert if we try to put a female horse into stud", async () => {
     try {
-      await core.putInStud(1, amount, {from: acc[2]});
+      await core.putInStud(1, amount, seconds.day6, {from: acc[2], value: queryPrice});
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
+  })
+
+  it("should use a default value if a different time is sent", async () => {
+    // We'll use a random value for the duration since only three values are allowed at the moment.
+    await core.putInStud(2, amount, 123456, {from: owner, value: queryPrice});
+
+    let studInfo = await core.studInfo.call(2);
+
+    assert.equal(studInfo[2].toNumber(), 259200); // Default to three days.
   })
 })

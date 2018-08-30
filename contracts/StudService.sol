@@ -1,35 +1,71 @@
 pragma solidity 0.4.24;
 
 import "./Auctions.sol";
+import "./usingOraclize.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 /*
 @description Contract in charge of tracking availability of male horses in Stud.
 */
-contract StudService is Auctions {
+contract StudService is Auctions, usingOraclize {
     using SafeMath for uint256;
 
-    mapping(uint256 => bool) internal isInStud;
-    mapping(uint256 => uint256) internal studAmountFor;
+    uint256[2] private ALLOWED_TIMEFRAMES = [
+        259200,
+        518400
+    ];
+
+    struct StudInfo {
+        bool inStud;
+
+        uint256 matingPrice;
+        uint256 duration;
+    }
+
+    mapping(uint256 => StudInfo) internal studs;
 
     modifier onlyHorseOwner(uint256 _id) {
         require(msg.sender == ownerOf(_id), "Not owner of horse");
         _;
     }
 
-    function putInStud(uint256 _id, uint256 _amount) public onlyHorseOwner(_id) {
+    constructor() public {
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+    }
+
+    function putInStud(uint256 _id, uint256 _amount, uint256 _duration) public payable onlyHorseOwner(_id) {
+        require(msg.value >= oraclize_getPrice("URL"), "Oraclize price not met");
         require(bytes32("M") == getHorseSex(_id), "Horse is not a male");
-        isInStud[_id] = true;
-        studAmountFor[_id] = _amount;
+
+        uint256 duration = _duration;
+
+        // We'll avoid getting different times in '_duration' by allowing only a few, if none of them are selected
+        // we'll use a default one (3 days).
+        if(_duration != ALLOWED_TIMEFRAMES[0] || _duration != ALLOWED_TIMEFRAMES[1]) {
+            duration = ALLOWED_TIMEFRAMES[0];
+        }
+
+        StudInfo storage s;
+        s.inStud = true;
+        s.matingPrice = _amount;
+        s.duration = duration;
+
+        studs[_id] = s;
+
+        string memory url = "json(https://cryptofield.app/api/v1/remove_horse_stud).horse_id";
+        string memory payload = strConcat("{\"stud_info\":", uint2str(_id), "}");
+
+        oraclize_query(duration, "URL", url, payload);
     }
 
     function removeFromStud(uint256 _id) public onlyHorseOwner(_id) {
-        delete isInStud[_id];
-        delete studAmountFor[_id];
+        delete studs[_id];
     }
 
-    function studInfo(uint256 _id) public view returns(bool, uint256) {
-        return(isInStud[_id], studAmountFor[_id]);
+    function studInfo(uint256 _id) public view returns(bool, uint256, uint256) {
+        StudInfo storage s = studs[_id];
+
+        return(s.inStud, s.matingPrice, s.duration);
     }
 
     /*
@@ -37,6 +73,10 @@ contract StudService is Auctions {
     Ideally we would use 'studInfo/1'
     */
     function isHorseInStud(uint256 _id) external view returns(bool) {
-        return isInStud[_id];
+        return studs[_id].inStud;
+    }
+
+    function getQueryPrice() public view returns(uint256) {
+        return oraclize_getPrice("URL");
     }
 }
