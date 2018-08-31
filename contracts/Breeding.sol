@@ -50,7 +50,6 @@ contract Breeding is Ownable {
 
     /*
     @dev Creates a new token based on parents.
-    TODO: Send payment to owner of male horse when operation is done.
     */
     function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external payable {
         require(core.exists(_maleParent) && core.exists(_femaleParent), "Horses don't exist");
@@ -110,6 +109,8 @@ contract Breeding is Ownable {
         o.grandparents[female.parents[1]] = true;
 
         core.setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
+
+        core.ownerOf(_maleParent).transfer(msg.value);
 
         emit OffspringCreated(_maleParent, _femaleParent, tokenId);
     }

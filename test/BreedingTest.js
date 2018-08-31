@@ -4,7 +4,7 @@ const Core = artifacts.require("./Core");
 contract("Breeding", acc => {
   let core, instance, query;
   let owner = acc[1];
-  let amount = web3.toWei(0.05, "ether");
+  let amount = web3.toWei(0.5, "ether");
 
   before(async () => {
     core = await Core.deployed();
@@ -128,7 +128,7 @@ contract("Breeding", acc => {
 
     // Trying to mate 12 with 9 should revert.
     try {
-      await instance.mix(12, 9, "failed female hash", {from: owner});
+      await instance.mix(12, 9, "failed female hash", {from: owner, value: amount});
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
@@ -138,11 +138,24 @@ contract("Breeding", acc => {
 
   it("should revert when using ids of horses that don't exist", async () => {
     try {
-      await instance.mix(9999999, 99999999, "failed female hash", {from: owner});
+      await instance.mix(9999999, 99999999, "failed female hash", {from: owner, value: amount});
       assert.fail("Expected revert not received");
     } catch(err) {
       let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
+  })
+
+  it("should send the reserve amount to the owner of the male horse when creating an offspring", async () => {
+    await core.createGOP(acc[2], "female hash"); // 15
+
+    let preBalance = web3.toWei(web3.eth.getBalance(owner));
+
+    await instance.mix(4, 15, "female offspring hash", {from: acc[2], value: amount}); // 16
+
+    let currBalance = web3.toWei(web3.eth.getBalance(owner));
+    // We do this comparison here because 'assert' expects a number, so we just pass the boolean from this op.
+    let comp = (preBalance < currBalance); 
+    assert(comp);
   })
 })
