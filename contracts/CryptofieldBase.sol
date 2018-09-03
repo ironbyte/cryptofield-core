@@ -46,6 +46,7 @@ contract CryptofieldBase is Ownable {
     }
 
     mapping(uint256 => Horse) public horses;
+    mapping(bytes32 => bytes32) internal bloodlines;
 
     event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
     event HorseBuy(address _buyer, uint256 _timestamp, uint256 _tokenId);
@@ -53,9 +54,29 @@ contract CryptofieldBase is Ownable {
 
     constructor() public {
         owner = msg.sender;
+
+        // Bloodline matrix.
+        bloodlines[keccak256(abi.encodePacked("N", "N"))] = "N";
+        bloodlines[keccak256(abi.encodePacked("S", "N"))] = "S";
+        bloodlines[keccak256(abi.encodePacked("F", "N"))] = "F";
+        bloodlines[keccak256(abi.encodePacked("W", "N"))] = "W";
+        bloodlines[keccak256(abi.encodePacked("N", "S"))] = "S";
+        bloodlines[keccak256(abi.encodePacked("N", "F"))] = "F";
+        bloodlines[keccak256(abi.encodePacked("N", "W"))] = "W";
+        bloodlines[keccak256(abi.encodePacked("S", "S"))] = "S";
+        bloodlines[keccak256(abi.encodePacked("F", "S"))] = "F";
+        bloodlines[keccak256(abi.encodePacked("W", "S"))] = "W";
+        bloodlines[keccak256(abi.encodePacked("S", "F"))] = "F";
+        bloodlines[keccak256(abi.encodePacked("S", "W"))] = "W";
+        bloodlines[keccak256(abi.encodePacked("F", "F"))] = "F";
+        bloodlines[keccak256(abi.encodePacked("W", "F"))] = "W";
+        bloodlines[keccak256(abi.encodePacked("F", "W"))] = "W";
+        bloodlines[keccak256(abi.encodePacked("W", "W"))] = "W";
+        bloodlines[keccak256(abi.encodePacked("W", "N"))] = "W";
     }
 
     // This function should have a random default name for the horse.
+    // TODO: Create bloodline for GOP. Offsprings get the bloodline from parents.
     function buyGOP(address _buyer, string _horseHash, uint256 _tokenId, uint256 _genotype) internal {
         uint256 randNum = _getRand(5);
         string memory nameChosen = names[randNum];
@@ -110,6 +131,7 @@ contract CryptofieldBase is Ownable {
         horse.sex = gender;
         horse.baseValue = _getRand();
         horse.genotype = _getType(male.genotype, female.genotype);
+        horse.bloodline = bloodlines[keccak256(abi.encodePacked(male.bloodline, female.bloodline))];
 
         horses[_tokenId] = horse;
 
@@ -162,6 +184,13 @@ contract CryptofieldBase is Ownable {
     */
     function getGenotype(uint256 _horseId) public view returns(uint256) {
         return horses[_horseId].genotype;
+    }
+
+    /*
+    @dev Returns the bloodline outcome of two bloodlines
+    */
+    function getBloodline(string M, string F) public view returns(bytes32) {
+        return bloodlines[keccak256(abi.encodePacked(M, F))];
     }
 
     /*
