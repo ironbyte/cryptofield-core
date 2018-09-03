@@ -51,7 +51,7 @@ contract StudService is Ownable, Auctions, usingOraclize {
         owner = msg.sender;
     }
 
-    event HorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);
+    event LogHorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);
 
     function putInStud(uint256 _id, uint256 _amount, uint256 _duration) public payable onlyHorseOwner(_id) {
         require(msg.value >= oraclize_getPrice("URL"), "Oraclize price not met");
@@ -75,7 +75,7 @@ contract StudService is Ownable, Auctions, usingOraclize {
 
         currentlyInStud[_id] = true;
 
-        emit HorseInStud(_id, _amount, duration);
+        emit LogHorseInStud(_id, _amount, duration);
     }
 
     function __callback(bytes32 _id, string result) public {

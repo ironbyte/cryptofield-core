@@ -48,9 +48,9 @@ contract CryptofieldBase is Ownable {
     mapping(uint256 => Horse) public horses;
     mapping(bytes32 => bytes32) internal bloodlines;
 
-    event HorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
-    event HorseBuy(address _buyer, uint256 _timestamp, uint256 _tokenId);
-    event GOPCreated(address _buyer, uint256 _timestamp, uint256 _tokenId);
+    event LogHorseSell(uint256 _horseId, uint256 _amountOfTimesSold);
+    event LogHorseBuy(address _buyer, uint256 _timestamp, uint256 _tokenId);
+    event LogGOPCreated(address _buyer, uint256 _timestamp, uint256 _tokenId);
 
     constructor() public {
         owner = msg.sender;
@@ -99,7 +99,7 @@ contract CryptofieldBase is Ownable {
 
         horses[_tokenId] = h;
 
-        emit GOPCreated(_buyer, now, _tokenId);
+        emit LogGOPCreated(_buyer, now, _tokenId);
     }
 
     /*
@@ -135,7 +135,7 @@ contract CryptofieldBase is Ownable {
 
         horses[_tokenId] = horse;
 
-        emit HorseBuy(_buyer, now, _tokenId);
+        emit LogHorseBuy(_buyer, now, _tokenId);
     }
 
     /*
@@ -202,7 +202,7 @@ contract CryptofieldBase is Ownable {
         horse.amountOfTimesSold = horse.amountOfTimesSold.add(1);
         horse.lastTimeSold = now;
 
-        emit HorseSell(_horseId, horse.amountOfTimesSold);
+        emit LogHorseSell(_horseId, horse.amountOfTimesSold);
     }
 
     /* RESTRICTED FUNCTIONS /*

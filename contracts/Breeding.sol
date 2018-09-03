@@ -41,7 +41,7 @@ contract Breeding is Ownable {
     
     mapping(uint256 => mapping(uint256 => bool)) internal offspringsOf;
 
-    event OffspringCreated(uint256 _father, uint256 _mother, uint256 _offspring);
+    event LogOffspringCreated(uint256 _father, uint256 _mother, uint256 _offspring);
 
     constructor(address _core) public {
         core = Core(_core);
@@ -112,7 +112,7 @@ contract Breeding is Ownable {
 
         core.ownerOf(_maleParent).transfer(msg.value);
 
-        emit OffspringCreated(_maleParent, _femaleParent, tokenId);
+        emit LogOffspringCreated(_maleParent, _femaleParent, tokenId);
     }
 
     /*

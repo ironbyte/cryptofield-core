@@ -7,7 +7,7 @@ import "./SaleAuction.sol";
 contract Auctions is Token {
     SaleAuction nft;
 
-    event AuctionCreated(uint256 _auctionId);
+    event LoguctionCreated(uint256 _auctionId);
 
     function createAuction(uint256 _duration, uint256 _horseId, uint256 _minimum) public payable {
         require(msg.sender == ownerOf(_horseId), "notTokenOwner");
@@ -16,7 +16,7 @@ contract Auctions is Token {
         approve(nft, _horseId);
 
         uint256 id = nft.createAuction.value(msg.value)(msg.sender, _duration, _horseId, _minimum);
-        emit AuctionCreated(id);
+        emit LogAuctionCreated(id);
     }
 
     function setNft(address _nft) public onlyOwner() {

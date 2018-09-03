@@ -44,8 +44,8 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
     // Maps address to auction
     mapping(address => uint256[]) auctionsParticipating;
     
-    event Bid(address _bidder, uint256 _amount);
-    event Withdraw(address _user, uint256 _payout);
+    event LogBid(address _bidder, uint256 _amount);
+    event LogWithdraw(address _user, uint256 _payout);
 
     constructor(address _core) public {
         owner = msg.sender;
@@ -111,7 +111,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
         auction.maxBid = newBid;
         auction.maxBidder = msg.sender;
 
-        emit Bid(msg.sender, newBid);
+        emit LogBid(msg.sender, newBid);
     }
 
     // Withdrawals need to be manually triggered.
@@ -148,7 +148,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
         msg.sender.transfer(payout);
 
-        emit Withdraw(msg.sender, payout);
+        emit LogWithdraw(msg.sender, payout);
 
         return true;
     }
