@@ -2,12 +2,13 @@ pragma solidity 0.4.24;
 
 import "./Auctions.sol";
 import "./usingOraclize.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 /*
 @description Contract in charge of tracking availability of male horses in Stud.
 */
-contract StudService is Auctions, usingOraclize {
+contract StudService is Ownable, Auctions, usingOraclize {
     using SafeMath for uint256;
 
     uint256[2] private ALLOWED_TIMEFRAMES = [
@@ -24,6 +25,22 @@ contract StudService is Auctions, usingOraclize {
 
     mapping(uint256 => StudInfo) internal studs;
 
+    /*
+    @dev We only remove the horse from the mapping ONCE the '__callback' is called, this is for a reason.
+    For Studs we use Oraclize as a service for queries in the future but we also have a function
+    to manually remove the horse from stud once a fee is paid but this does not cancel the 
+    query that was already sent, so the horse is blocked from being in Stud again until the
+    callback is called and effectively removing it from stud.
+
+    Main case: User puts horse in stud, horse is manually removed, horse is put in stud
+    again thus creating another query, this time the user decides to leave the horse
+    for the whole period of time but the first query which couldn't be cancelled is 
+    executed, calling the '__callback' function and removing the horse from Stud and leaving
+    yet another query in air.
+    */
+    
+    mapping(uint256 => bool) internal currentlyInStud;
+
     modifier onlyHorseOwner(uint256 _id) {
         require(msg.sender == ownerOf(_id), "Not owner of horse");
         _;
@@ -31,6 +48,7 @@ contract StudService is Auctions, usingOraclize {
 
     constructor() public {
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        owner = msg.sender;
     }
 
     event HorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);
@@ -38,6 +56,7 @@ contract StudService is Auctions, usingOraclize {
     function putInStud(uint256 _id, uint256 _amount, uint256 _duration) public payable onlyHorseOwner(_id) {
         require(msg.value >= oraclize_getPrice("URL"), "Oraclize price not met");
         require(bytes32("M") == getHorseSex(_id), "Horse is not a male");
+        require(currentlyInStud[_id] == false, "Not removed by oraclize yet");
 
         uint256 duration = _duration;
 
@@ -54,6 +73,8 @@ contract StudService is Auctions, usingOraclize {
 
         oraclize_query(duration, "URL", url, payload);
 
+        currentlyInStud[_id] = true;
+
         emit HorseInStud(_id, _amount, duration);
     }
 
@@ -64,6 +85,8 @@ contract StudService is Auctions, usingOraclize {
         
         // Manually remove the horse from stud since 'removeFromStud/1' allows only the owner.
         delete studs[horse];
+
+        currentlyInStud[horse] = false;
     }
 
     // TODO: Fee for removing a horse from stud before time.
@@ -91,5 +114,10 @@ contract StudService is Auctions, usingOraclize {
 
     function getQueryPrice() public returns(uint256) {
         return oraclize_getPrice("URL");
+    }
+
+    /*   RESTRICTED    */
+    function removeHorseOWN(uint256 _id) public onlyOwner() {
+        currentlyInStud[_id] = false;
     }
 }
