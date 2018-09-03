@@ -38,7 +38,7 @@ contract Breeding is Ownable {
 
     // Maps the horseID to a specific HorseBreed struct.
     mapping(uint256 => HorseBreed) internal horseBreedById;
-
+    
     mapping(uint256 => mapping(uint256 => bool)) internal offspringsOf;
 
     event OffspringCreated(uint256 _father, uint256 _mother, uint256 _offspring);
