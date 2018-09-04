@@ -7,7 +7,7 @@ import "./SaleAuction.sol";
 contract Auctions is Token {
     SaleAuction nft;
 
-    event LoguctionCreated(uint256 _auctionId);
+    event LogAuctionCreated(uint256 _auctionId);
 
     function createAuction(uint256 _duration, uint256 _horseId, uint256 _minimum) public payable {
         require(msg.sender == ownerOf(_horseId), "notTokenOwner");
