@@ -77,7 +77,9 @@ contract CryptofieldBase is Ownable {
 
     // This function should have a random default name for the horse.
     // TODO: Create bloodline for GOP. Offsprings get the bloodline from parents.
-    function buyGOP(address _buyer, string _horseHash, uint256 _tokenId, uint256 _genotype) internal {
+    function buyGOP(address _buyer, string _horseHash, uint256 _tokenId) internal {
+        uint256 genotype;
+        bytes32 bloodline;
         uint256 randNum = _getRand(5);
         string memory nameChosen = names[randNum];
 
@@ -88,6 +90,39 @@ contract CryptofieldBase is Ownable {
             gender = gen[0];
         }
 
+        // Generate bloodline and genotype based on '_tokenId'
+        if(_tokenId >= 0 && _tokenId <= 100) {
+            genotype = 1;
+            bloodline = "N";
+        } else if(_tokenId >= 101 && _tokenId <= 300) {
+            genotype = 2;
+            bloodline = "N";
+        } else if(_tokenId >= 301 && _tokenId <= 600) {
+            genotype = 3;
+            bloodline = "S";
+        } else if(_tokenId >= 601 && _tokenId <= 1000) {
+            genotype = 4;
+            bloodline = "S";
+        } else if(_tokenId >= 1001 && _tokenId <= 2000) {
+            genotype = 5;
+            bloodline = "F";
+        } else if(_tokenId >= 2001 && _tokenId <= 4000) {
+            genotype = 6;
+            bloodline = "F";
+        } else if(_tokenId >= 4001 && _tokenId <= 8000) {
+            genotype = 7;
+            bloodline = "F";
+        } else if(_tokenId >= 8001 && _tokenId <= 16000) {
+            genotype = 8;
+            bloodline = "W";
+        } else if(_tokenId >= 16001 && _tokenId <= 26000) {
+            genotype = 9;
+            bloodline = "W";
+        } else {
+            genotype = 10;
+            bloodline = "W";
+        }
+
         Horse memory h;
         h.timestamp = now;
         h.buyer = _buyer;
@@ -95,7 +130,8 @@ contract CryptofieldBase is Ownable {
         h.sex = gender;
         h.baseValue = _getRand();
         h.name = nameChosen;
-        h.genotype = _genotype;
+        h.genotype = genotype;
+        h.bloodline = bloodline;
 
         horses[_tokenId] = h;
 
@@ -187,10 +223,10 @@ contract CryptofieldBase is Ownable {
     }
 
     /*
-    @dev Returns the bloodline outcome of two bloodlines
+    @dev Returns the bloodline of a horse
     */
-    function getBloodline(string M, string F) public view returns(bytes32) {
-        return bloodlines[keccak256(abi.encodePacked(M, F))];
+    function getBloodline(uint256 _horseId) public view returns(bytes32) {
+        return horses[_horseId].bloodline;
     }
 
     /*
