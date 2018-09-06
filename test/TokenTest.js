@@ -7,9 +7,11 @@ contract("Token", acc => {
   let secondBuyer = acc[2];
   let amount = web3.toWei(0.05, "ether");
 
-  beforeEach("setup instance", async () => {
+  before("setup instance", async () => {
     instance = await Core.deployed();
     breed = await Breeding.deployed();
+
+    await instance.setBreedingAddr(breed.address, { from: owner });
 
     query = await instance.getQueryPrice.call();
   })
