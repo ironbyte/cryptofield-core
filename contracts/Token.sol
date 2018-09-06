@@ -40,8 +40,6 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     function createGOP(address _owner, string _hash) public payable returns(uint256) {
         uint256 tokenId = allTokensLength();
 
-        require(tokenId <= 38000, "Horse cap met");
-
         _mint(_owner, tokenId);
         buyGOP(_owner, _hash, tokenId);
 
