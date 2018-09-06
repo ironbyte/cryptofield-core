@@ -20,5 +20,5 @@ ethereum-bridge
 truffle test
 ```
 
-## TODO:
--[ ] Remove irrelevant fields to breeding from API.
+## Initially
+* Set Breeding address on Core contract.
