@@ -13,6 +13,9 @@ contract CryptofieldBase is Ownable {
     ];
 
     uint256 constant GENOTYPE_CAP = 268;
+    uint256 bloodlineCounter;
+
+    address breedingContract;
 
     // Names used for defaults in G1P.
     string[6] private names = [
@@ -40,9 +43,9 @@ contract CryptofieldBase is Ownable {
 
         string horseHash;
         string name;
+        bytes32 bloodline;
 
         bytes32 sex;
-        bytes32 bloodline;
     }
 
     mapping(uint256 => Horse) public horses;
@@ -56,28 +59,29 @@ contract CryptofieldBase is Ownable {
         owner = msg.sender;
 
         // Bloodline matrix.
-        bloodlines[keccak256(abi.encodePacked("N", "N"))] = "N";
-        bloodlines[keccak256(abi.encodePacked("S", "N"))] = "S";
-        bloodlines[keccak256(abi.encodePacked("F", "N"))] = "F";
-        bloodlines[keccak256(abi.encodePacked("W", "N"))] = "W";
-        bloodlines[keccak256(abi.encodePacked("N", "S"))] = "S";
-        bloodlines[keccak256(abi.encodePacked("N", "F"))] = "F";
-        bloodlines[keccak256(abi.encodePacked("N", "W"))] = "W";
-        bloodlines[keccak256(abi.encodePacked("S", "S"))] = "S";
-        bloodlines[keccak256(abi.encodePacked("F", "S"))] = "F";
-        bloodlines[keccak256(abi.encodePacked("W", "S"))] = "W";
-        bloodlines[keccak256(abi.encodePacked("S", "F"))] = "F";
-        bloodlines[keccak256(abi.encodePacked("S", "W"))] = "W";
-        bloodlines[keccak256(abi.encodePacked("F", "F"))] = "F";
-        bloodlines[keccak256(abi.encodePacked("W", "F"))] = "W";
-        bloodlines[keccak256(abi.encodePacked("F", "W"))] = "W";
-        bloodlines[keccak256(abi.encodePacked("W", "W"))] = "W";
-        bloodlines[keccak256(abi.encodePacked("W", "N"))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("N"), bytes32("N")))] = "N";
+        bloodlines[keccak256(abi.encodePacked(bytes32("N"), bytes32("S")))] = "S";
+        bloodlines[keccak256(abi.encodePacked(bytes32("N"), bytes32("F")))] = "F";
+        bloodlines[keccak256(abi.encodePacked(bytes32("N"), bytes32("W")))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("S"), bytes32("N")))] = "S";
+        bloodlines[keccak256(abi.encodePacked(bytes32("S"), bytes32("S")))] = "S";
+        bloodlines[keccak256(abi.encodePacked(bytes32("S"), bytes32("F")))] = "F";
+        bloodlines[keccak256(abi.encodePacked(bytes32("S"), bytes32("W")))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("F"), bytes32("N")))] = "F";
+        bloodlines[keccak256(abi.encodePacked(bytes32("F"), bytes32("S")))] = "F";
+        bloodlines[keccak256(abi.encodePacked(bytes32("F"), bytes32("F")))] = "F";
+        bloodlines[keccak256(abi.encodePacked(bytes32("F"), bytes32("W")))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("W"), bytes32("N")))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("W"), bytes32("S")))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("W"), bytes32("F")))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("W"), bytes32("W")))] = "W";
+        bloodlines[keccak256(abi.encodePacked(bytes32("W"), bytes32("N")))] = "W";
     }
 
     // This function should have a random default name for the horse.
-    // TODO: Create bloodline for GOP. Offsprings get the bloodline from parents.
     function buyGOP(address _buyer, string _horseHash, uint256 _tokenId) internal {
+        require(bloodlineCounter <= 38000, "GOP cap met");
+
         uint256 genotype;
         bytes32 bloodline;
         uint256 randNum = _getRand(5);
@@ -91,36 +95,38 @@ contract CryptofieldBase is Ownable {
         }
 
         // Generate bloodline and genotype based on '_tokenId'
-        if(_tokenId >= 0 && _tokenId <= 100) {
+        // TODO: Add counter for available horses so we can save them for later,
+        // Probably will be on another contract and not this one.
+        if(bloodlineCounter >= 0 && bloodlineCounter <= 100) {
             genotype = 1;
-            bloodline = "N";
-        } else if(_tokenId >= 101 && _tokenId <= 300) {
+            bloodline = bytes32("N");
+        } else if(bloodlineCounter >= 101 && bloodlineCounter <= 300) {
             genotype = 2;
-            bloodline = "N";
-        } else if(_tokenId >= 301 && _tokenId <= 600) {
+            bloodline = bytes32("N");
+        } else if(bloodlineCounter >= 301 && bloodlineCounter <= 600) {
             genotype = 3;
-            bloodline = "S";
-        } else if(_tokenId >= 601 && _tokenId <= 1000) {
+            bloodline = bytes32("S");
+        } else if(bloodlineCounter >= 601 && bloodlineCounter <= 1000) {
             genotype = 4;
-            bloodline = "S";
-        } else if(_tokenId >= 1001 && _tokenId <= 2000) {
+            bloodline = bytes32("S");
+        } else if(bloodlineCounter >= 1001 && bloodlineCounter <= 2000) {
             genotype = 5;
-            bloodline = "F";
-        } else if(_tokenId >= 2001 && _tokenId <= 4000) {
+            bloodline = bytes32("F");
+        } else if(bloodlineCounter >= 2001 && bloodlineCounter <= 4000) {
             genotype = 6;
-            bloodline = "F";
-        } else if(_tokenId >= 4001 && _tokenId <= 8000) {
+            bloodline = bytes32("F");
+        } else if(bloodlineCounter >= 4001 && bloodlineCounter <= 8000) {
             genotype = 7;
-            bloodline = "F";
-        } else if(_tokenId >= 8001 && _tokenId <= 16000) {
+            bloodline = bytes32("F");
+        } else if(bloodlineCounter >= 8001 && bloodlineCounter <= 16000) {
             genotype = 8;
-            bloodline = "W";
-        } else if(_tokenId >= 16001 && _tokenId <= 26000) {
+            bloodline = bytes32("W");
+        } else if(bloodlineCounter >= 16001 && bloodlineCounter <= 26000) {
             genotype = 9;
-            bloodline = "W";
+            bloodline = bytes32("W");
         } else {
             genotype = 10;
-            bloodline = "W";
+            bloodline = bytes32("W");
         }
 
         Horse memory h;
@@ -134,6 +140,8 @@ contract CryptofieldBase is Ownable {
         h.bloodline = bloodline;
 
         horses[_tokenId] = h;
+
+        bloodlineCounter += 1;
 
         emit LogGOPCreated(_buyer, now, _tokenId);
     }
@@ -241,22 +249,32 @@ contract CryptofieldBase is Ownable {
         emit LogHorseSell(_horseId, horse.amountOfTimesSold);
     }
 
+    /*
+    @dev Sets the name for a given horse, this is for Offsprings only, GOP have default names.
+    */
+    function setNameFor(string _name, uint256 _horseId) internal {
+        Horse storage h = horses[_horseId];
+        require(keccak256(abi.encodePacked(h.name)) == keccak256(abi.encodePacked("")), "Name is already defined");
+        horses[_horseId].name = _getName(_name, _horseId);
+    }
+
     /* RESTRICTED FUNCTIONS /*
+
+    /*
+    @dev Sets the address of the breeding contract.
+    */
+    function setBreedingAddr(address _address) public onlyOwner() {
+        breedingContract = _address;
+    }
 
     /*
     @dev Changes the baseValue of a horse, this is useful when creating offspring and should be
     allowed only by the breeding contract.
     */
-    // TODO: Add Breeding contract modifier
     function setBaseValue(uint256 _horseId, uint256 _baseValue) external {
+        require(msg.sender == breedingContract, "Unauthorized");
         Horse storage h = horses[_horseId];
         h.baseValue = _baseValue;
-    }
-
-    function setNameFor(string _name, uint256 _horseId) internal {
-        Horse storage h = horses[_horseId];
-        require(keccak256(abi.encodePacked(h.name)) == keccak256(abi.encodePacked("")), "Name is already defined");
-        horses[_horseId].name = _getName(_name, _horseId);
     }
 
     /* PRIVATE FUNCTIONS */
