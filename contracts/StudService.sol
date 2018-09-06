@@ -2,13 +2,12 @@ pragma solidity 0.4.24;
 
 import "./Auctions.sol";
 import "./usingOraclize.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 /*
 @description Contract in charge of tracking availability of male horses in Stud.
 */
-contract StudService is Ownable, Auctions, usingOraclize {
+contract StudService is Auctions, usingOraclize {
     using SafeMath for uint256;
 
     uint256[2] private ALLOWED_TIMEFRAMES = [
@@ -48,7 +47,6 @@ contract StudService is Ownable, Auctions, usingOraclize {
 
     constructor() public {
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
-        owner = msg.sender;
     }
 
     event LogHorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);
@@ -89,7 +87,6 @@ contract StudService is Ownable, Auctions, usingOraclize {
         currentlyInStud[horse] = false;
     }
 
-    // TODO: Fee for removing a horse from stud before time.
     function removeFromStud(uint256 _id) public onlyHorseOwner(_id) {
         delete studs[_id];
     }
