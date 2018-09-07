@@ -6,7 +6,7 @@ contract("Token", acc => {
   let instance, breed, query, gop;
   let owner = acc[1];
   let secondBuyer = acc[2];
-  let amount = web3.toWei(0.05, "ether");
+  let amount = web3.toWei(0.25, "ether");
 
   before("setup instance", async () => {
     instance = await Core.deployed();
@@ -23,7 +23,7 @@ contract("Token", acc => {
   })
 
   it("should mint a new token with specified params", async () => {
-    await gop.createGOP(owner, "male hash", { from: owner }); // 0
+    await gop.createGOP(owner, "male hash", { from: owner, value: amount }); // 0
     let tokenOwner = await instance.ownerOf(0);
 
     assert.equal(tokenOwner, owner);
@@ -54,8 +54,8 @@ contract("Token", acc => {
   })
 
   it("should use the given name if one is passed", async () => {
-    await gop.createGOP(owner, "female hash", { from: owner }); // 1
-    await gop.createGOP(owner, "male hash", { from: owner }); // 2
+    await gop.createGOP(owner, "female hash", { value: amount }); // 1
+    await gop.createGOP(owner, "male hash", { value: amount }); // 2
 
     await instance.putInStud(2, amount, 1, { from: owner, value: query });
 

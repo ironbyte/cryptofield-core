@@ -5,7 +5,7 @@ const GOPCreator = artifacts.require("GOPCreator");
 contract("Breeding", acc => {
   let core, instance, query, gop;
   let owner = acc[1];
-  let amount = web3.toWei(0.5, "ether");
+  let amount = web3.toWei(0.25, "ether");
 
   before(async () => {
     core = await Core.deployed();
@@ -25,8 +25,8 @@ contract("Breeding", acc => {
 
   it("should mix two horses", async () => {
     // Mint two tokens.
-    await gop.createGOP(owner, "female hash", { from: owner }); // 1
-    await gop.createGOP(owner, "male hash", { from: owner }); // 2
+    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 1
+    await gop.createGOP(owner, "male hash", { from: owner, value: amount }); // 2
 
     await core.putInStud(2, amount, 1000, { from: owner, value: query });
 
@@ -55,7 +55,7 @@ contract("Breeding", acc => {
 
   it("should return the correct genotype for a given horse", async () => {
     // At this point we're going to use two ZED 1 (0) horses
-    await gop.createGOP(owner, "male hash", { from: owner }); // 4
+    await gop.createGOP(owner, "male hash", { from: owner, value: amount }); // 4
 
     await core.putInStud(4, amount, 1, { from: owner, value: query });
 
@@ -91,7 +91,7 @@ contract("Breeding", acc => {
   })
 
   it("should revert when mixing two horses with the same sex", async () => {
-    await gop.createGOP(owner, "female hash", { from: owner }); // 7
+    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 7
     // 1 and 7 are two females and not related, if the second parameter isn't a female horse it'll throw.
     try {
       await instance.mix(1, 3, "failed male hash", { from: owner });
@@ -116,8 +116,8 @@ contract("Breeding", acc => {
     // Ancestors have a limit until grandparents, that would be two ancestors lines.
     // We'll go for Paternal grandparents
     // We'll use new horses for this.
-    await gop.createGOP(owner, "male hash", { from: owner }); // 8
-    await gop.createGOP(owner, "female hash", { from: owner }); // 9
+    await gop.createGOP(owner, "male hash", { from: owner, value: amount }); // 8
+    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 9
 
     await core.putInStud(8, amount, 1, { from: owner, value: query });
 
@@ -125,12 +125,12 @@ contract("Breeding", acc => {
 
     await core.putInStud(10, amount, 1, { from: owner, value: query });
 
-    await gop.createGOP(owner, "female hash", { from: owner }); // 11
+    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 11
     await instance.mix(10, 11, "male offspring hash", { from: owner, value: amount }); // 12
 
     await core.putInStud(12, amount, 1, { from: owner, value: query });
 
-    await gop.createGOP(owner, "female hash", { from: owner }); // 13
+    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 13
     await instance.mix(10, 13, "male offspring hash", { from: owner, value: amount }); // 14
 
     // Trying to mate 12 with 9 should revert.
@@ -154,7 +154,7 @@ contract("Breeding", acc => {
   })
 
   it("should send the reserve amount to the owner of the male horse when creating an offspring", async () => {
-    await gop.createGOP(acc[2], "female hash", { from: owner }); // 15
+    await gop.createGOP(acc[2], "female hash", { from: owner, value: amount }); // 15
 
     let preBalance = web3.toWei(web3.eth.getBalance(owner));
 
@@ -167,12 +167,12 @@ contract("Breeding", acc => {
   })
 
   it("should select the correct bloodline based in parents", async () => {
-    await gop.createGOP(owner, "female hash", { from: owner }); // 17
-    await gop.createGOP(owner, "male hash", { from: owner }); // 18
+    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 17
+    await gop.createGOP(owner, "male hash", { from: owner, value: amount }); // 18
 
-    await core.putInStud(18, amount, 1, { from: owner, value: query });
+    await core.putInStud(18, web3.toWei(0.01, "ether"), 1, { from: owner, value: query });
 
-    await instance.mix(18, 17, "female offspring hash", { from: owner, value: amount }); // 19
+    await instance.mix(18, 17, "female offspring hash", { from: owner, value: web3.toWei(0.01, "ether") }); // 19
 
     let bloodline = await core.getBloodline.call(19); // Nakamoto - Nakamoto = Nakamoto
     assert.equal("N", web3.toUtf8(bloodline));
@@ -187,7 +187,7 @@ contract("Breeding", acc => {
       }
 
       // We're going to create 700 horses so we have a different genotype
-      await gop.createGOP(owner, "random hash", { from: owner });
+      await gop.createGOP(owner, "random hash", { from: owner, value: amount });
     }
 
     await core.putInStud(20, amount, 1000, { from: owner, value: query });

@@ -5,6 +5,7 @@ contract("CryptofieldBaseContract", accounts => {
   let core, gop;
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let buyer = accounts[1];
+  let amount = web3.toWei(0.25, "ether");
   let defaults = [
     "Austin Riffle", "Jerri Curl", "Amoxi", "Chase Jackson", "Zeus", "Apollo"
   ];
@@ -51,8 +52,7 @@ contract("CryptofieldBaseContract", accounts => {
         await gop.openBatch(3, { from: buyer });
       }
 
-      // We're going to create 700 horses so we have a different genotype
-      await gop.createGOP(buyer, "random hash", { from: buyer });
+      await gop.createGOP(accounts[5], "random hash", { from: accounts[5], value: amount });
     }
 
     genotype = await core.getGenotype.call(100);

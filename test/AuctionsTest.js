@@ -27,7 +27,7 @@ contract("Auctions", acc => {
   */
   it("should create an auction", async () => {
 
-    await gop.createGOP(buyer, "some hash", { from: owner });
+    await gop.createGOP(buyer, "some hash", { from: owner, value: amount });
     await core.createAuction(0, 0, minimum, { from: buyer, value: amount });
 
     let auctions = await instance.getAuctionsLength.call();
@@ -40,7 +40,7 @@ contract("Auctions", acc => {
   })
 
   it("should record a new bid for an address", async () => {
-    await gop.createGOP(buyer, "other hash", { from: owner });
+    await gop.createGOP(buyer, "other hash", { from: owner, value: amount });
 
     let res = await core.createAuction(1, 1, minimum, { from: buyer, value: amount });
     let auctionId = res.logs[1].args._auctionId.toNumber();
@@ -67,7 +67,7 @@ contract("Auctions", acc => {
   })
 
   it("should revert if the new bid amount is lower than the maxBid", async () => {
-    await gop.createGOP(buyer, "third hash", { from: owner });
+    await gop.createGOP(buyer, "third hash", { from: owner, value: amount });
 
     let res = await core.createAuction(1, 2, minimum, { from: buyer, value: amount });
     let auctionId = res.logs[1].args._auctionId.toNumber();
@@ -118,7 +118,7 @@ contract("Auctions", acc => {
   })
 
   it("should send the token to the max bidder of an auction", async () => {
-    await gop.createGOP(buyer, "fourth hash", { from: owner });
+    await gop.createGOP(buyer, "fourth hash", { from: owner, value: amount });
 
     let res = await core.createAuction(1, 3, minimum, { from: buyer, value: amount });
     let auctionId = res.logs[1].args._auctionId.toNumber();
@@ -143,7 +143,7 @@ contract("Auctions", acc => {
   })
 
   it("should send max bid to the auction owner", async () => {
-    await gop.createGOP(buyer, "fifth hash", { from: owner });
+    await gop.createGOP(buyer, "fifth hash", { from: owner, value: amount });
 
     let res = await core.createAuction(1, 4, minimum, { from: buyer, value: amount });
     let auction = res.logs[1].args._auctionId.toNumber();
@@ -163,7 +163,7 @@ contract("Auctions", acc => {
   })
 
   it("should get the amount they bid if they're not the owner or winner", async () => {
-    await gop.createGOP(buyer, "fifth hash", { from: owner });
+    await gop.createGOP(buyer, "fifth hash", { from: owner, value: amount });
 
     let res = await core.createAuction(1, 5, minimum, { from: buyer, value: amount });
     let auction = res.logs[1].args._auctionId.toNumber();
@@ -187,7 +187,7 @@ contract("Auctions", acc => {
   it("should return the bid of a given address in an auction", async () => {
     let bidAmount = web3.toWei(1, "finney");
     // We'll create another token and auction here
-    await gop.createGOP(acc[4], "6th hash", { from: owner });
+    await gop.createGOP(acc[4], "6th hash", { from: owner, value: amount });
 
     let response = await core.createAuction(1, 6, minimum, { from: acc[4], value: amount });
     let auction = response.logs[1].args._auctionId.toNumber();
@@ -212,7 +212,7 @@ contract("Auctions", acc => {
 
   it("should revert when the minimum is not met in a bid", async () => {
     let newMinimum = web3.toWei(2, "ether");
-    await gop.createGOP(acc[9], "7th hash", { from: owner });;
+    await gop.createGOP(acc[9], "7th hash", { from: owner, value: amount });;
 
     let response = await core.createAuction(10, 7, newMinimum, { from: acc[9], value: amount });
     let auction = response.logs[1].args._auctionId.toNumber();
@@ -229,7 +229,7 @@ contract("Auctions", acc => {
   })
 
   it("should return the correct list of auctions where a user is participating", async () => {
-    await gop.createGOP(acc[4], "8th hash", { from: owner });
+    await gop.createGOP(acc[4], "8th hash", { from: owner, value: amount });
 
     let response = await core.createAuction(1, 8, minimum, { from: acc[4], value: amount });
     let auction = response.logs[1].args._auctionId.toNumber();

@@ -37,6 +37,9 @@ contract GOPCreator is Ownable {
     }
 
     // TODO: Auctioned horses and horses that can be bought instantly. 
+    /*
+    @dev Manually opens a batch of horses.
+    */
     function openBatch(uint256 _batch) public onlyOwner() {
         require(!anyBatchOpen, "A batch is already open");
         require(_batch >= 1 && _batch <= 10, "Gen not recognized");
@@ -45,19 +48,45 @@ contract GOPCreator is Ownable {
         currentOpenBatch = _batch;
     }
 
+    /*
+    @dev Closes a given batch, a batch needs to be closed first before opening another one, we allow
+    only one batch open at a time.
+    */
     function closeBatch(uint256 _batch) public onlyOwner() {
         delete isBatchOpen[_batch];
         delete anyBatchOpen;
         delete currentOpenBatch;
     }
 
-    function createGOP(address _owner, string _hash) public returns(uint256) {
+    /*
+    @dev  Depending of the batch open we're going to directly sell the horse or 
+    put them in Auctions first, only owner can put the horse into Auctions.
+    */
+    // TODO: Deposit 'msg.value' to owner.
+    function createGOP(address _owner, string _hash) public payable returns(uint256) {
         require(anyBatchOpen, "No batch open");
         require(horsesForGen[currentOpenBatch] != 0, "Cap for Gen specified already met");
 
+        uint256 amount;
         uint256 horseId = core.createGOP(_owner, _hash, currentOpenBatch);
 
         if(horseId == 0) return horseId;
+
+        if(currentOpenBatch == 1) amount = 0.25 ether;
+        if(currentOpenBatch == 2) amount = 0.20 ether;
+        if(currentOpenBatch == 3) amount = 0.15 ether;
+        if(currentOpenBatch == 4) amount = 0.10 ether;
+
+        if(currentOpenBatch >= 5 && currentOpenBatch <= 10) {
+            // Put the horse in auction
+            require(msg.sender == owner, "Not owner");
+
+            return horseId;
+        }
+
+        // This is only needed in case the batch open is between 1 and 4 since they have a fixed price
+        // otherwise we just put the hors einto auction and return.
+        require(msg.value >= amount, "Price not met");
 
         horsesForGen[currentOpenBatch] = horsesForGen[currentOpenBatch].sub(1);
 

@@ -4,7 +4,7 @@ const GOPCreator = artifacts.require("./GOPCreator");
 contract("StudService", acc => {
   let core, queryPrice, gop;
   let owner = acc[1];
-  let amount = web3.toWei(0.5, "ether");
+  let amount = web3.toWei(0.25, "ether");
 
   let seconds = { day3: 259200, day6: 518400 }
 
@@ -17,8 +17,8 @@ contract("StudService", acc => {
     await gop.openBatch(1, { from: owner });
 
     await gop.createGOP(owner, "genesis male hash", { from: owner }); // 0
-    await gop.createGOP(owner, "female horse", { from: owner }); // 1
-    await gop.createGOP(owner, "male horse", { from: owner }); // 2
+    await gop.createGOP(owner, "female horse", { from: owner, value: amount }); // 1
+    await gop.createGOP(owner, "male horse", { from: owner, value: amount }); // 2
 
 
     queryPrice = await core.getQueryPrice.call();
