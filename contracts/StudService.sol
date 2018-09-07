@@ -27,7 +27,7 @@ contract StudService is Auctions, usingOraclize {
     /*
     @dev We only remove the horse from the mapping ONCE the '__callback' is called, this is for a reason.
     For Studs we use Oraclize as a service for queries in the future but we also have a function
-    to manually remove the horse from stud once a fee is paid but this does not cancel the 
+    to manually remove the horse from stud but this does not cancel the 
     query that was already sent, so the horse is blocked from being in Stud again until the
     callback is called and effectively removing it from stud.
 
