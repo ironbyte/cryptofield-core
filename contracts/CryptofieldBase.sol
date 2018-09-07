@@ -55,6 +55,11 @@ contract CryptofieldBase is Ownable {
     event LogHorseBuy(address _buyer, uint256 _timestamp, uint256 _tokenId);
     event LogGOPCreated(address _buyer, uint256 _timestamp, uint256 _tokenId);
 
+    modifier onlyBreeding() {
+        require(msg.sender == breedingContract, "Not authorized");
+        _;
+    }
+
     constructor() public {
         owner = msg.sender;
 
@@ -79,7 +84,12 @@ contract CryptofieldBase is Ownable {
     }
 
     // This function should have a random default name for the horse.
-    function buyGOP(address _buyer, string _horseHash, uint256 _tokenId) internal {
+    function buyGOP(
+        address _buyer, 
+        string _horseHash, 
+        uint256 _tokenId,
+        uint256 _batchNumber
+    ) internal {
         require(bloodlineCounter <= 38000, "GOP cap met");
 
         uint256 genotype;
@@ -97,31 +107,31 @@ contract CryptofieldBase is Ownable {
         // Generate bloodline and genotype based on '_tokenId'
         // TODO: Add counter for available horses so we can save them for later,
         // Probably will be on another contract and not this one.
-        if(bloodlineCounter >= 0 && bloodlineCounter <= 100) {
+        if(_batchNumber == 1) {
             genotype = 1;
             bloodline = bytes32("N");
-        } else if(bloodlineCounter >= 101 && bloodlineCounter <= 300) {
+        } else if(_batchNumber == 2) {
             genotype = 2;
             bloodline = bytes32("N");
-        } else if(bloodlineCounter >= 301 && bloodlineCounter <= 600) {
+        } else if(_batchNumber == 3) {
             genotype = 3;
             bloodline = bytes32("S");
-        } else if(bloodlineCounter >= 601 && bloodlineCounter <= 1000) {
+        } else if(_batchNumber == 4) {
             genotype = 4;
             bloodline = bytes32("S");
-        } else if(bloodlineCounter >= 1001 && bloodlineCounter <= 2000) {
+        } else if(_batchNumber == 5) {
             genotype = 5;
             bloodline = bytes32("F");
-        } else if(bloodlineCounter >= 2001 && bloodlineCounter <= 4000) {
+        } else if(_batchNumber == 6) {
             genotype = 6;
             bloodline = bytes32("F");
-        } else if(bloodlineCounter >= 4001 && bloodlineCounter <= 8000) {
+        } else if(_batchNumber == 7) {
             genotype = 7;
             bloodline = bytes32("F");
-        } else if(bloodlineCounter >= 8001 && bloodlineCounter <= 16000) {
+        } else if(_batchNumber == 8) {
             genotype = 8;
             bloodline = bytes32("W");
-        } else if(bloodlineCounter >= 16001 && bloodlineCounter <= 26000) {
+        } else if(_batchNumber == 9) {
             genotype = 9;
             bloodline = bytes32("W");
         } else {
@@ -271,8 +281,7 @@ contract CryptofieldBase is Ownable {
     @dev Changes the baseValue of a horse, this is useful when creating offspring and should be
     allowed only by the breeding contract.
     */
-    function setBaseValue(uint256 _horseId, uint256 _baseValue) external {
-        require(msg.sender == breedingContract, "Unauthorized");
+    function setBaseValue(uint256 _horseId, uint256 _baseValue) external onlyBreeding() {
         Horse storage h = horses[_horseId];
         h.baseValue = _baseValue;
     }
