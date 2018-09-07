@@ -1,8 +1,9 @@
 const Core = artifacts.require("./Core");
 const Breeding = artifacts.require("./Breeding");
+const GOPCreator = artifacts.require("./GOPCreator");
 
 contract("Token", acc => {
-  let instance, breed, query;
+  let instance, breed, query, gop;
   let owner = acc[1];
   let secondBuyer = acc[2];
   let amount = web3.toWei(0.05, "ether");
@@ -10,14 +11,19 @@ contract("Token", acc => {
   before("setup instance", async () => {
     instance = await Core.deployed();
     breed = await Breeding.deployed();
+    gop = await GOPCreator.deployed();
+
+    await instance.setGOPCreator(gop.address, { from: owner });
 
     await instance.setBreedingAddr(breed.address, { from: owner });
+
+    await gop.openBatch(1, { from: owner });
 
     query = await instance.getQueryPrice.call();
   })
 
   it("should mint a new token with specified params", async () => {
-    await instance.createGOP(owner, "male hash"); // 0
+    await gop.createGOP(owner, "male hash", { from: owner }); // 0
     let tokenOwner = await instance.ownerOf(0);
 
     assert.equal(tokenOwner, owner);
@@ -48,8 +54,8 @@ contract("Token", acc => {
   })
 
   it("should use the given name if one is passed", async () => {
-    await instance.createGOP(owner, "female hash"); // 1
-    await instance.createGOP(owner, "male hash"); // 2
+    await gop.createGOP(owner, "female hash", { from: owner }); // 1
+    await gop.createGOP(owner, "male hash", { from: owner }); // 2
 
     await instance.putInStud(2, amount, 1, { from: owner, value: query });
 

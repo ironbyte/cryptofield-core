@@ -1,7 +1,8 @@
 const Core = artifacts.require("./Core");
+const GOPCreator = artifacts.require("./GOPCreator");
 
 contract("CryptofieldBaseContract", accounts => {
-  let core;
+  let core, gop;
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let buyer = accounts[1];
   let defaults = [
@@ -9,12 +10,17 @@ contract("CryptofieldBaseContract", accounts => {
   ];
 
 
-  beforeEach("setup contract instance", async () => {
+  before("setup contract instance", async () => {
     core = await Core.deployed();
+    gop = await GOPCreator.deployed();
+
+    await core.setGOPCreator(gop.address, { from: buyer });
+
+    await gop.openBatch(1, { from: buyer });
   })
 
   it("should be able to buy a horse", async () => {
-    await core.createGOP(buyer, hash);
+    await gop.createGOP(buyer, hash, { from: buyer }); // 0
     let horse = await core.getHorseHash.call(0)
 
     assert.equal(horse, hash);
@@ -36,15 +42,23 @@ contract("CryptofieldBaseContract", accounts => {
     let genotype = await core.getGenotype.call(0);
     assert.equal(genotype.toNumber(), 1);
 
-    for (let i = 1; i <= 305; i++) {
+    for (let i = 0; i <= 305; i++) {
+      if (i === 100) {
+        await gop.closeBatch(1, { from: buyer });
+        await gop.openBatch(2, { from: buyer });
+      } else if (i === 299) {
+        await gop.closeBatch(2, { from: buyer });
+        await gop.openBatch(3, { from: buyer });
+      }
+
       // We're going to create 700 horses so we have a different genotype
-      await core.createGOP(buyer, "random hash");
+      await gop.createGOP(buyer, "random hash", { from: buyer });
     }
 
     genotype = await core.getGenotype.call(100);
     assert.equal(genotype.toNumber(), 1);
 
-    let genotype2 = await core.getGenotype.call(101);
+    let genotype2 = await core.getGenotype.call(120);
     assert.equal(genotype2.toNumber(), 2);
   })
 
