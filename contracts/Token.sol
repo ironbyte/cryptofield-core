@@ -8,6 +8,8 @@ import "openzeppelin-solidity/contracts/token/ERC721/ERC721Holder.sol";
 contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     using SafeMath for uint256;
 
+    address gopcreator;
+
     constructor() ERC721Token("Zed Token", "ZT") public {}
 
     modifier ownerOfToken(uint256 _tokenId) {
@@ -24,7 +26,11 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     @dev Simply creates a new token and calls base contract to add the horse information.
     @dev Used for offsprings mostly, called from 'Breeding'
     */
-    function createOffspring(address _owner, string _hash, uint256 _male, uint256 _female) external payable returns(uint256) {
+    function createOffspring(address _owner, string _hash, uint256 _male, uint256 _female) 
+    external
+    payable
+    onlyBreeding() 
+    returns(uint256) {
         uint256 tokenId = allTokensLength();
 
         _mint(_owner, tokenId);
@@ -37,11 +43,15 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     @dev Creates a G1P.
     @dev Mostly used for Private and public sales to calculate genotypes.
     */
-    function createGOP(address _owner, string _hash) public payable returns(uint256) {
+    function createGOP(address _owner, string _hash, uint256 _batchNumber) 
+    public 
+    payable
+    returns(uint256) {
+        require(msg.sender == gopcreator, "Not authorized");
         uint256 tokenId = allTokensLength();
 
         _mint(_owner, tokenId);
-        buyGOP(_owner, _hash, tokenId);
+        buyGOP(_owner, _hash, tokenId, _batchNumber);
 
         return tokenId;
     }
@@ -70,5 +80,11 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     */
     function exists(uint256 _tokenId) public view returns(bool) {
         return _tokenId <= allTokensLength();
+    }
+
+    /*  RESTRICTED  */
+
+    function setGOPCreator(address _addr) public onlyOwner() {
+        gopcreator = _addr;
     }
 }
