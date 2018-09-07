@@ -22,3 +22,4 @@ truffle test
 
 ## Initially
 * Set Breeding address on Core contract.
+* Set GOPCreator address on Core contract.
