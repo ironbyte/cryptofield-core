@@ -4,7 +4,7 @@ const Core = artifacts.require("./Core");
 contract("GOPCreator", acc => {
   let instance, core;
   let owner = acc[1];
-  let amount = web3.toWei(0.25, "ether");
+  let amount = web3.toWei(0.40, "ether");
 
   before("setup instance", async () => {
     instance = await GOPCreator.deployed();
@@ -22,7 +22,7 @@ contract("GOPCreator", acc => {
 
     let remaining = await instance.horsesRemaining.call(1);
 
-    assert.equal(remaining.toNumber(), 99);
+    assert.equal(remaining.toNumber(), 999);
   })
 
   it("should create correct horse based on open batch", async () => {
@@ -48,5 +48,33 @@ contract("GOPCreator", acc => {
 
     let genotype = await core.getGenotype.call(3);
     assert.equal(genotype.toNumber(), 0);
+  })
+
+  it("should close the batch once the number of horses available is 500", async () => {
+    await instance.closeBatch(3, { from: owner });
+    await instance.openBatch(1, { from: owner });
+
+    for (let i = 2; i <= 500; i++) {
+      await instance.createGOP(owner, "some hash", { value: amount });
+    }
+
+    try {
+      await instance.createGOP(owner, "some hash", { value: amount }); // 3
+      assert.fail("Expected revert not received");
+    } catch (err) {
+      let revertFound = err.message.search("revert") >= 0;
+      assert(revertFound, `Expected "revert", got ${err} instead`);
+    }
+
+    let rem = await instance.horsesRemaining.call(1);
+    assert.equal(rem.toNumber(), 500);
+  })
+
+  it("should allow to create more horses if the batch is open manually after reaching 500 horses", async () => {
+    await instance.openBatch(1, { from: owner });
+    await instance.createGOP(owner, "some hash", { value: amount });
+
+    let rem = await instance.horsesRemaining.call(1);
+    assert.equal(rem.toNumber(), 499);
   })
 })

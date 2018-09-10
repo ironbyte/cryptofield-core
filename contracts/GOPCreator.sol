@@ -19,11 +19,13 @@ contract GOPCreator is Ownable {
 
     mapping(uint256 => bool) internal isBatchOpen;
     mapping(uint256 => uint256) internal horsesForGen;
+    mapping(uint256 => bool) internal firstHalfCompleted;
 
     constructor(address _addr) public {
         owner = msg.sender;
         core = Core(_addr);
 
+        // From 1 to 4 there will be 500 more available for later use.
         horsesForGen[1] = 1000;
         horsesForGen[2] = 1000;
         horsesForGen[3] = 1000;
@@ -70,7 +72,7 @@ contract GOPCreator is Ownable {
         uint256 amount;
         uint256 horseId = core.createGOP(_owner, _hash, currentOpenBatch);
 
-        if(horseId == 0) return horseId;
+        if(horseId == 0) return horseId; 
 
         if(currentOpenBatch == 1) amount = 0.40 ether;
         if(currentOpenBatch == 2) amount = 0.30 ether;
@@ -78,7 +80,7 @@ contract GOPCreator is Ownable {
         if(currentOpenBatch == 4) amount = 0.20 ether;
 
         if(currentOpenBatch >= 5 && currentOpenBatch <= 10) {
-            // Put the horse in auction
+            // TODO: Put the horse in auction
             require(msg.sender == owner, "Not owner");
 
             return horseId;
@@ -89,6 +91,16 @@ contract GOPCreator is Ownable {
         require(msg.value >= amount, "Price not met");
 
         horsesForGen[currentOpenBatch] = horsesForGen[currentOpenBatch].sub(1);
+
+        // We're going to close the batch if the number of horses available hit 500
+        // Only batches 1 to 4.
+        // This will evaluate to 'true' only once because the next time we open this batch
+        // 'horsesForGen' will not be 500 because the above assignment will put it on 499.
+        if(currentOpenBatch >= 1 && currentOpenBatch <= 4 && horsesForGen[currentOpenBatch] == 500) {
+            delete isBatchOpen[currentOpenBatch];
+            delete anyBatchOpen;
+            delete currentOpenBatch;
+        }
 
         return horseId;
     }
