@@ -24,16 +24,16 @@ contract GOPCreator is Ownable {
         owner = msg.sender;
         core = Core(_addr);
 
-        horsesForGen[1] = 100;
-        horsesForGen[2] = 200;
-        horsesForGen[3] = 300;
-        horsesForGen[4] = 400;
-        horsesForGen[5] = 1000;
-        horsesForGen[6] = 2000;
+        horsesForGen[1] = 1000;
+        horsesForGen[2] = 1000;
+        horsesForGen[3] = 1000;
+        horsesForGen[4] = 1000;
+        horsesForGen[5] = 2000;
+        horsesForGen[6] = 3000;
         horsesForGen[7] = 4000;
-        horsesForGen[8] = 8000;
-        horsesForGen[9] = 10000;
-        horsesForGen[10] = 12000;
+        horsesForGen[8] = 6000;
+        horsesForGen[9] = 90000;
+        horsesForGen[10] = 10000;
     }
 
     // TODO: Auctioned horses and horses that can be bought instantly. 
@@ -72,10 +72,10 @@ contract GOPCreator is Ownable {
 
         if(horseId == 0) return horseId;
 
-        if(currentOpenBatch == 1) amount = 0.25 ether;
-        if(currentOpenBatch == 2) amount = 0.20 ether;
-        if(currentOpenBatch == 3) amount = 0.15 ether;
-        if(currentOpenBatch == 4) amount = 0.10 ether;
+        if(currentOpenBatch == 1) amount = 0.40 ether;
+        if(currentOpenBatch == 2) amount = 0.30 ether;
+        if(currentOpenBatch == 3) amount = 0.25 ether;
+        if(currentOpenBatch == 4) amount = 0.20 ether;
 
         if(currentOpenBatch >= 5 && currentOpenBatch <= 10) {
             // Put the horse in auction
