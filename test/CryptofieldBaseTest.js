@@ -5,7 +5,7 @@ contract("CryptofieldBaseContract", accounts => {
   let core, gop;
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let buyer = accounts[1];
-  let amount = web3.toWei(0.25, "ether");
+  let amount = web3.toWei(0.40, "ether");
   let defaults = [
     "Austin Riffle", "Jerri Curl", "Amoxi", "Chase Jackson", "Zeus", "Apollo"
   ];

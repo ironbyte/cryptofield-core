@@ -4,7 +4,7 @@ const GOPCreator = artifacts.require("./GOPCreator");
 contract("StudService", acc => {
   let core, queryPrice, gop;
   let owner = acc[1];
-  let amount = web3.toWei(0.25, "ether");
+  let amount = web3.toWei(0.40, "ether");
 
   let seconds = { day3: 259200, day6: 518400 }
 

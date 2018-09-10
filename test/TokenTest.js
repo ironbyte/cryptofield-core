@@ -6,7 +6,7 @@ contract("Token", acc => {
   let instance, breed, query, gop;
   let owner = acc[1];
   let secondBuyer = acc[2];
-  let amount = web3.toWei(0.25, "ether");
+  let amount = web3.toWei(0.40, "ether");
 
   before("setup instance", async () => {
     instance = await Core.deployed();

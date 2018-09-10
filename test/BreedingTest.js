@@ -5,7 +5,7 @@ const GOPCreator = artifacts.require("GOPCreator");
 contract("Breeding", acc => {
   let core, instance, query, gop;
   let owner = acc[1];
-  let amount = web3.toWei(0.25, "ether");
+  let amount = web3.toWei(0.40, "ether");
 
   before(async () => {
     core = await Core.deployed();
