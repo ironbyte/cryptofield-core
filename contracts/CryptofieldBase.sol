@@ -104,9 +104,7 @@ contract CryptofieldBase is Ownable {
             gender = gen[0];
         }
 
-        // Generate bloodline and genotype based on '_tokenId'
-        // TODO: Add counter for available horses so we can save them for later,
-        // Probably will be on another contract and not this one.
+        // Generate bloodline and genotype based on '_batchNumber'
         if(_batchNumber == 1) {
             genotype = 1;
             bloodline = bytes32("N");
