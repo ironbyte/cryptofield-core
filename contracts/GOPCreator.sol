@@ -102,10 +102,23 @@ contract GOPCreator is Ownable {
             delete currentOpenBatch;
         }
 
+        owner.transfer(msg.value);
+
         return horseId;
     }
 
+    /*
+    @dev Returns the ramining horses for a given gen.
+    */
     function horsesRemaining(uint256 _gen) public view returns(uint256) {
         return horsesForGen[_gen];
+    }
+
+    /*
+    @dev Returns bool indicating if a batch is open and which one is it
+    mostly used for displaying in the UI.
+    */
+    function isABatchOpen() public view returns(bool, uint256) {
+        return (anyBatchOpen, currentOpenBatch);
     }
 }

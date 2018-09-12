@@ -77,4 +77,17 @@ contract("GOPCreator", acc => {
     let rem = await instance.horsesRemaining.call(1);
     assert.equal(rem.toNumber(), 499);
   })
+
+  it("should transfer the paid amount when a batch from 1 to 4 is open", async () => {
+    let balance = await web3.eth.getBalance(owner);
+
+    // Batch open <1>
+    await instance.createGOP(acc[2], "some hash", { from: acc[2], value: amount });
+
+    let newBalance = await web3.eth.getBalance(owner);
+
+    let res = (newBalance > balance);
+
+    assert(res);
+  })
 })
