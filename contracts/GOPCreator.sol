@@ -14,12 +14,31 @@ contract GOPCreator is Ownable {
     bool anyBatchOpen;
 
     uint256 currentOpenBatch;
+    uint256[] gopsAuctionsList;
 
     Core core;
 
+    struct GOP {
+        uint256 createdAt;
+        uint256 maxBid;
+        uint256 minimum;
+
+        address maxBidder;
+        address[] bidders;
+
+        bool isOpen;
+
+        mapping(address => uint256) bidFor;
+        mapping(address => bool) exists;
+    }
+
+    mapping(uint256 => GOP) internal gopAuctions;
     mapping(uint256 => bool) internal isBatchOpen;
     mapping(uint256 => uint256) internal horsesForGen;
     mapping(uint256 => bool) internal firstHalfCompleted;
+    mapping(address => uint256) internal auctionsParticipating;
+
+    event LogGOPBid(address _owner, uint256 _amount);
 
     constructor(address _addr) public {
         owner = msg.sender;
@@ -74,14 +93,23 @@ contract GOPCreator is Ownable {
 
         if(horseId == 0) return horseId; 
 
-        if(currentOpenBatch == 1) amount = 0.40 ether;
+        if(currentOpenBatch == 1 || currentOpenBatch == 5) amount = 0.40 ether;
         if(currentOpenBatch == 2) amount = 0.30 ether;
         if(currentOpenBatch == 3) amount = 0.25 ether;
         if(currentOpenBatch == 4) amount = 0.20 ether;
+        if(currentOpenBatch == 6) amount = 0.38 ether;
+        if(currentOpenBatch == 7) amount = 0.35 ether;
+        if(currentOpenBatch == 8) amount = 0.33 ether;
+        if(currentOpenBatch == 9) amount = 0.28 ether;
+        if(currentOpenBatch == 10) amount = 0.25 ether;
 
+        // There isn't a concern with sending 'amount' to 'owner' if the horse is going to Auction
+        // because we return in this 'if' statement.
         if(currentOpenBatch >= 5 && currentOpenBatch <= 10) {
             // TODO: Put the horse in auction
             require(msg.sender == owner, "Not owner");
+
+            _createAuction(amount);
 
             return horseId;
         }
@@ -106,6 +134,58 @@ contract GOPCreator is Ownable {
 
         return horseId;
     }
+
+    /*
+    @dev The auction functionality here is the same as the logic in the 'SaleContract' used for 
+    auctions from users.
+    */
+    function _createAuction(uint256 _minimum) private {
+        // TODO: Put Oraclize to one week.
+        // TODO: Require for Oraclize query.
+        uint256 id = gopsAuctionsList.push(1) - 1;
+
+        GOP storage g = gopAuctions[id];
+        g.createdAt = now;
+        g.minimum = _minimum;
+        g.isOpen = true;
+    }
+
+    function bid(uint256 _auctionId) public payable {
+        GOP storage a = gopAuctions[_auctionId];
+
+        require(a.isOpen, "Auction not open");
+
+        uint256 bid = a.bids[msg.sender].add(msg.value);
+
+        require(bid > a.maxBid, "Bid lower than maximum bid");
+
+        if(a.bidders.length == 0) {
+            require(msg.value >= a.minimum, "Bid lower than minimum");
+        }
+
+        a.bids[msg.sender] = bid;
+
+        if(!a.exists[msg.sender]) {
+            a.bidders.push(msg.sender);
+            a.exists[msg.sender] = true;
+
+            auctionsParticipating[msg.sender].push(_auctionId);
+        }
+
+        a.maxBid = bid;
+        a.maxBidder = msg.sender;
+
+        emit LogGOPBid(msg.sender, bid);
+    }
+
+    /*
+    TODO: Withdraw function, we'll return the amount of money to the user if they did not win and mint a hore if the user won the auction.
+    We have to keep track of the type of horse we're going to give to the user.
+    */
+
+    /*
+    @dev returns the information from a GOP Auction
+    */
 
     /*
     @dev Returns the ramining horses for a given gen.
