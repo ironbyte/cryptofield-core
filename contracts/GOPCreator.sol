@@ -23,10 +23,14 @@ contract GOPCreator is Ownable {
         uint256 maxBid;
         uint256 minimum;
 
+        uint256 gen;
+
         address maxBidder;
         address[] bidders;
 
         bool isOpen;
+
+        string horseHash;
 
         mapping(address => uint256) bidFor;
         mapping(address => bool) exists;
@@ -36,9 +40,10 @@ contract GOPCreator is Ownable {
     mapping(uint256 => bool) internal isBatchOpen;
     mapping(uint256 => uint256) internal horsesForGen;
     mapping(uint256 => bool) internal firstHalfCompleted;
-    mapping(address => uint256) internal auctionsParticipating;
+    mapping(address => uint256[]) internal auctionsParticipating;
 
     event LogGOPBid(address _owner, uint256 _amount);
+    event LogGOPClaim(address _claimer);
 
     constructor(address _addr) public {
         owner = msg.sender;
@@ -109,7 +114,7 @@ contract GOPCreator is Ownable {
             // TODO: Put the horse in auction
             require(msg.sender == owner, "Not owner");
 
-            _createAuction(amount);
+            _createAuction(amount, _hash);
 
             return horseId;
         }
@@ -139,15 +144,17 @@ contract GOPCreator is Ownable {
     @dev The auction functionality here is the same as the logic in the 'SaleContract' used for 
     auctions from users.
     */
-    function _createAuction(uint256 _minimum) private {
+    function _createAuction(uint256 _minimum, string _hash) private {
         // TODO: Put Oraclize to one week.
         // TODO: Require for Oraclize query.
-        uint256 id = gopsAuctionsList.push(1) - 1;
+        uint256 id = gopsAuctionsList.push(1);
 
         GOP storage g = gopAuctions[id];
         g.createdAt = now;
         g.minimum = _minimum;
         g.isOpen = true;
+        g.gen = currentOpenBatch;
+        g.horseHash = _hash;
     }
 
     function bid(uint256 _auctionId) public payable {
@@ -155,15 +162,15 @@ contract GOPCreator is Ownable {
 
         require(a.isOpen, "Auction not open");
 
-        uint256 bid = a.bids[msg.sender].add(msg.value);
+        uint256 userBid = a.bidFor[msg.sender].add(msg.value);
 
-        require(bid > a.maxBid, "Bid lower than maximum bid");
+        require(userBid > a.maxBid, "Bid lower than maximum bid");
 
         if(a.bidders.length == 0) {
             require(msg.value >= a.minimum, "Bid lower than minimum");
         }
 
-        a.bids[msg.sender] = bid;
+        a.bidFor[msg.sender] = userBid;
 
         if(!a.exists[msg.sender]) {
             a.bidders.push(msg.sender);
@@ -172,20 +179,53 @@ contract GOPCreator is Ownable {
             auctionsParticipating[msg.sender].push(_auctionId);
         }
 
-        a.maxBid = bid;
+        a.maxBid = userBid;
         a.maxBidder = msg.sender;
 
-        emit LogGOPBid(msg.sender, bid);
+        emit LogGOPBid(msg.sender, userBid);
     }
 
     /*
-    TODO: Withdraw function, we'll return the amount of money to the user if they did not win and mint a hore if the user won the auction.
+    TODO: Claim function, we'll return the amount of money to the user if they did not win and mint a hore if the user won the auction.
     We have to keep track of the type of horse we're going to give to the user.
     */
+    function claim(uint256 _auction) public {
+        // 'owner' doesn't get anything from here.
+        GOP storage g = gopAuctions[_auction];
+
+        require(!g.isOpen, "Auction still open");
+
+        // Mints a token for the maxBidder.
+        if(msg.sender == g.maxBidder) {
+            core.createGOP(msg.sender, g.horseHash, g.gen);
+            delete g.maxBidder;
+        }
+
+        // Transfer the maxBid to the owner.
+        if(msg.sender == owner) {
+            msg.sender.transfer(g.maxBid);
+            delete g.maxBid;
+        }
+
+        // Sends money back to user if they didn't win.
+        if(msg.sender != g.maxBidder && msg.sender != owner) {
+            msg.sender.transfer(g.bidFor[msg.sender]);
+            delete g.bidFor[msg.sender];
+        }
+
+        emit LogGOPClaim(msg.sender);
+    }
 
     /*
     @dev returns the information from a GOP Auction
     */
+    function auctionInformation(uint256 _auction) 
+    public 
+    view 
+    returns(uint256, uint256, uint256, uint256, uint256, address, bool) {
+        GOP storage g = gopAuctions[_auction];
+        return(g.createdAt, g.minimum, g.gen, g.bidders.length, g.maxBid, g.maxBidder, g.isOpen);
+    }
 
     /*
     @dev Returns the ramining horses for a given gen.
