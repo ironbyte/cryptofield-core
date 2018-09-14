@@ -2,6 +2,8 @@ const Core = artifacts.require("./Core");
 const Breeding = artifacts.require("./Breeding");
 const GOPCreator = artifacts.require("./GOPCreator");
 
+// TODO: TESTS FOR BASE VALUE, CHECK IF IT SHOULD STAY IN THIS FILE
+
 contract("Token", acc => {
   let instance, breed, query, gop;
   let owner = acc[1];
@@ -87,5 +89,21 @@ contract("Token", acc => {
       let revertFound = err.message.search("revert") >= 0;
       assert(revertFound, `Expected "revert", got ${err} instead`);
     }
+  })
+
+  it("should select the correct range of base value depending on the gen", async () => {
+    await gop.createGOP(owner, "some hash", { from: owner, value: amount }); // 6
+
+    let baseValue = await instance.getBaseValue.call(6)
+    assert.isAtLeast(baseValue.toNumber(), 95) && assert.isAtMost(baseValue.toNumber(), 99);
+
+    await gop.closeBatch(1, { from: owner });
+    await gop.openBatch(2, { from: owner });
+
+    await gop.createGOP(owner, "some hash", { from: owner, value: amount }); // 7
+
+    baseValue = await instance.getBaseValue.call(7);
+
+    assert.isAtLeast(baseValue.toNumber(), 80) && assert.isAtMost(baseValue.toNumber(), 89);
   })
 })

@@ -62,7 +62,6 @@ contract GOPCreator is Ownable {
         horsesForGen[10] = 10000;
     }
 
-    // TODO: Auctioned horses and horses that can be bought instantly. 
     /*
     @dev Manually opens a batch of horses.
     */
@@ -88,7 +87,6 @@ contract GOPCreator is Ownable {
     @dev  Depending of the batch open we're going to directly sell the horse or 
     put them in Auctions first, only owner can put the horse into Auctions.
     */
-    // TODO: Deposit 'msg.value' to owner.
     function createGOP(address _owner, string _hash) public payable returns(uint256) {
         require(anyBatchOpen, "No batch open");
         require(horsesForGen[currentOpenBatch] != 0, "Cap for Gen specified already met");
@@ -111,7 +109,6 @@ contract GOPCreator is Ownable {
         // There isn't a concern with sending 'amount' to 'owner' if the horse is going to Auction
         // because we return in this 'if' statement.
         if(currentOpenBatch >= 5 && currentOpenBatch <= 10) {
-            // TODO: Put the horse in auction
             require(msg.sender == owner, "Not owner");
 
             _createAuction(amount, _hash);
@@ -186,8 +183,7 @@ contract GOPCreator is Ownable {
     }
 
     /*
-    TODO: Claim function, we'll return the amount of money to the user if they did not win and mint a hore if the user won the auction.
-    We have to keep track of the type of horse we're going to give to the user.
+    @dev Claim the price (Minted token), ether if user didn't win and maximum bid if the user is the owner.
     */
     function claim(uint256 _auction) public {
         // 'owner' doesn't get anything from here.

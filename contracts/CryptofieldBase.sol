@@ -88,7 +88,8 @@ contract CryptofieldBase is Ownable {
         address _buyer, 
         string _horseHash, 
         uint256 _tokenId,
-        uint256 _batchNumber
+        uint256 _batchNumber,
+        uint256 _baseValue
     ) internal {
         require(bloodlineCounter <= 38000, "GOP cap met");
 
@@ -142,7 +143,7 @@ contract CryptofieldBase is Ownable {
         h.buyer = _buyer;
         h.horseHash = _horseHash;
         h.sex = gender;
-        h.baseValue = _getRand();
+        h.baseValue = _baseValue;
         h.name = nameChosen;
         h.genotype = genotype;
         h.bloodline = bloodline;
@@ -181,7 +182,6 @@ contract CryptofieldBase is Ownable {
         horse.timestamp = now;
         horse.horseHash = _horseHash;
         horse.sex = gender;
-        horse.baseValue = _getRand();
         horse.genotype = _getType(male.genotype, female.genotype);
         horse.bloodline = bloodlines[keccak256(abi.encodePacked(male.bloodline, female.bloodline))];
 
