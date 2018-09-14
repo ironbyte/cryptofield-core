@@ -193,19 +193,13 @@ contract Breeding is Ownable {
     */
     function _getBaseValue(uint256 _maleParent, uint256 _femaleParent) private view returns(uint) {
         // Create the offspring baseValue
-        uint256 percentageFromMale = _getRandNum();
+        uint256 percentage = _getRandNum();
         uint256 maleBaseValue = core.getBaseValue(_maleParent);
-        uint256 maleValue = percentageFromMale.mul(maleBaseValue);
-        uint256 finalMaleValue = maleValue.div(100);
-        
-        uint256 percentageFromFemale = 100 - percentageFromMale;
         uint256 femaleBaseValue = core.getBaseValue(_femaleParent);
-        uint256 femaleValue = percentageFromFemale.mul(femaleBaseValue);
-        uint256 finalFemaleValue = femaleValue.div(100);
+        uint256 finalParents = maleBaseValue.add(femaleBaseValue);
 
-        return finalMaleValue.add(finalFemaleValue);
+        return finalParents.mul(percentage).div(100);
     }
-
     /*
     @dev Generates a random tracking number based on the gender of the horse
     */
