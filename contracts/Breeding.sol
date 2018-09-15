@@ -199,7 +199,7 @@ contract Breeding is Ownable {
     */
     function _getBaseValue(uint256 _maleParent, uint256 _femaleParent) private view returns(uint) {
         // Create the offspring baseValue
-        uint256 percentage = _getRandNum(39, 70);
+        uint256 percentage = _getRandNum(34, 65); // Creates a random number between 30 and 65.
         uint256 maleBaseValue = core.getBaseValue(_maleParent);
         uint256 femaleBaseValue = core.getBaseValue(_femaleParent);
         uint256 finalParents = maleBaseValue.add(femaleBaseValue);
