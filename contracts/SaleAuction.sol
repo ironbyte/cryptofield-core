@@ -297,7 +297,6 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
         openAuctions.length--;
     }
 
-
     function setCore(address _core) public onlyOwner() {
         core = Auctions(_core);
     }
