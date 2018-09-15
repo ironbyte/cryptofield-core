@@ -188,12 +188,18 @@ contract Breeding is Ownable {
         return uint256(blockhash(block.number.sub(1))) % 100 + 1;
     }
 
+    function _getRandNum(uint256 _num, uint256 _deleteFrom) private view returns(uint256) {
+        uint256 rand = uint256(blockhash(block.number.sub(1))) % _num + 1;
+
+        return _deleteFrom - rand;
+    }
+
     /*
     @dev Computes the base value for an offspring
     */
     function _getBaseValue(uint256 _maleParent, uint256 _femaleParent) private view returns(uint) {
         // Create the offspring baseValue
-        uint256 percentage = _getRandNum();
+        uint256 percentage = _getRandNum(39, 70);
         uint256 maleBaseValue = core.getBaseValue(_maleParent);
         uint256 femaleBaseValue = core.getBaseValue(_femaleParent);
         uint256 finalParents = maleBaseValue.add(femaleBaseValue);
