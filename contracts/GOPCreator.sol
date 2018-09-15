@@ -3,18 +3,20 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Core.sol";
+import "./usingOraclize.sol";
 
 /*
 @dev Contract in charge of creating auctions for G1P horses
 from 1 to 10, i.e. ZED 1 / ZED 10, having a lower genotype makes a horse rarer.
 */
-contract GOPCreator is Ownable {
+contract GOPCreator is Ownable, usingOraclize {
     using SafeMath for uint256;
 
     bool anyBatchOpen;
 
     uint256 currentOpenBatch;
     uint256[] gopsAuctionsList;
+    uint256[] openAuctions;
 
     Core core;
 
@@ -41,6 +43,7 @@ contract GOPCreator is Ownable {
     mapping(uint256 => uint256) internal horsesForGen;
     mapping(uint256 => bool) internal firstHalfCompleted;
     mapping(address => uint256[]) internal auctionsParticipating;
+    mapping(uint256 => uint256) internal auctionIndex;
 
     event LogGOPBid(address _owner, uint256 _amount);
     event LogGOPClaim(address _claimer);
@@ -48,6 +51,7 @@ contract GOPCreator is Ownable {
     constructor(address _addr) public {
         owner = msg.sender;
         core = Core(_addr);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         // From 1 to 4 there will be 500 more available for later use.
         horsesForGen[1] = 1000;
@@ -110,6 +114,7 @@ contract GOPCreator is Ownable {
         // because we return in this 'if' statement.
         if(currentOpenBatch >= 5 && currentOpenBatch <= 10) {
             require(msg.sender == owner, "Not owner");
+            require(msg.value >= oraclize_getPrice("URL"), "Oraclize price not met");
 
             _createAuction(amount, _hash);
 
@@ -143,7 +148,6 @@ contract GOPCreator is Ownable {
     */
     function _createAuction(uint256 _minimum, string _hash) private {
         // TODO: Put Oraclize to one week.
-        // TODO: Require for Oraclize query.
         uint256 id = gopsAuctionsList.push(1);
 
         GOP storage g = gopAuctions[id];
@@ -152,6 +156,24 @@ contract GOPCreator is Ownable {
         g.isOpen = true;
         g.gen = currentOpenBatch;
         g.horseHash = _hash;
+
+        string memory url = "json(https://cryptofield.app/api/v1/close_auction).auction_closed";
+        string memory payload = strConcat("{\"auction\":", uint2str(id), "}");
+
+        uint256 index = openAuctions.push(id) - 1;
+        auctionIndex[id] = index;
+
+        // Default is one week in seconds
+        oraclize_query(604800, "URL", url, payload);
+    }
+
+    function __callback(bytes32 _id, string _result) public {
+        require(msg.sender == oraclize_cbAddress(), "Not oraclize");
+        uint256 id = parseInt(_result);
+
+        _removeAuction(id);
+
+        gopAuctions[id].isOpen = false;
     }
 
     function bid(uint256 _auctionId) public payable {
@@ -236,5 +258,24 @@ contract GOPCreator is Ownable {
     */
     function isABatchOpen() public view returns(bool, uint256) {
         return (anyBatchOpen, currentOpenBatch);
+    }
+
+    function getOpenAuctions() public view returns(uint256[]) {
+        return openAuctions;
+    }
+
+    function getQueryPrice() public returns(uint256) {
+        return oraclize_getPrice("URL");
+    }
+
+    /*  PRIVATE FUNCS   */
+
+    function _removeAuction(uint256 _id) private {
+        uint256 index = auctionIndex[_id];
+        uint256 lastAuctionIndex = openAuctions.length.sub(1);
+        uint256 lastAuction = openAuctions[lastAuctionIndex];
+        openAuctions[index] = lastAuction;
+        delete openAuctions[lastAuctionIndex];
+        openAuctions.length--;
     }
 }
