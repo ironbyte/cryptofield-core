@@ -6,6 +6,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 contract CryptofieldBase is Ownable {
     using SafeMath for uint256;
 
+    bytes32 horseType;
     bytes32 private gender; // First horse is a male.
     bytes32[2] private gen = [
         bytes32("M"), 
@@ -43,9 +44,10 @@ contract CryptofieldBase is Ownable {
 
         string horseHash;
         string name;
-        bytes32 bloodline;
 
+        bytes32 bloodline;
         bytes32 sex;
+        bytes32 hType;
     }
 
     mapping(uint256 => Horse) public horses;
@@ -93,16 +95,18 @@ contract CryptofieldBase is Ownable {
     ) internal {
         require(bloodlineCounter <= 38000, "GOP cap met");
 
-        uint256 genotype;
         bytes32 bloodline;
+        uint256 genotype;
         uint256 randNum = _getRand(5);
         string memory nameChosen = names[randNum];
 
-        // Pick the gender
+        // Pick the gender and type.
         if(gender == gen[0]) {
-            gender = gen[1];
+            gender = gen[1]; // Female
+            horseType = bytes32("Filly");
         } else {
-            gender = gen[0];
+            gender = gen[0]; // Male
+            horseType = bytes32("Colt");
         }
 
         // Generate bloodline and genotype based on '_batchNumber'
@@ -147,6 +151,7 @@ contract CryptofieldBase is Ownable {
         h.name = nameChosen;
         h.genotype = genotype;
         h.bloodline = bloodline;
+        h.hType = horseType;
 
         horses[_tokenId] = h;
 
@@ -167,13 +172,19 @@ contract CryptofieldBase is Ownable {
         ) internal {
 
         if(gender == gen[0]) {
-            gender = gen[1];
+            gender = gen[1]; // Female
+            horseType = bytes32("Filly");
         } else {
-            gender = gen[0];
+            gender = gen[0]; // Male
+            horseType = bytes32("Colt");
         }
 
-        Horse memory male = horses[_maleParent];
-        Horse memory female = horses[_femaleParent];
+        Horse storage male = horses[_maleParent];
+        Horse storage female = horses[_femaleParent];
+
+        // Change type of parents
+        male.hType = bytes32("Stallion");
+        female.hType = bytes32("Mare");
 
         Horse memory horse;
         horse.buyer = _buyer;
@@ -184,6 +195,7 @@ contract CryptofieldBase is Ownable {
         horse.sex = gender;
         horse.genotype = _getType(male.genotype, female.genotype);
         horse.bloodline = bloodlines[keccak256(abi.encodePacked(male.bloodline, female.bloodline))];
+        horse.hType = horseType;
 
         horses[_tokenId] = horse;
 
@@ -243,6 +255,13 @@ contract CryptofieldBase is Ownable {
     */
     function getBloodline(uint256 _horseId) public view returns(bytes32) {
         return horses[_horseId].bloodline;
+    }
+
+    /*
+    @dev Returns the type of horse from a given horse
+    */
+    function getHorseType(uint256 _horse) public view returns(bytes32) {
+        return horses[_horse].hType;
     }
 
     /*

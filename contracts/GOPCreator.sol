@@ -150,12 +150,14 @@ contract GOPCreator is Ownable, usingOraclize {
         // TODO: Put Oraclize to one week.
         uint256 id = gopsAuctionsList.push(1);
 
-        GOP storage g = gopAuctions[id];
+        GOP memory g;
         g.createdAt = now;
         g.minimum = _minimum;
         g.isOpen = true;
         g.gen = currentOpenBatch;
         g.horseHash = _hash;
+
+        gopAuctions[id] = g;
 
         string memory url = "json(https://cryptofield.app/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(id), "}");
@@ -241,7 +243,7 @@ contract GOPCreator is Ownable, usingOraclize {
     public 
     view 
     returns(uint256, uint256, uint256, uint256, uint256, address, bool) {
-        GOP storage g = gopAuctions[_auction];
+        GOP memory g = gopAuctions[_auction];
         return(g.createdAt, g.minimum, g.gen, g.bidders.length, g.maxBid, g.maxBidder, g.isOpen);
     }
 

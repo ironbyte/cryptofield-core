@@ -195,9 +195,27 @@ contract("Breeding", acc => {
 
         await core.putInStud(20, amount, 1000, { from: owner, value: query });
 
-        await instance.mix(20, 321, "female offspring hash", { from: owner, value: amount });
+        await instance.mix(20, 321, "female offspring hash", { from: owner, value: amount }); // 326
 
         bloodline = await core.getBloodline.call(325);
         assert.equal(web3.toUtf8(bloodline), "S");
+    })
+
+    it("should change the type of the horse once it has it's first offspring", async () => {
+        let maleType = await core.getHorseType.call(22);
+        let femaleType = await core.getHorseType.call(319);
+
+        assert.equal(web3.toUtf8(maleType), "Colt"); // Colt
+        assert.equal(web3.toUtf8(femaleType), "Filly"); // Filly
+
+        await core.putInStud(22, amount, 1000, { from: owner, value: query });
+
+        await instance.mix(22, 319, "offspring hash", { from: owner, value: amount }); // 327
+
+        maleType = await core.getHorseType.call(22);
+        femaleType = await core.getHorseType.call(319);
+
+        assert.equal(web3.toUtf8(maleType), "Stallion");
+        assert.equal(web3.toUtf8(femaleType), "Mare");
     })
 })
