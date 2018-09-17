@@ -147,7 +147,6 @@ contract GOPCreator is Ownable, usingOraclize {
     auctions from users.
     */
     function _createAuction(uint256 _minimum, string _hash) private {
-        // TODO: Put Oraclize to one week.
         uint256 id = gopsAuctionsList.push(1);
 
         GOP memory g;

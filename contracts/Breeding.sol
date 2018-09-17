@@ -51,7 +51,6 @@ contract Breeding is Ownable {
     /*
     @dev Creates a new token based on parents.
     */
-    // TODO: Change parents type the first time they create an offspring.
     function mix(uint256 _maleParent, uint256 _femaleParent, string _hash) external payable {
         require(core.exists(_maleParent) && core.exists(_femaleParent), "Horses don't exist");
         require(core.isHorseInStud(_maleParent), "Male not in stud");
