@@ -1,11 +1,12 @@
 const Core = artifacts.require("./Core");
 const Breeding = artifacts.require("./Breeding");
 const GOPCreator = artifacts.require("./GOPCreator");
+const HorseData = artifacts.require("HorseData");
 
 // TODO: TESTS FOR BASE VALUE, CHECK IF IT SHOULD STAY IN THIS FILE
 
 contract("Token", acc => {
-  let instance, breed, query, gop;
+  let instance, breed, query, gop, hd;
   let owner = acc[1];
   let secondBuyer = acc[2];
   let amount = web3.toWei(0.40, "ether");
@@ -14,10 +15,11 @@ contract("Token", acc => {
     instance = await Core.deployed();
     breed = await Breeding.deployed();
     gop = await GOPCreator.deployed();
+    hd = await HorseData.deployed();
 
     await instance.setGOPCreator(gop.address, { from: owner });
-
     await instance.setBreedingAddr(breed.address, { from: owner });
+    await instance.setHorseDataAddr(hd.address, { from: owner });
 
     await gop.openBatch(1, { from: owner });
 
@@ -64,18 +66,18 @@ contract("Token", acc => {
     await breed.mix(2, 1, "female offspring hash", { from: owner, value: amount }); // 3
 
     await instance.setName("Spike", 3, { from: owner }); // This is only possible for offsprings.
-    let name = await instance.getHorseName.call(3);
+    let name = await instance.getHorseData.call(3);
 
-    assert.equal(name, "Spike");
+    assert.equal(name[4], "Spike");
   })
 
   it("should generate a random name if no name is given", async () => {
     await breed.mix(2, 1, "male offspring hash", { from: owner, value: amount }); // 4
     // We're just going to pass an empty string from the front-end.
     await instance.setName("", 4, { from: owner })
-    let name = await instance.getHorseName.call(2);
+    let name = await instance.getHorseData.call(2);
 
-    assert.notEqual(name, "");
+    assert.notEqual(name[4], "");
   })
 
   it("should revert if a name is already given for an offspring/GOP", async () => {

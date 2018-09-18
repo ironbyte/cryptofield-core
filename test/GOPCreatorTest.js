@@ -1,16 +1,19 @@
 const GOPCreator = artifacts.require("./GOPCreator");
 const Core = artifacts.require("./Core");
+const HorseData = artifacts.require("HorseData");
 
 contract("GOPCreator", acc => {
-    let instance, core;
+    let instance, core, hd;
     let owner = acc[1];
     let amount = web3.toWei(0.40, "ether");
 
     before("setup instance", async () => {
         instance = await GOPCreator.deployed();
         core = await Core.deployed();
+        hd = await HorseData.deployed();
 
         await core.setGOPCreator(instance.address, { from: owner });
+        await core.setHorseDataAddr(hd.address, { from: owner });
 
         await instance.openBatch(1, { from: owner });
 
@@ -30,11 +33,11 @@ contract("GOPCreator", acc => {
         await instance.openBatch(3, { from: owner });
         await instance.createGOP(owner, "some hash", { value: amount }); // 2
 
-        let genotype = await core.getGenotype.call(2);
-        let bloodline = await core.getBloodline.call(2);
+        let genotype = await core.getHorseData.call(2);
+        let bloodline = await core.getHorseData.call(2);
 
-        assert.equal(genotype.toNumber(), 3);
-        assert.equal(web3.toUtf8(bloodline), "S");
+        assert.equal(genotype[6].toNumber(), 3);
+        assert.equal(web3.toUtf8(bloodline[7]), "S");
     })
 
     it("should revert and not modify state", async () => {
@@ -46,8 +49,8 @@ contract("GOPCreator", acc => {
             assert(revertFound, `Expected "revert", got ${err} instead`);
         }
 
-        let genotype = await core.getGenotype.call(3);
-        assert.equal(genotype.toNumber(), 0);
+        let genotype = await core.getHorseData.call(3);
+        assert.equal(genotype[6].toNumber(), 0);
     })
 
     it("should close the batch once the number of horses available is 500", async () => {

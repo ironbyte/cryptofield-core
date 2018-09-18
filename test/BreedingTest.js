@@ -1,9 +1,10 @@
 const Breeding = artifacts.require("./Breeding");
 const Core = artifacts.require("./Core");
 const GOPCreator = artifacts.require("GOPCreator");
+const HorseData = artifacts.require("HorseData");
 
 contract("Breeding", acc => {
-    let core, instance, query, gop;
+    let core, instance, query, gop, hd;
     let owner = acc[1];
     let amount = web3.toWei(0.40, "ether");
 
@@ -11,9 +12,11 @@ contract("Breeding", acc => {
         core = await Core.deployed();
         instance = await Breeding.deployed();
         gop = await GOPCreator.deployed();
+        hd = await HorseData.deployed();
 
         await core.setBreedingAddr(instance.address, { from: owner });
         await core.setGOPCreator(gop.address, { from: owner });
+        await core.setHorseDataAddr(hd.address, { from: owner });
 
         await gop.openBatch(1, { from: owner });
 
@@ -39,8 +42,8 @@ contract("Breeding", acc => {
         assert.equal(firstOffspringStats[0].toNumber(), 1);
         assert.equal(secondOffspringStats[0].toNumber(), 1);
 
-        let offspringSex = await core.getHorseSex.call(3);
-        assert.equal(web3.toUtf8(offspringSex), "F");
+        let sex = await core.getHorseSex.call(3);
+        assert.equal(web3.toUtf8(sex), "F");
 
         // Ensure the owner is the owner of the female horse
         let ownerOfToken = await core.ownerOf.call(3);
@@ -64,8 +67,8 @@ contract("Breeding", acc => {
 
         await instance.mix(4, 1, "female offspring hash", { from: owner, value: amount }); // 5
 
-        let genotype = await core.getGenotype.call(5); // At this point parents had 1 and 1 as genotype.
-        assert.equal(genotype.toNumber(), 2);
+        let genotype = await core.getHorseData.call(5); // At this point parents had 1 and 1 as genotype.
+        assert.equal(genotype[6].toNumber(), 2);
     })
 
     // Maybe same as above tests but with a more direct approach
@@ -177,8 +180,8 @@ contract("Breeding", acc => {
 
         await instance.mix(18, 17, "female offspring hash", { from: owner, value: web3.toWei(0.01, "ether") }); // 19
 
-        let bloodline = await core.getBloodline.call(19); // Nakamoto - Nakamoto = Nakamoto
-        assert.equal("N", web3.toUtf8(bloodline));
+        let bloodline = await core.getHorseData.call(19); // Nakamoto - Nakamoto = Nakamoto
+        assert.equal(web3.toUtf8(bloodline[7]), "N");
 
         for (let i = 20; i <= 325; i++) {
             if (i == 100) {
@@ -197,25 +200,25 @@ contract("Breeding", acc => {
 
         await instance.mix(20, 321, "female offspring hash", { from: owner, value: amount }); // 326
 
-        bloodline = await core.getBloodline.call(325);
-        assert.equal(web3.toUtf8(bloodline), "S");
+        bloodline = await core.getHorseData.call(325);
+        assert.equal(web3.toUtf8(bloodline[7]), "S");
     })
 
     it("should change the type of the horse once it has it's first offspring", async () => {
-        let maleType = await core.getHorseType.call(22);
-        let femaleType = await core.getHorseType.call(319);
+        let maleType = await core.getHorseData.call(22);
+        let femaleType = await core.getHorseData.call(319);
 
-        assert.equal(web3.toUtf8(maleType), "Colt"); // Colt
-        assert.equal(web3.toUtf8(femaleType), "Filly"); // Filly
+        assert.equal(web3.toUtf8(maleType[8]), "Colt"); // Colt
+        assert.equal(web3.toUtf8(femaleType[8]), "Filly"); // Filly
 
         await core.putInStud(22, amount, 1000, { from: owner, value: query });
 
         await instance.mix(22, 319, "offspring hash", { from: owner, value: amount }); // 327
 
-        maleType = await core.getHorseType.call(22);
-        femaleType = await core.getHorseType.call(319);
+        maleType = await core.getHorseData.call(22);
+        femaleType = await core.getHorseData.call(319);
 
-        assert.equal(web3.toUtf8(maleType), "Stallion");
-        assert.equal(web3.toUtf8(femaleType), "Mare");
+        assert.equal(web3.toUtf8(maleType[8]), "Stallion");
+        assert.equal(web3.toUtf8(femaleType[8]), "Mare");
     })
 })

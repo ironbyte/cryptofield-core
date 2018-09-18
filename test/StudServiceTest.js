@@ -1,8 +1,9 @@
 const Core = artifacts.require("./Core");
 const GOPCreator = artifacts.require("./GOPCreator");
+const HorseData = artifacts.require("HorseData");
 
 contract("StudService", acc => {
-  let core, queryPrice, gop;
+  let core, queryPrice, gop, hd;
   let owner = acc[1];
   let amount = web3.toWei(0.40, "ether");
 
@@ -11,8 +12,10 @@ contract("StudService", acc => {
   before("setup instance", async () => {
     core = await Core.deployed();
     gop = await GOPCreator.deployed();
+    hd = await HorseData.deployed();
 
     await core.setGOPCreator(gop.address, { from: owner });
+    await core.setHorseDataAddr(hd.address, { from: owner });
 
     await gop.openBatch(1, { from: owner });
 

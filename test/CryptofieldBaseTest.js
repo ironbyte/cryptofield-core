@@ -1,10 +1,11 @@
 const Core = artifacts.require("./Core");
 const GOPCreator = artifacts.require("./GOPCreator");
+const HorseData = artifacts.require("HorseData");
 
 contract("CryptofieldBaseContract", accounts => {
-  let core, gop;
+  let core, gop, hd;
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
-  let buyer = accounts[1];
+  let owner = accounts[1];
   let amount = web3.toWei(0.40, "ether");
   let defaults = [
     "Austin Riffle", "Jerri Curl", "Amoxi", "Chase Jackson", "Zeus", "Apollo"
@@ -14,63 +15,59 @@ contract("CryptofieldBaseContract", accounts => {
   before("setup contract instance", async () => {
     core = await Core.deployed();
     gop = await GOPCreator.deployed();
+    hd = await HorseData.deployed();
 
-    await core.setGOPCreator(gop.address, { from: buyer });
+    await core.setGOPCreator(gop.address, { from: owner });
+    await core.setHorseDataAddr(hd.address, { from: owner });
 
-    await gop.openBatch(1, { from: buyer });
+    await gop.openBatch(1, { from: owner });
   })
 
   it("should be able to buy a horse", async () => {
-    await gop.createGOP(buyer, hash, { from: buyer }); // 0
-    let horse = await core.getHorseHash.call(0)
+    await gop.createGOP(owner, hash, { from: owner }); // 0
+    let horseHash = await core.getHorseData.call(0)
 
-    assert.equal(horse, hash);
-  })
-
-  it("should return the correct hash for a horse", async () => {
-    let returnedHash = await core.getHorseHash.call(0);
-
-    assert.equal(hash, returnedHash);
+    assert.equal(horseHash[0], hash);
   })
 
   it("should contain one of the default names for GOP", async () => {
-    let horseName = await core.getHorseName.call(0);
-    assert.include(defaults, horseName);
+    let horseName = await core.getHorseData.call(0);
+    assert.include(defaults, horseName[4]);
   })
 
   it("should create correct genotype based on number of sale", async () => {
     // If we get the first one, we should have genotype 1.
-    let genotype = await core.getGenotype.call(0);
-    assert.equal(genotype.toNumber(), 1);
+    let genotype = await core.getHorseData.call(0);
+    assert.equal(genotype[6].toNumber(), 1);
 
     for (let i = 0; i <= 305; i++) {
       if (i === 100) {
-        await gop.closeBatch(1, { from: buyer });
-        await gop.openBatch(2, { from: buyer });
+        await gop.closeBatch(1, { from: owner });
+        await gop.openBatch(2, { from: owner });
       } else if (i === 299) {
-        await gop.closeBatch(2, { from: buyer });
-        await gop.openBatch(3, { from: buyer });
+        await gop.closeBatch(2, { from: owner });
+        await gop.openBatch(3, { from: owner });
       }
 
       await gop.createGOP(accounts[5], "random hash", { from: accounts[5], value: amount });
     }
 
-    genotype = await core.getGenotype.call(100);
-    assert.equal(genotype.toNumber(), 1);
+    genotype = await core.getHorseData.call(100);
+    assert.equal(genotype[6].toNumber(), 1);
 
-    let genotype2 = await core.getGenotype.call(120);
-    assert.equal(genotype2.toNumber(), 2);
+    let genotype2 = await core.getHorseData.call(120);
+    assert.equal(genotype2[6].toNumber(), 2);
   })
 
   it("should create the correct bloodline for a horse", async () => {
     // We're using horses from the above test.
-    let bloodline = await core.getBloodline.call(88);
-    assert.equal("N", web3.toUtf8(bloodline));
+    let bloodline = await core.getHorseData.call(88);
+    assert.equal(web3.toUtf8(bloodline[7]), "N");
 
-    bloodline = await core.getBloodline.call(150);
-    assert.equal("N", web3.toUtf8(bloodline));
+    bloodline = await core.getHorseData.call(150);
+    assert.equal(web3.toUtf8(bloodline[7]), "N");
 
-    bloodline = await core.getBloodline.call(302);
-    assert.equal("S", web3.toUtf8(bloodline));
+    bloodline = await core.getHorseData.call(302);
+    assert.equal(web3.toUtf8(bloodline[7]), "S");
   })
 })

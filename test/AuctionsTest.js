@@ -1,9 +1,10 @@
 const Core = artifacts.require("./Core");
 const SaleAuction = artifacts.require("./SaleAuction");
 const GOPCreator = artifacts.require("./GOPCreator");
+const HorseData = artifacts.require("./HorseData");
 
 contract("Auctions", acc => {
-  let core, instance, gop;
+  let core, instance, gop, hd;
   let owner = acc[1];
   let buyer = acc[8];
   let amount = new web3.BigNumber(web3.toWei(1, "ether"));
@@ -13,10 +14,11 @@ contract("Auctions", acc => {
     core = await Core.deployed();
     instance = await SaleAuction.deployed();
     gop = await GOPCreator.deployed();
+    hd = await HorseData.deployed();
 
     await core.setGOPCreator(gop.address, { from: owner });
-
     await core.setNft(instance.address, { from: owner });
+    await core.setHorseDataAddr(hd.address, { from: owner });
 
     await gop.openBatch(1, { from: owner });
   })
@@ -26,7 +28,6 @@ contract("Auctions", acc => {
   the function.
   */
   it("should create an auction", async () => {
-
     await gop.createGOP(buyer, "some hash", { from: owner, value: amount });
     await core.createAuction(0, 0, minimum, { from: buyer, value: amount });
 
@@ -136,9 +137,9 @@ contract("Auctions", acc => {
     assert.equal(tokenOwner, acc[7]);
 
     // Horse should be +1 to amount of times being sold.
-    let timesSold = await core.getTimesSold.call(3);
+    let data = await core.getHorseData.call(3);
 
-    assert.equal(timesSold.toNumber(), 1);
+    assert.equal(data[5].toNumber(), 1);
     // 1, 2
   })
 
