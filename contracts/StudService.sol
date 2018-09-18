@@ -44,7 +44,7 @@ contract StudService is Auctions, usingOraclize {
     }
 
     constructor() public {
-        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     event LogHorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);

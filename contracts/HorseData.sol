@@ -111,6 +111,8 @@ contract HorseData {
         } else {
             baseValue = _getRandom(19, 20);
         }
+
+        return baseValue;
     }
 
     function getBloodlineFromParents(bytes32 _male, bytes32 _female) public view returns(bytes32) {

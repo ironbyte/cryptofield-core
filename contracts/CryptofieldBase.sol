@@ -218,7 +218,7 @@ contract CryptofieldBase is Ownable {
     /*
     @dev Sets address for HorseData contract
     */
-    function setHorseDataddr(address _address) public onlyOwner() {
+    function setHorseDataAddr(address _address) public onlyOwner() {
         horseDataContract = HorseData(_address);
     }
 
@@ -263,7 +263,7 @@ contract CryptofieldBase is Ownable {
     @dev Calculates the genotype for an offspring based on the type of the parents.
     @dev It returns the Genotype for an offspring unless it is greater than the cap, otherwise it returns the CAP.
     */
-    function _getType(uint256 _maleGT, uint256 _femaleGT) private returns(uint256) {
+    function _getType(uint256 _maleGT, uint256 _femaleGT) private pure returns(uint256) {
         // We're not going to run into overflows here since we have a genotype cap.
         uint256 geno = _maleGT + _femaleGT;
         if(geno > GENOTYPE_CAP) return GENOTYPE_CAP;
