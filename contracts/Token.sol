@@ -2,12 +2,8 @@ pragma solidity 0.4.24;
 
 import "./ERC721Token.sol";
 import "./CryptofieldBase.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/token/ERC721/ERC721Holder.sol";
 
-contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
-    using SafeMath for uint256;
-
+contract Token is CryptofieldBase, ERC721Token {
     address gopcreator;
 
     constructor() ERC721Token("Zed Token", "ZT") public {}
@@ -49,29 +45,9 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
     returns(uint256) {
         require(msg.sender == gopcreator, "Not authorized");
         uint256 tokenId = allTokensLength();
-        uint256 baseValue;
 
-        if(_batchNumber == 1) {
-            baseValue = _getRandom(4, 100);
-        } else if(_batchNumber == 2) {
-            baseValue = _getRandom(9, 90);
-        } else if(_batchNumber == 3) {
-            baseValue = _getRandom(4, 80);
-        } else if(_batchNumber == 4) {
-            baseValue = _getRandom(4, 75);
-        } else if(_batchNumber == 5) {
-            baseValue = _getRandom(9, 70);
-        } else if(_batchNumber == 6) {
-            baseValue = _getRandom(4, 60);
-        } else if(_batchNumber == 7) {
-            baseValue = _getRandom(9, 50);
-        } else if(_batchNumber == 8) {
-            baseValue = _getRandom(9, 40);
-        } else if(_batchNumber == 9) {
-            baseValue = _getRandom(9, 30);
-        } else {
-            baseValue = _getRandom(19, 20);
-        }
+        // TODO: CALL HORSE DATA FOR BASE VALUE
+        uint256 baseValue = horseDataContract.getBaseValue(_batchNumber);
 
         _mint(_owner, tokenId);
         buyGOP(_owner, _hash, tokenId, _batchNumber, baseValue);
@@ -109,11 +85,5 @@ contract Token is CryptofieldBase, ERC721Token, ERC721Holder {
 
     function setGOPCreator(address _addr) public onlyOwner() {
         gopcreator = _addr;
-    }
-
-    function _getRandom(uint256 _num, uint256 _deleteFrom) private returns(uint256) {
-        uint256 rand = uint256(blockhash(block.number.sub(1))) % _num + 1;
-
-        return _deleteFrom - rand;
     }
 }

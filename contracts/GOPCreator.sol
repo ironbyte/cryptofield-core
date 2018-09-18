@@ -51,7 +51,7 @@ contract GOPCreator is Ownable, usingOraclize {
     constructor(address _addr) public {
         owner = msg.sender;
         core = Core(_addr);
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         // From 1 to 4 there will be 500 more available for later use.
         horsesForGen[1] = 1000;

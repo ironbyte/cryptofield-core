@@ -2,14 +2,12 @@ pragma solidity 0.4.24;
 
 import "./Auctions.sol";
 import "./usingOraclize.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 /*
 @description Contract in charge of tracking availability of male horses in Stud.
 */
 contract StudService is Auctions, usingOraclize {
-    using SafeMath for uint256;
-
+    // TODO: ADD ONE MORE TIME HERE FOR 9 DAYS
     uint256[2] private ALLOWED_TIMEFRAMES = [
         259200,
         518400
@@ -46,7 +44,7 @@ contract StudService is Auctions, usingOraclize {
     }
 
     constructor() public {
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     event LogHorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);
