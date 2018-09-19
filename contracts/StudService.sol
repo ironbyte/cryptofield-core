@@ -13,6 +13,8 @@ contract StudService is Auctions, usingOraclize {
         518400
     ];
 
+    uint256[] horsesInStud;
+
     struct StudInfo {
         bool inStud;
 
@@ -21,6 +23,7 @@ contract StudService is Auctions, usingOraclize {
     }
 
     mapping(uint256 => StudInfo) internal studs;
+    mapping(uint256 => uint256) internal horseIndex;
 
     /*
     @dev We only remove the horse from the mapping ONCE the '__callback' is called, this is for a reason.
@@ -63,6 +66,8 @@ contract StudService is Auctions, usingOraclize {
         }
 
         studs[_id] = StudInfo(true, _amount, duration);
+        uint256 index = horsesInStud.push(_id) - 1;
+        horseIndex[_id] = index;
 
         string memory url = "json(https://cryptofield.app/api/v1/remove_horse_stud).horse_id";
         string memory payload = strConcat("{\"stud_info\":", uint2str(_id), "}");
@@ -81,6 +86,7 @@ contract StudService is Auctions, usingOraclize {
         
         // Manually remove the horse from stud since 'removeFromStud/1' allows only the owner.
         delete studs[horse];
+        _removeHorseFromStud(horse);
 
         currentlyInStud[horse] = false;
     }
@@ -90,7 +96,7 @@ contract StudService is Auctions, usingOraclize {
     }
 
     function studInfo(uint256 _id) public view returns(bool, uint256, uint256) {
-        StudInfo storage s = studs[_id];
+        StudInfo memory s = studs[_id];
 
         return(s.inStud, s.matingPrice, s.duration);
     }
@@ -109,6 +115,20 @@ contract StudService is Auctions, usingOraclize {
 
     function getQueryPrice() public returns(uint256) {
         return oraclize_getPrice("URL");
+    }
+
+    function getHorsesInStud() public view returns(uint256[]) {
+        return horsesInStud;
+    }
+
+    /*  PRIVATE  */
+    function _removeHorseFromStud(uint256 _horse) private {
+        uint256 index = horseIndex[_horse];
+        uint256 lastHorseIndex = horsesInStud.length - 1;
+        uint256 lastHorse = horsesInStud[lastHorseIndex];
+        horsesInStud[index] = lastHorse;
+        delete horsesInStud[lastHorseIndex];
+        horsesInStud.length--;
     }
 
     /*   RESTRICTED    */
