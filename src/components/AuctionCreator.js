@@ -21,12 +21,12 @@ export default class AuctionCreator extends Component {
     let duration = moment().add(1, "day").diff(moment(), "seconds") + 1;
     let accounts = await this.props.web3.eth.getAccounts();
     let price = await this.props.instance.getQueryPrice.call();
-  
+
     await this.props.instance.createAuction(
-                                duration, 
-                                this.props.horse, 
-                                this.props.web3.utils.toWei(this.state.minimum, "ether"),
-                                {from: accounts[0], value: price}
+      duration,
+      this.props.horse,
+      this.props.web3.utils.toWei(this.state.minimum, "ether"),
+      { from: accounts[0], value: price }
     );
   }
 
@@ -35,7 +35,7 @@ export default class AuctionCreator extends Component {
   }
 
   render() {
-    return(
+    return (
       <div>
         <h2 className="text-center cell">Creating Auction for horse number {this.props.horse} </h2>
 
@@ -56,12 +56,12 @@ export default class AuctionCreator extends Component {
               <label>
                 Asking price (Ether):
 
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   onChange={this.handleChange}
-                  name="minimum" 
+                  name="minimum"
                   value={this.state.minimum}
-                  placeholder="0.05" 
+                  placeholder="0.05"
                   min={0}
                   step="any" />
               </label>

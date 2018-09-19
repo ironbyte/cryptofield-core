@@ -1,19 +1,16 @@
 import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
-import CToken from "./../build/contracts/CToken.json";
+import Token from "./../build/contracts/Token.json";
 import AuctionsComponent from "./components/AuctionsComponent";
 import OpenAuctions from "./components/OpenAuctions";
 import AuctionClosing from "./components/AuctionClosing";
 import ParticipatingAuctions from "./components/ParticipatingAuctions";
 import Ownership from "./components/Ownership";
-
-// Creates a new instance of IPFS.
-const IPFS = require("ipfs-mini");
-window.ipfs = new IPFS({ host: "ipfs.infura.io", port: 5001, protocol: "https" })
+import { Link } from "react-router-dom";
 
 class App extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
       tokenInstance: null,
@@ -34,47 +31,47 @@ class App extends Component {
 
   componentDidMount() {
     getWeb3
-    .then(results => {
-      this.web3 = results.web3;
+      .then(results => {
+        this.web3 = results.web3;
 
-      // Instantiate contract once web3 provided.
-      this.instantiateContract()
-    })
-    .catch(() => {
-      console.log('Error finding web3.')
-    })
+        // Instantiate contract once web3 provided.
+        this.instantiateContract()
+      })
+      .catch(() => {
+        console.log('Error finding web3.')
+      })
   }
 
   instantiateContract() {
     let contract = require('truffle-contract')
-    let CTokenContract = contract(CToken);
+    let TokenContract = contract(Token);
 
-    CTokenContract.setProvider(this.web3.currentProvider);
+    TokenContract.setProvider(this.web3.currentProvider);
 
-    CTokenContract.deployed().then(instance => {
+    TokenContract.deployed().then(instance => {
       this.setState({ tokenInstance: instance });
     })
   }
 
   buy() {
     fetch("https://cryptofield.app/api/v1/generate_horse")
-    .then(result => { return result.json() })
-    .then(res => {
-      this.setState({ genIPFS: true })
+      .then(result => { return result.json() })
+      .then(res => {
+        this.setState({ genIPFS: true })
 
-      window.ipfs.addJSON(res, (err, _hash) => {
-        console.log(_hash)
+        window.ipfs.addJSON(res, (err, _hash) => {
+          console.log(_hash, "IPFS HORSE HASH");
 
-        this.web3.eth.getAccounts((web3Err, accounts) => {
-          this.state.tokenInstance.createHorse(accounts[0], _hash, {from: accounts[0]})
-          .then(res => { 
-            this.setState({ newHorse: true, genIPFS: false }) 
+          this.web3.eth.getAccounts((web3Err, accounts) => {
+            this.state.tokenInstance.createHorse(accounts[0], _hash, { from: accounts[0] })
+              .then(res => {
+                this.setState({ newHorse: true, genIPFS: false })
+              })
+              .catch(err => { console.log(err) })
           })
-          .catch(err => { console.log(err) })
         })
       })
-    })
-    .catch(err => { console.log("There was an error processing the request", err) })
+      .catch(err => { console.log("There was an error processing the request", err) })
   }
 
   auctions() {
@@ -83,12 +80,12 @@ class App extends Component {
 
   showHorseInfo(horseId) {
     this.state.instance.getHorse.call(horseId - 1)
-    .then(res => {
-      window.ipfs.cat(res, (err, horseInfo) => {
-        console.log(JSON.parse(horseInfo))
+      .then(res => {
+        window.ipfs.cat(res, (err, horseInfo) => {
+          console.log(JSON.parse(horseInfo))
+        })
       })
-    })
-    .catch(err => { console.log(err) })
+      .catch(err => { console.log(err) })
   }
 
   closeAuction() {
@@ -100,7 +97,7 @@ class App extends Component {
   }
 
   render() {
-    return(
+    return (
       <div className="grid-x grid-margin-x">
         <OpenAuctions />
 
@@ -140,7 +137,7 @@ class App extends Component {
         {
           this.state.horsesOwned &&
           this.state.horsesOwned.map(horseId => {
-            return(
+            return (
               <div key={horseId}>
                 Horses Owned:
                 <h1
@@ -155,14 +152,14 @@ class App extends Component {
 
         {
           this.state.isCreatingAuction &&
-          <AuctionsComponent 
-            web3={this.web3} 
-            tokenInstance={this.state.tokenInstance} 
+          <AuctionsComponent
+            web3={this.web3}
+            tokenInstance={this.state.tokenInstance}
           />
         }
 
         <div className="medium-12 cell">
-          <button 
+          <button
             onClick={this.closeAuction}
             className="button expanded alert"
           >
@@ -172,7 +169,7 @@ class App extends Component {
             this.state.isClosingAuction &&
             <AuctionClosing
               web3={this.web3}
-            />            
+            />
           }
         </div>
 
@@ -187,6 +184,8 @@ class App extends Component {
             this.state.isTransfering &&
             <Ownership web3={this.web3} tokenInstance={this.state.tokenInstance} />
           }
+
+          <Link to="/breeding" className="button expanded success">Breeding</Link>
         </div>
       </div>
     );

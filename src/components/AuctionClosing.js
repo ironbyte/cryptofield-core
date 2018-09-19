@@ -28,7 +28,7 @@ export default class AuctionClosing extends Component {
   async handleSubmit(e) {
     await e.preventDefault();
     let accounts = await this.props.web3.eth.getAccounts();
-    await this.state.instance.closeAuction(this.state.auctionId, {from: accounts[0], gas: 100000});
+    await this.state.instance.closeAuction(this.state.auctionId, { from: accounts[0], gas: 100000 });
   }
 
   handleChange(e) {
@@ -36,7 +36,7 @@ export default class AuctionClosing extends Component {
   }
 
   render() {
-    return(
+    return (
       <div className>
         <form onSubmit={this.handleSubmit}>
           <div className="grid-x grid-margin-x">
@@ -44,9 +44,9 @@ export default class AuctionClosing extends Component {
               <label>
                 Auction ID:
 
-                <input 
-                  onChange={this.handleChange} 
-                  type="number" 
+                <input
+                  onChange={this.handleChange}
+                  type="number"
                   name="auctionId"
                   value={this.state.auctionId}
                   min={0}
