@@ -3,6 +3,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 import BreedingComponent from "./components/mains/BreedingComponent";
+import PreSaleComponent from "./components/mains/PreSaleComponent";
 import "./css/main.css";
 import {
   BrowserRouter as Router,
@@ -18,6 +19,7 @@ ReactDOM.render(
     <div>
       <Route exact path="/" component={App} />
       <Route path="/breeding" component={BreedingComponent} />
+      <Route path="/system/presale" component={PreSaleComponent} />
     </div>
   </Router>,
   document.getElementById('root')
