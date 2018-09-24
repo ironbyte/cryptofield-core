@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Auctions from "./../../build/contracts/Auctions.json";
+import SaleAuction from "./../../build/contracts/SaleAuction.json";
 
 export default class AuctionClosing extends Component {
   constructor(props) {
@@ -16,11 +16,11 @@ export default class AuctionClosing extends Component {
 
   async componentDidMount() {
     let contract = require("truffle-contract");
-    let AuctionsContract = await contract(Auctions);
+    let SaleAuctionContract = await contract(SaleAuction);
 
-    await AuctionsContract.setProvider(this.props.web3.currentProvider);
+    await SaleAuctionContract.setProvider(this.props.web3.currentProvider);
 
-    let instance = await AuctionsContract.deployed();
+    let instance = await SaleAuctionContract.deployed();
 
     await this.setState({ instance: instance })
   }

@@ -1,4 +1,7 @@
 import React, { Component } from "react";
+
+import SaleAuction from "./../../build/contracts/SaleAuction.json";
+
 import moment from "moment";
 
 export default class AuctionCreator extends Component {
@@ -6,6 +9,7 @@ export default class AuctionCreator extends Component {
     super(props);
 
     this.state = {
+      saleAuctionsInstance: null,
       duration: 1,
       minimum: ""
     }
@@ -14,15 +18,26 @@ export default class AuctionCreator extends Component {
     this.handleChange = this.handleChange.bind(this);
   }
 
+  async componentDidMount() {
+    let contract = require("truffle-contract");
+    let SaleAuctionContract = await contract(SaleAuction);
+
+    await SaleAuctionContract.setProvider(this.props.web3.currentProvider);
+
+    let saleAuctionsInstance = await SaleAuctionContract.deployed();
+
+    await this.setState({ saleAuctionsInstance: saleAuctionsInstance });
+  }
+
   async handleSubmit(e) {
     await e.preventDefault();
 
     // Test values, state should be used when doing this.
     let duration = moment().add(1, "day").diff(moment(), "seconds") + 1;
     let accounts = await this.props.web3.eth.getAccounts();
-    let price = await this.props.instance.getQueryPrice.call();
+    let price = await this.state.saleAuctionsInstance.getQueryPrice.call();
 
-    await this.props.instance.createAuction(
+    await this.props.coreInstance.createAuction(
       duration,
       this.props.horse,
       this.props.web3.utils.toWei(this.state.minimum, "ether"),

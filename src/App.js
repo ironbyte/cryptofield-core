@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import getWeb3 from './utils/getWeb3';
-import Token from "./../build/contracts/Token.json";
+
+import Core from "./../build/contracts/Core.json";
+import GOPCreator from "./../build/contracts/GOPCreator.json";
+
 import AuctionsComponent from "./components/AuctionsComponent";
 import OpenAuctions from "./components/OpenAuctions";
 import AuctionClosing from "./components/AuctionClosing";
 import ParticipatingAuctions from "./components/ParticipatingAuctions";
 import Ownership from "./components/Ownership";
+
 import { Link } from "react-router-dom";
 
 class App extends Component {
@@ -13,7 +17,8 @@ class App extends Component {
     super(props);
 
     this.state = {
-      tokenInstance: null,
+      coreInstance: null,
+      gopInstance: null,
       horsesOwned: [],
       isCreatingAuction: false,
       isClosingAuction: false,
@@ -44,12 +49,18 @@ class App extends Component {
 
   instantiateContract() {
     let contract = require('truffle-contract')
-    let TokenContract = contract(Token);
+    let GOPCreatorContract = contract(GOPCreator);
+    let CoreContract = contract(Core);
 
-    TokenContract.setProvider(this.web3.currentProvider);
+    GOPCreatorContract.setProvider(this.web3.currentProvider);
+    CoreContract.setProvider(this.web3.currentProvider);
 
-    TokenContract.deployed().then(instance => {
-      this.setState({ tokenInstance: instance });
+    CoreContract.deployed().then(instance => {
+      this.setState({ coreInstance: instance });
+    })
+
+    GOPCreatorContract.deployed().then(i => {
+      this.setState({ gopInstance: i });
     })
   }
 
@@ -59,11 +70,13 @@ class App extends Component {
       .then(res => {
         this.setState({ genIPFS: true })
 
-        window.ipfs.addJSON(res, (err, _hash) => {
-          console.log(_hash, "IPFS HORSE HASH");
+        window.ipfs.addJSON(res, (err, hash) => {
+          let price = this.web3.utils.toWei("1", "ether");
+
+          console.log(hash, "IPFS HORSE HASH");
 
           this.web3.eth.getAccounts((web3Err, accounts) => {
-            this.state.tokenInstance.createHorse(accounts[0], _hash, { from: accounts[0] })
+            this.state.gopInstance.createGOP(accounts[0], hash, { from: accounts[0], value: price })
               .then(res => {
                 this.setState({ newHorse: true, genIPFS: false })
               })
@@ -154,7 +167,7 @@ class App extends Component {
           this.state.isCreatingAuction &&
           <AuctionsComponent
             web3={this.web3}
-            tokenInstance={this.state.tokenInstance}
+            coreInstance={this.state.coreInstance}
           />
         }
 
@@ -182,7 +195,7 @@ class App extends Component {
           </button>
           {
             this.state.isTransfering &&
-            <Ownership web3={this.web3} tokenInstance={this.state.tokenInstance} />
+            <Ownership web3={this.web3} coreInstance={this.state.coreInstance} />
           }
 
           <Link to="/breeding" className="button expanded success">Breeding</Link>

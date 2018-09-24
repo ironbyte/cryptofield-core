@@ -1,6 +1,9 @@
 import React, { Component } from "react";
-import Auctions from "./../../build/contracts/Auctions";
+
+import SaleAuction from "./../../build/contracts/SaleAuction.json";
+
 import getWeb3 from "./../utils/getWeb3";
+
 import moment from "moment";
 
 export default class ParticipatingAuctions extends Component {
@@ -23,7 +26,7 @@ export default class ParticipatingAuctions extends Component {
     let accounts = await this.state.web3.eth.getAccounts();
     let participatingAuctions = await this.state.instance.participatingIn.call(accounts[0]);
 
-    for(let i = 0; i < participatingAuctions.length; i++) {
+    for (let i = 0; i < participatingAuctions.length; i++) {
       let currAuction = participatingAuctions[i];
       let auction = await this.state.instance.getAuction.call(currAuction);
       let status = await this.state.instance.getAuctionStatus.call(currAuction);
@@ -43,11 +46,11 @@ export default class ParticipatingAuctions extends Component {
 
   async initContracts() {
     let contract = require("truffle-contract");
-    let AuctionsContract = await contract(Auctions);
+    let SaleAuctionContract = await contract(SaleAuction);
 
-    await AuctionsContract.setProvider(this.state.web3.currentProvider);
+    await SaleAuctionContract.setProvider(this.state.web3.currentProvider);
 
-    let instance = await AuctionsContract.deployed();
+    let instance = await SaleAuctionContract.deployed();
     await this.setState({ instance: instance })
   }
 
@@ -55,16 +58,15 @@ export default class ParticipatingAuctions extends Component {
     return status === true ? "Open" : "Closed"
   }
 
-  // TODO: Token is not being sent
   async withdraw(auction) {
     let accounts = await this.state.web3.eth.getAccounts();
 
-    await this.state.instance.withdraw(auction, {from: accounts[0], gas: 200000})
-  } 
+    await this.state.instance.withdraw(auction, { from: accounts[0], gas: 200000 })
+  }
 
   // HTML RENDERING FUNCTIONS
   renderUserAuctions() {
-    return(
+    return (
       <div>
         <h2 className="text-center">Here are the auctions where you've participated!</h2>
         <table>
@@ -81,8 +83,8 @@ export default class ParticipatingAuctions extends Component {
           <tbody>
             {
               this.state.auctions.map((auction, index) => {
-                return(
-                  <tr key={index}>  
+                return (
+                  <tr key={index}>
                     <td>{auction[0]}</td>
                     <td>{moment.unix(auction[1].toNumber()).format("LLL")}</td>
                     <td>{auction[3].toString()}</td>
@@ -97,18 +99,18 @@ export default class ParticipatingAuctions extends Component {
               })
             }
           </tbody>
-        </table>  
+        </table>
       </div>
     )
   }
- 
-  render() {
-    let auctions = 
-      this.state.auctions.length === 0 ?
-      <h3 className="text-center">You're not participating in any Auction, bid on one and it'll appear here</h3> :
-      this.renderUserAuctions();
 
-    return(
+  render() {
+    let auctions =
+      this.state.auctions.length === 0 ?
+        <h3 className="text-center">You're not participating in any Auction, bid on one and it'll appear here</h3> :
+        this.renderUserAuctions();
+
+    return (
       <div className="cell">
         {auctions}
 

@@ -1,14 +1,16 @@
 import React, { Component } from "react";
-import Countdown from "react-countdown-moment";
-import Auctions from "./../../build/contracts/Auctions.json";
-import getWeb3 from "./../utils/getWeb3";
 import moment from "moment";
+import Countdown from "react-countdown-moment";
+
+import getWeb3 from "./../utils/getWeb3";
+
+import SaleAuction from "./../../build/contracts/SaleAuction.json";
+
 import AuctionBid from "./AuctionBid";
 
 /*
 @dev Component to show the open auctions at the moment.
 */
-
 export default class OpenAuctions extends Component {
   constructor(props) {
     super(props);
@@ -31,8 +33,8 @@ export default class OpenAuctions extends Component {
 
     let auctionsOpen = await this.state.instance.getOpenAuctions.call();
     let accounts = await this.state.web3.eth.getAccounts();
-    
-    for(let i = 0; i < auctionsOpen.length; i++) {
+
+    for (let i = 0; i < auctionsOpen.length; i++) {
       let currAuction = auctionsOpen[i];
       let auction = await this.state.instance.getAuction.call(currAuction);
       let amountOfBidders = await this.state.instance.amountOfBidders.call(currAuction);
@@ -40,20 +42,20 @@ export default class OpenAuctions extends Component {
       let maxBid = await this.state.instance.getMaxBidder.call(currAuction); // Array of two elements.
 
       auction = auction // 4
-                .concat(amountOfBidders) // 5
-                .concat(this.state.web3.utils.fromWei(minimum.toString())) // 6
-                .concat(this.state.web3.utils.fromWei(maxBid[1].toString())) // 7
-                .concat(currAuction); // Auction ID // 8
+        .concat(amountOfBidders) // 5
+        .concat(this.state.web3.utils.fromWei(minimum.toString())) // 6
+        .concat(this.state.web3.utils.fromWei(maxBid[1].toString())) // 7
+        .concat(currAuction); // Auction ID // 8
 
-      await this.setState(prevState => ({ 
+      await this.setState(prevState => ({
         auctions: [...prevState.auctions, auction],
         currAddress: accounts[0]
-      })); 
+      }));
     }
   }
 
   async initWeb3() {
-    let result  = await getWeb3;
+    let result = await getWeb3;
     await this.setState({ web3: result.web3 });
 
     await this.initializeContracts();
@@ -61,17 +63,17 @@ export default class OpenAuctions extends Component {
 
   async initializeContracts() {
     let contract = require("truffle-contract");
-    let AuctionsContract = await contract(Auctions);
-    
-    await AuctionsContract.setProvider(this.state.web3.currentProvider);
-    let instance = await AuctionsContract.deployed();
+    let SaleAuctionContract = await contract(SaleAuction);
+
+    await SaleAuctionContract.setProvider(this.state.web3.currentProvider);
+    let instance = await SaleAuctionContract.deployed();
 
     await this.setState({ instance: instance });
   }
 
   // HTML rendering functions
   calculateTimeLeft(start, duration) {
-    return  <Countdown endDate={moment.unix(start).add(duration, "seconds")} />
+    return <Countdown endDate={moment.unix(start).add(duration, "seconds")} />
   }
 
   bid(id, asking) {
@@ -83,7 +85,7 @@ export default class OpenAuctions extends Component {
   }
 
   auctionsTable() {
-    return(
+    return (
       <div>
         <h2 className="text-center">Open Auctions!</h2>
 
@@ -104,7 +106,7 @@ export default class OpenAuctions extends Component {
           <tbody>
             {
               this.state.auctions.map((auction, index) => {
-                return(
+                return (
                   <tr key={index}>
                     <td>{auction[0]}</td>
                     <td>{moment.unix(auction[1].toNumber()).format("LLL")}</td>
@@ -118,7 +120,7 @@ export default class OpenAuctions extends Component {
                       auction[0] !== this.state.currAddress &&
                       <td onClick={this.bid.bind(this, auction[7], auction[5])}>Click to bid</td>
                     }
-                  </tr> 
+                  </tr>
                 )
               })
             }
@@ -127,7 +129,7 @@ export default class OpenAuctions extends Component {
 
         {
           this.state.isBidding &&
-          <AuctionBid 
+          <AuctionBid
             instance={this.state.instance}
             auction={this.state.biddingAuctionId}
             askingPrice={this.state.askingPrice}
@@ -138,12 +140,12 @@ export default class OpenAuctions extends Component {
   }
 
   render() {
-    let auctionMessage = 
-      this.state.auctions.length === 0 ? 
-      <h2 className="text-center">There are no auctions open yet.</h2> : 
-      this.auctionsTable();
+    let auctionMessage =
+      this.state.auctions.length === 0 ?
+        <h2 className="text-center">There are no auctions open yet.</h2> :
+        this.auctionsTable();
 
-    return(
+    return (
       <div className="cell">
         {auctionMessage}
 

@@ -1,6 +1,4 @@
 import React, { Component } from "react";
-import Auctions from "./../../build/contracts/Auctions.json";
-import CryptofieldBase from "./../../build/contracts/CryptofieldBase.json";
 import AuctionCreator from "./AuctionCreator";
 
 export default class AuctionsComponent extends Component {
@@ -8,67 +6,46 @@ export default class AuctionsComponent extends Component {
     super(props);
 
     this.state = {
-      instance: null,
-      baseInstance: null,
       tokens: [],
       horseInAuction: null,
       creatingAuction: false,
     }
-
-    this.setAuctions = this.setAuctions.bind(this);
-  }
-
-  setAuctions() {
-    this.props.web3.eth.getAccounts((err, accounts) => {
-      this.props.tokenInstance.setAuctions(this.state.instance.address, {from: accounts[0]});
-    })
-  }
-
-  componentWillMount() {
-    // Initiate contract
-    let contract = require("truffle-contract");
-    let AuctionsContract = contract(Auctions);
-    let CryptofieldBaseContract = contract(CryptofieldBase);
-
-    AuctionsContract.setProvider(this.props.web3.currentProvider);
-    CryptofieldBaseContract.setProvider(this.props.web3.currentProvider);
-
-    AuctionsContract.deployed().then(i => this.setState({ instance: i }))
-    CryptofieldBaseContract.deployed().then(i => this.setState({ baseInstance: i }))
   }
 
   async componentDidMount() {
-    let accounts = await this.props.web3.eth.getAccounts(); 
-    let ownedTokens = await this.props.tokenInstance.getOwnedTokens.call(accounts[0]);
-    
-    for(let i = 0; i < ownedTokens.length; i++) {
-      let hash = await this.state.baseInstance.getHorse.call(ownedTokens[i]);
-      let result = await this.isApproved(ownedTokens[i]);
+    let accounts = await this.props.web3.eth.getAccounts();
+    let ownedTokens = await this.props.coreInstance.getOwnedTokens.call(accounts[0]);
 
-      window.ipfs.catJSON(hash, (err, obj) => {
-        obj.isApproved = result.toString();
+    for (let i = 0; i < ownedTokens.length; i++) {
+      let horseData = await this.props.coreInstance.getHorseData.call(ownedTokens[i]);
+      let type = await this.props.web3.utils.hexToUtf8(horseData[8]); // [8] is the Horse Type
+
+      // [0] is the HorseHash
+      window.ipfs.catJSON(horseData[0], (err, obj) => {
+        // obj.isApproved = result.toString();
         obj.id = ownedTokens[i].toNumber();
+        obj.horse_type = type;
 
         this.setState(prevState => ({ tokens: [...prevState.tokens, obj] }));
       })
     }
   }
 
-  async isApproved(id) {
-    return await this.props.tokenInstance.isTokenApproved.call(this.state.instance.address, id)
-  }
+  // async isApproved(id) {
+  //   return await this.props.coreInstance.isTokenApproved.call(this.state.instance.address, id)
+  // }
 
   async approveToken(id) {
     let accounts = await this.props.web3.eth.getAccounts();
-    await this.props.tokenInstance.approveAuctions(id, {from: accounts[0]});
+    await this.props.coreInstance.approveAuctions(id, { from: accounts[0] });
   }
 
   async createAuction(id) {
     this.setState(prevState => ({ creatingAuction: !prevState.creatingAuction, horseInAuction: id }))
-  } 
+  }
 
   render() {
-    return(
+    return (
       <div className="cell">
         <table>
           <thead>
@@ -82,7 +59,6 @@ export default class AuctionsComponent extends Component {
               <th>Origin</th>
               <th>Pedigree</th>
               <th>Running style</th>
-              <th>Approved?</th>
               <th>Create Auction</th>
             </tr>
           </thead>
@@ -101,19 +77,7 @@ export default class AuctionsComponent extends Component {
                     <td>{token.origin}</td>
                     <td>{token.pedigree}</td>
                     <td>{token.running_style}</td>
-
-                    <td 
-                      onClick={this.approveToken.bind(this, token.id)}
-                      style={{color: "blue", fontWeight: "bold"}}
-                    >
-                      {token.isApproved}
-                    </td>
-
-                    {
-                      // Create this if the token is approved
-                      token.isApproved === "true" &&
-                      <td onClick={this.createAuction.bind(this, token.id)}> Click  </td>
-                    }
+                    <td onClick={this.createAuction.bind(this, token.id)}> <strong>Create</strong>  </td>
                   </tr>
                 )
               })
@@ -121,14 +85,12 @@ export default class AuctionsComponent extends Component {
           </tbody>
         </table>
 
-        <button className="button expanded warning" onClick={this.setAuctions}>Setup Auctions Address</button>
-
         {
           this.state.creatingAuction &&
-          <AuctionCreator 
-            web3={this.props.web3} 
-            instance={this.state.instance} 
-            horse={this.state.horseInAuction} 
+          <AuctionCreator
+            web3={this.props.web3}
+            coreInstance={this.props.coreInstance}
+            horse={this.state.horseInAuction}
           />
         }
       </div>

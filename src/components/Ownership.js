@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Auctions from "./../../build/contracts/Auctions.json";
+import SaleAuction from "./../../build/contracts/SaleAuction.json";
 
 export default class Ownership extends Component {
   constructor(props) {
@@ -17,20 +17,21 @@ export default class Ownership extends Component {
 
   async componentDidMount() {
     let contract = require("truffle-contract");
-    let AuctionsContract = await contract(Auctions);
+    let SaleAuctionContract = await contract(SaleAuction);
     let accounts = await this.props.web3.eth.getAccounts();
 
-    await AuctionsContract.setProvider(this.props.web3.currentProvider);
+    await SaleAuctionContract.setProvider(this.props.web3.currentProvider);
 
-    let instance = await AuctionsContract.deployed();
+    let instance = await SaleAuctionContract.deployed();
 
     await this.setState({ instance: instance, currAddr: accounts[0] });
   }
 
   async handleSubmit(e) {
-    e.preventDefault();
+    await e.preventDefault();
+
     let accounts = await this.props.web3.eth.getAccounts();
-    await this.state.instance.giveOwnership(this.state.newOwner, {from: accounts[0]});
+    await this.state.instance.giveOwnership(this.state.newOwner, { from: accounts[0] });
   }
 
   handleChange(e) {
@@ -38,7 +39,7 @@ export default class Ownership extends Component {
   }
 
   render() {
-    return(
+    return (
       <div>
         <form onSubmit={this.handleSubmit}>
           <div className="grid-x grid-margin-x">
@@ -46,7 +47,7 @@ export default class Ownership extends Component {
               <label>
                 New owner Address:
 
-                <input 
+                <input
                   type="text"
                   onChange={this.handleChange}
                   value={this.state.newOwner}
