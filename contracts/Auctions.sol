@@ -19,6 +19,7 @@ contract Auctions is Token {
         emit LogAuctionCreated(id);
     }
 
+    // TODO: CHANGE FUNCTION NAME
     function setNft(address _nft) public onlyOwner() {
         nft = SaleAuction(_nft);
     }

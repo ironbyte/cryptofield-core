@@ -51,7 +51,7 @@ contract GOPCreator is Ownable, usingOraclize {
     constructor(address _addr) public {
         owner = msg.sender;
         core = Core(_addr);
-        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         // From 1 to 4 there will be 500 more available for later use.
         horsesForGen[1] = 1000;
@@ -96,9 +96,6 @@ contract GOPCreator is Ownable, usingOraclize {
         require(horsesForGen[currentOpenBatch] != 0, "Cap for Gen specified already met");
 
         uint256 amount;
-        uint256 horseId = core.createGOP(_owner, _hash, currentOpenBatch);
-
-        if(horseId == 0) return horseId; 
 
         if(currentOpenBatch == 1 || currentOpenBatch == 5) amount = 0.40 ether;
         if(currentOpenBatch == 2) amount = 0.30 ether;
@@ -118,8 +115,14 @@ contract GOPCreator is Ownable, usingOraclize {
 
             _createAuction(amount, _hash);
 
-            return horseId;
+            horsesForGen[currentOpenBatch] = horsesForGen[currentOpenBatch].sub(1);
+
+            return 0;
         }
+
+        uint256 horseId = core.createGOP(_owner, _hash, currentOpenBatch);
+
+        if(horseId == 0) return horseId;
 
         // This is only needed in case the batch open is between 1 and 4 since they have a fixed price
         // otherwise we just put the hors einto auction and return.
