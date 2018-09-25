@@ -143,7 +143,7 @@ class App extends Component {
             onClick={this.auctions}
             className="button expanded success"
           >
-            Create Auction
+            Create Auction or Put a Horse In Stud
           </button>
         </div>
 

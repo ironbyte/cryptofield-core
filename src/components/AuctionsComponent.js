@@ -19,29 +19,41 @@ export default class AuctionsComponent extends Component {
     for (let i = 0; i < ownedTokens.length; i++) {
       let horseData = await this.props.coreInstance.getHorseData.call(ownedTokens[i]);
       let type = await this.props.web3.utils.hexToUtf8(horseData[8]); // [8] is the Horse Type
+      let horseGender = await this.props.web3.utils.hexToUtf8(horseData[1]);
 
       // [0] is the HorseHash
       window.ipfs.catJSON(horseData[0], (err, obj) => {
-        // obj.isApproved = result.toString();
         obj.id = ownedTokens[i].toNumber();
         obj.horse_type = type;
+        obj.gender = horseGender;
+        obj.name = horseData[4];
 
         this.setState(prevState => ({ tokens: [...prevState.tokens, obj] }));
       })
     }
   }
 
-  // async isApproved(id) {
-  //   return await this.props.coreInstance.isTokenApproved.call(this.state.instance.address, id)
-  // }
-
-  async approveToken(id) {
-    let accounts = await this.props.web3.eth.getAccounts();
-    await this.props.coreInstance.approveAuctions(id, { from: accounts[0] });
+  async createAuction(id) {
+    await this.setState(prevState => ({ creatingAuction: !prevState.creatingAuction, horseInAuction: id }))
   }
 
-  async createAuction(id) {
-    this.setState(prevState => ({ creatingAuction: !prevState.creatingAuction, horseInAuction: id }))
+  evaluateHorseType(type, id) {
+    if (id === 0) {
+      return (<td>Genesis Horse</td>)
+    } else if (type === "F") {
+      return (<td>Not male</td>)
+    } else {
+      return (<td onClick={this.putInStud.bind(this, id)}><strong>Put in stud!</strong></td>)
+    }
+  }
+
+  async putInStud(id) {
+    let acc = await this.props.web3.eth.getAccounts();
+    let query = await this.props.coreInstance.getQueryPrice.call();
+    let amount = await this.props.web3.utils.toWei("0.14", "ether");
+    let duration = 259200
+
+    await this.props.coreInstance.putInStud(id, amount, duration, { from: acc[0], value: query });
   }
 
   render() {
@@ -59,7 +71,8 @@ export default class AuctionsComponent extends Component {
               <th>Origin</th>
               <th>Pedigree</th>
               <th>Running style</th>
-              <th>Create Auction</th>
+              <th></th>
+              <th>Availability</th>
             </tr>
           </thead>
 
@@ -77,7 +90,8 @@ export default class AuctionsComponent extends Component {
                     <td>{token.origin}</td>
                     <td>{token.pedigree}</td>
                     <td>{token.running_style}</td>
-                    <td onClick={this.createAuction.bind(this, token.id)}> <strong>Create</strong>  </td>
+                    <td onClick={this.createAuction.bind(this, token.id)}><strong>Create Auction</strong></td>
+                    {this.evaluateHorseType(token.gender, token.id)}
                   </tr>
                 )
               })
