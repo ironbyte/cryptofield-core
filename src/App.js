@@ -8,6 +8,7 @@ import AuctionsComponent from "./components/AuctionsComponent";
 import OpenAuctions from "./components/OpenAuctions";
 import AuctionClosing from "./components/AuctionClosing";
 import ParticipatingAuctions from "./components/ParticipatingAuctions";
+import AuctionsCreated from "./components/AuctionsCreated";
 import Ownership from "./components/Ownership";
 
 import { Link } from "react-router-dom";
@@ -115,6 +116,10 @@ class App extends Component {
         <OpenAuctions />
 
         <ParticipatingAuctions />
+
+        <hr />
+
+        <AuctionsCreated />
 
         <div className="text-center cell">
           <img

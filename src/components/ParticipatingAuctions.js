@@ -17,7 +17,6 @@ export default class ParticipatingAuctions extends Component {
     }
 
     this.auctionStatus = this.auctionStatus.bind(this);
-    // this.withdraw = this.withdraw.bind(this);
   }
 
   async componentDidMount() {
@@ -26,15 +25,16 @@ export default class ParticipatingAuctions extends Component {
     let accounts = await this.state.web3.eth.getAccounts();
     let participatingAuctions = await this.state.instance.participatingIn.call(accounts[0]);
 
-    for (let i = 0; i < participatingAuctions.length; i++) {
-      let currAuction = participatingAuctions[i];
-      let auction = await this.state.instance.getAuction.call(currAuction);
-      let status = await this.state.instance.getAuctionStatus.call(currAuction);
+    const auctionInfo = participatingAuctions.map(async id => {
+      let auction = await this.state.instance.getAuction.call(id);
+      let status = await this.state.instance.getAuctionStatus.call(id);
 
-      auction = auction.concat(status).concat(currAuction.toString());
+      return { owner: auction[0], timestamp: auction[1], horse: auction[3], status: status, id: id }
+    })
 
-      await this.setState(prevState => ({ auctions: [...prevState.auctions, auction] }));
-    }
+    let res = await Promise.all(auctionInfo);
+
+    await this.setState({ auctions: res });
   }
 
   async initWeb3() {
@@ -61,7 +61,13 @@ export default class ParticipatingAuctions extends Component {
   async withdraw(auction) {
     let accounts = await this.state.web3.eth.getAccounts();
 
-    await this.state.instance.withdraw(auction, { from: accounts[0], gas: 200000 })
+    await this.state.instance.withdraw(auction, { from: accounts[0], gas: 1000000 })
+  }
+
+  canWithdraw(status, id) {
+    if (status.toString() === "true") { return (<td></td>) }
+
+    return (<td onClick={this.withdraw.bind(this, id)}><strong>Withdraw</strong></td>)
   }
 
   // HTML RENDERING FUNCTIONS
@@ -76,7 +82,7 @@ export default class ParticipatingAuctions extends Component {
               <td>Created at</td>
               <td>Horse</td>
               <td>Status</td>
-              <td>Withdraw?</td>
+              <td></td>
             </tr>
           </thead>
 
@@ -85,14 +91,13 @@ export default class ParticipatingAuctions extends Component {
               this.state.auctions.map((auction, index) => {
                 return (
                   <tr key={index}>
-                    <td>{auction[0]}</td>
-                    <td>{moment.unix(auction[1].toNumber()).format("LLL")}</td>
-                    <td>{auction[3].toString()}</td>
-                    <td>{this.auctionStatus(auction[4])}</td>
+                    <td>{auction.owner}</td>
+                    <td>{moment.unix(auction.timestamp.toNumber()).format("LLL")}</td>
+                    <td>{auction.horse.toString()}</td>
+                    <td>{this.auctionStatus(auction.status)}</td>
 
                     {
-                      auction[4].toString() === "false" &&
-                      <td onClick={this.withdraw.bind(this, auction[5])}>Click to withdraw</td>
+                      this.canWithdraw(auction.status, auction.id)
                     }
                   </tr>
                 )

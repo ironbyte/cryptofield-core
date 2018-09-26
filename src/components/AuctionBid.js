@@ -18,10 +18,10 @@ export default class AuctionBid extends Component {
     let accounts = await this.props.web3.eth.getAccounts();
     let bid = await this.props.instance.bidOfBidder.call(accounts[0], this.props.auction)
 
-    await this.setState({ 
+    await this.setState({
       bidAmount: this.props.askingPrice,
       currBid: this.props.web3.utils.fromWei(bid.toString())
-     })
+    })
   }
 
   async handleSubmit(e) {
@@ -29,7 +29,7 @@ export default class AuctionBid extends Component {
 
     let accounts = await this.props.web3.eth.getAccounts();
     let bid = this.props.web3.utils.toWei(this.state.bidAmount, "ether");
-    await this.props.instance.bid(this.props.auction, {from: accounts[0], value: bid});
+    await this.props.instance.bid(this.props.auction, { from: accounts[0], value: bid });
   }
 
   handleChange(e) {
@@ -37,7 +37,7 @@ export default class AuctionBid extends Component {
   }
 
   render() {
-    return(
+    return (
       <div>
         <h2 className="text-center">Creating bid for auction nº {this.props.auction}</h2>
 
@@ -47,19 +47,19 @@ export default class AuctionBid extends Component {
               <label>
                 Amount:
 
-                <input 
+                <input
                   onChange={this.handleChange}
-                  type="number" 
-                  value={this.state.bidAmount} 
-                  name="bidAmount" 
+                  type="number"
+                  value={this.state.bidAmount}
+                  name="bidAmount"
                   placeholder="Bid is in ether"
                   step="any" />
               </label>
             </div>
-            
+
             <div className="text-center cell">
               <h2>Your current bid is: {this.state.currBid}</h2>
-              
+
               {
                 this.state.bidAmount !== "" &&
                 <h3>

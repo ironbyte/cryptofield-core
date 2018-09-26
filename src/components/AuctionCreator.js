@@ -33,12 +33,12 @@ export default class AuctionCreator extends Component {
     await e.preventDefault();
 
     // Test values, state should be used when doing this.
-    let duration = moment().add(1, "day").diff(moment(), "seconds") + 1;
+    // let duration = moment().add(1, "day").diff(moment(), "seconds") + 1;
     let accounts = await this.props.web3.eth.getAccounts();
     let price = await this.state.saleAuctionsInstance.getQueryPrice.call();
 
     await this.props.coreInstance.createAuction(
-      duration,
+      120,
       this.props.horse,
       this.props.web3.utils.toWei(this.state.minimum, "ether"),
       { from: accounts[0], value: price }
