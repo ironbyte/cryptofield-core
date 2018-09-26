@@ -36,13 +36,16 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
         mapping(address => bool) exists;
     }
 
-    mapping(uint256 => AuctionData) auctions;
+    mapping(uint256 => AuctionData) internal auctions;
 
     // Maps an auction ID to an index.
-    mapping(uint256 => uint256) auctionIndex;
+    mapping(uint256 => uint256) private auctionIndex;
 
     // Maps address to auction
-    mapping(address => uint256[]) auctionsParticipating;
+    mapping(address => uint256[]) internal auctionsParticipating;
+
+    // Maps address to auctions created
+    mapping(address => uint256[]) internal auctionsCreatedBy;
     
     event LogBid(address _bidder, uint256 _amount);
     event LogWithdraw(address _user, uint256 _payout);
@@ -71,6 +74,8 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
         uint256 index = openAuctions.push(auctionId) - 1;
         auctionIndex[auctionId] = index;
+
+        auctionsCreatedBy[_owner].push(auctionId);
 
         return auctionId;
     }
@@ -126,15 +131,6 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
             delete auction.maxBid;
         }
 
-        // We ensure the msg.sender isn't either the max bidder or the owner.
-        // If the address is the owner that would evaluate to true two times (above and this one)
-        // and 'payout' wouldn't be correct.
-        // If 'msg.sender' didn't bid then the payout will be 0.
-        if(msg.sender != auction.maxBidder && msg.sender != auction.owner) {
-            payout = auction.bids[msg.sender];
-            delete auction.bids[msg.sender];
-        }
-
         if(msg.sender == auction.maxBidder) {
             // Sends the token from 'auction.owner' to 'maxBidder'.
             core.tokenSold(auction.horse);
@@ -144,6 +140,15 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
             // Return so we don't send an innecesary transfer, the token is the prize.
             return true;
+        }
+
+        // We ensure the msg.sender isn't either the max bidder or the owner.
+        // If the address is the owner that would evaluate to true two times (above and this one)
+        // and 'payout' wouldn't be correct.
+        // If 'msg.sender' didn't bid then the payout will be 0.
+        if(msg.sender != auction.maxBidder && msg.sender != auction.owner) {
+            payout = auction.bids[msg.sender];
+            delete auction.bids[msg.sender];
         }
 
         msg.sender.transfer(payout);
@@ -244,6 +249,13 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
     */
     function getOpenAuctions() public view returns(uint256[]) {
         return openAuctions;
+    }
+
+    /*
+    @dev Returns ids of the auctions created by 'msg.sender'
+    */
+    function getAuctionsCreated(address _from) public view returns(uint256[]) {
+        return auctionsCreatedBy[_from];
     }
 
     /*
