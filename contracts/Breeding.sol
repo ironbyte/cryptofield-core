@@ -56,9 +56,12 @@ contract Breeding is Ownable {
         require(core.exists(_maleParent) && core.exists(_femaleParent), "Horses don't exist");
         require(core.isHorseInStud(_maleParent), "Male not in stud");
         require(msg.value >= core.matingPrice(_maleParent), "Mating cover not met");
+        // require(core.ownerOf(_maleParent) != msg.sender && core.ownerOf(_femaleParent) != msg.sender, "Owner of both horses");
 
         // The owner of the female horse is the owner of the offspring.
         address offspringOwner = core.ownerOf(_femaleParent);
+
+        require(offspringOwner != core.ownerOf(_maleParent), "Owner of both horses");
 
         HorseBreed storage male = horseBreedById[_maleParent];
         HorseBreed storage female = horseBreedById[_femaleParent];

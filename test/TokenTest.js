@@ -58,10 +58,10 @@ contract("Token", acc => {
   })
 
   it("should use the given name if one is passed", async () => {
-    await gop.createGOP(owner, "female hash", { value: amount }); // 1
-    await gop.createGOP(owner, "male hash", { value: amount }); // 2
+    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 1
+    await gop.createGOP(acc[2], "male hash", { from: acc[2], value: amount }); // 2
 
-    await instance.putInStud(2, amount, 1, { from: owner, value: query });
+    await instance.putInStud(2, amount, 1, { from: acc[2], value: query });
 
     await breed.mix(2, 1, "female offspring hash", { from: owner, value: amount }); // 3
 
