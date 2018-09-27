@@ -13,7 +13,8 @@ contract Auctions is Token {
         require(msg.sender == ownerOf(_horseId), "notTokenOwner");
 
         // approves the SaleAuction contract to transfer the token.
-        approve(nft, _horseId);
+        // approve(nft, _horseId);
+        safeTransferFrom(msg.sender, nft, _horseId); // New owner is the contract.
 
         uint256 id = nft.createAuction.value(msg.value)(msg.sender, _duration, _horseId, _minimum);
         emit LogAuctionCreated(id);
