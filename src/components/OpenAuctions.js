@@ -30,28 +30,7 @@ export default class OpenAuctions extends Component {
 
   async componentDidMount() {
     await this.initWeb3();
-
-    let auctionsOpen = await this.state.instance.getOpenAuctions.call();
-    let accounts = await this.state.web3.eth.getAccounts();
-
-    for (let i = 0; i < auctionsOpen.length; i++) {
-      let currAuction = auctionsOpen[i];
-      let auction = await this.state.instance.getAuction.call(currAuction);
-      let amountOfBidders = await this.state.instance.amountOfBidders.call(currAuction);
-      let minimum = await this.state.instance.getMinimumAuctionPrice.call(currAuction);
-      let maxBid = await this.state.instance.getMaxBidder.call(currAuction); // Array of two elements.
-
-      auction = auction // 4
-        .concat(amountOfBidders) // 5
-        .concat(this.state.web3.utils.fromWei(minimum.toString())) // 6
-        .concat(this.state.web3.utils.fromWei(maxBid[1].toString())) // 7
-        .concat(currAuction); // Auction ID // 8
-
-      await this.setState(prevState => ({
-        auctions: [...prevState.auctions, auction],
-        currAddress: accounts[0]
-      }));
-    }
+    await this.getOpenAuctions();
   }
 
   async initWeb3() {
@@ -71,6 +50,33 @@ export default class OpenAuctions extends Component {
     await this.setState({ instance: instance });
   }
 
+  async getOpenAuctions() {
+    let auctionsOpen = await this.state.instance.getOpenAuctions.call();
+    let accounts = await this.state.web3.eth.getAccounts();
+
+    const auctionInfo = auctionsOpen.map(async auction => {
+      let info = await this.state.instance.getAuction.call(auction);
+      let amountOfBidders = await this.state.instance.amountOfBidders.call(auction);
+      let min = await this.state.instance.getMinimumAuctionPrice.call(auction);
+      let maxBid = await this.state.instance.getMaxBidder.call(auction);
+
+      return {
+        owner: info[0],
+        created: info[1],
+        duration: info[2],
+        horseId: info[3],
+        amountOfBidders: amountOfBidders,
+        min: min,
+        maxBid: maxBid,
+        id: auction
+      }
+    })
+
+    let result = await Promise.all(auctionInfo);
+
+    await this.setState({ auctions: result, currAddress: accounts[0] })
+  }
+
   // HTML rendering functions
   calculateTimeLeft(start, duration) {
     return <Countdown endDate={moment.unix(start).add(duration, "seconds")} />
@@ -82,6 +88,12 @@ export default class OpenAuctions extends Component {
       biddingAuctionId: id.toString(),
       askingPrice: asking
     }))
+  }
+
+  displayAmount(amount) {
+    let converted = new this.state.web3.utils.toBN(amount);
+
+    return (<td>{this.state.web3.utils.fromWei(converted, "ether")}</td>);
   }
 
   auctionsTable() {
@@ -108,17 +120,17 @@ export default class OpenAuctions extends Component {
               this.state.auctions.map((auction, index) => {
                 return (
                   <tr key={index}>
-                    <td>{auction[0]}</td>
-                    <td>{moment.unix(auction[1].toNumber()).format("LLL")}</td>
-                    <td>{this.calculateTimeLeft(auction[1].toNumber(), auction[2].toNumber())}</td>
-                    <td>{auction[3].toString()}</td>
-                    <td>{auction[4].toString()}</td>
-                    <td>{auction[5]}</td>
-                    <td>{auction[6]}</td>
+                    <td>{auction.owner}</td>
+                    <td>{moment.unix(auction.created.toNumber()).format("LLL")}</td>
+                    <td>{this.calculateTimeLeft(auction.created.toNumber(), auction.duration.toNumber())}</td>
+                    <td>{auction.horseId.toString()}</td>
+                    <td>{auction.amountOfBidders.toString()}</td>
+                    {this.displayAmount(auction.min)}
+                    {this.displayAmount(auction.maxBid[1])}
 
                     {
-                      auction[0] !== this.state.currAddress &&
-                      <td onClick={this.bid.bind(this, auction[7], auction[5])}>Click to bid</td>
+                      auction.owner !== this.state.currAddress &&
+                      <td onClick={this.bid.bind(this, auction.id, auction.min)}>Click to bid</td>
                     }
                   </tr>
                 )

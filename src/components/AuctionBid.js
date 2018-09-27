@@ -17,10 +17,12 @@ export default class AuctionBid extends Component {
   async componentDidMount() {
     let accounts = await this.props.web3.eth.getAccounts();
     let bid = await this.props.instance.bidOfBidder.call(accounts[0], this.props.auction)
+    let bidConverted = await this.props.web3.utils.toBN(bid).toString();
+    let askingConverted = await this.props.web3.utils.toBN(this.props.askingPrice).toString();
 
     await this.setState({
-      bidAmount: this.props.askingPrice,
-      currBid: this.props.web3.utils.fromWei(bid.toString())
+      bidAmount: this.props.web3.utils.fromWei(askingConverted),
+      currBid: this.props.web3.utils.fromWei(bidConverted)
     })
   }
 
@@ -28,7 +30,7 @@ export default class AuctionBid extends Component {
     await e.preventDefault();
 
     let accounts = await this.props.web3.eth.getAccounts();
-    let bid = this.props.web3.utils.toWei(this.state.bidAmount, "ether");
+    let bid = await this.props.web3.utils.toWei(this.state.bidAmount, "ether");
     await this.props.instance.bid(this.props.auction, { from: accounts[0], value: bid });
   }
 

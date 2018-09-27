@@ -204,6 +204,7 @@ class App extends Component {
           }
 
           <Link to="/breeding" className="button expanded success">Breeding</Link>
+          <Link to="/system/presale" className="button expanded success">Presale</Link>
         </div>
       </div>
     );

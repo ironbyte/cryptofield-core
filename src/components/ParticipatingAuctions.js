@@ -61,7 +61,7 @@ export default class ParticipatingAuctions extends Component {
   async withdraw(auction) {
     let accounts = await this.state.web3.eth.getAccounts();
 
-    await this.state.instance.withdraw(auction, { from: accounts[0], gas: 1000000 })
+    await this.state.instance.withdraw(auction, { from: accounts[0], gas: 2000000 })
   }
 
   canWithdraw(status, id) {

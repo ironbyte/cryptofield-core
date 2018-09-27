@@ -38,7 +38,7 @@ export default class AuctionCreator extends Component {
     let price = await this.state.saleAuctionsInstance.getQueryPrice.call();
 
     await this.props.coreInstance.createAuction(
-      120,
+      60,
       this.props.horse,
       this.props.web3.utils.toWei(this.state.minimum, "ether"),
       { from: accounts[0], value: price }

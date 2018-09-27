@@ -1,6 +1,9 @@
 import React, { Component } from "react";
-import GOPCreator from "./../../../build/contracts/GOPCreator.json";
+import { Link } from "react-router-dom";
+
 import getWeb3 from "./../../utils/getWeb3";
+
+import GOPCreator from "./../../../build/contracts/GOPCreator.json";
 
 export default class PresaleComponent extends Component {
   constructor(props) {
@@ -186,6 +189,8 @@ export default class PresaleComponent extends Component {
           Number(this.state.batches.open) >= 5 && Number(this.state.batches.open) <= 10 &&
           this.renderGOPAuction()
         }
+
+        <Link to="/" className="button expanded success">Home</Link>
       </div>
     )
   }
