@@ -99,21 +99,14 @@ export default class PresaleComponent extends Component {
     fetch("https://cryptofield.app/api/v1/generate_horse")
       .then(res => { return res.json() })
       .then(horseData => {
-        let query = this.web3.utils.toWei("1", "ether");
-
-        console.log(horseData)
-
-        // this.state.instance.getQueryPrice.call().then(res => { query = res });
-
         this.web3.eth.getAccounts((err, accs) => {
-          console.log(accs)
-          this.state.instance.createGOP(accs[0], "QmXVaGDcwEXpV3CkrQouMkoQBMc5tEUCVHNNWeZqqKeipM", { from: accs[0], value: query });
+          this.state.instance.getQueryPrice.call().then(query => {
+            window.ipfs.addJSON(horseData, (err, horseHash) => {
+              let hash = horseHash
 
-          // window.ipfs.addJSON(horseData, (err, horseHash) => {
-          //   let hash = horseHash
-          //   console.log(hash)
-
-          // })
+              this.state.instance.createGOP(accs[0], hash, { from: accs[0], value: query });
+            })
+          })
         })
       })
       .catch(err => { console.log("ERROR CREATING HORSE", err) });

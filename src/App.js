@@ -10,6 +10,7 @@ import AuctionClosing from "./components/AuctionClosing";
 import ParticipatingAuctions from "./components/ParticipatingAuctions";
 import AuctionsCreated from "./components/AuctionsCreated";
 import Ownership from "./components/Ownership";
+import GOPAuctions from "./components/gop/GOPAuctions";
 
 import { Link } from "react-router-dom";
 
@@ -35,34 +36,25 @@ class App extends Component {
     this.transferOwnership = this.transferOwnership.bind(this);
   }
 
-  componentDidMount() {
-    getWeb3
-      .then(results => {
-        this.web3 = results.web3;
+  async componentDidMount() {
+    let result = await getWeb3;
+    this.web3 = result.web3;
 
-        // Instantiate contract once web3 provided.
-        this.instantiateContract()
-      })
-      .catch(() => {
-        console.log('Error finding web3.')
-      })
+    await this.instantiateContract();
   }
 
-  instantiateContract() {
+  async instantiateContract() {
     let contract = require('truffle-contract')
-    let GOPCreatorContract = contract(GOPCreator);
-    let CoreContract = contract(Core);
+    let GOPCreatorContract = await contract(GOPCreator);
+    let CoreContract = await contract(Core);
 
-    GOPCreatorContract.setProvider(this.web3.currentProvider);
-    CoreContract.setProvider(this.web3.currentProvider);
+    await GOPCreatorContract.setProvider(this.web3.currentProvider);
+    await CoreContract.setProvider(this.web3.currentProvider);
 
-    CoreContract.deployed().then(instance => {
-      this.setState({ coreInstance: instance });
-    })
+    let coreInstance = await CoreContract.deployed();
+    let gopInstance = await GOPCreatorContract.deployed();
 
-    GOPCreatorContract.deployed().then(i => {
-      this.setState({ gopInstance: i });
-    })
+    await this.setState({ coreInstance: coreInstance, gopInstance: gopInstance });
   }
 
   buy() {
@@ -72,7 +64,7 @@ class App extends Component {
         this.setState({ genIPFS: true })
 
         window.ipfs.addJSON(res, (err, hash) => {
-          let price = this.web3.utils.toWei("1", "ether");
+          let price = this.web3.utils.toWei("0.50", "ether");
 
           console.log(hash, "IPFS HORSE HASH");
 
@@ -113,6 +105,8 @@ class App extends Component {
   render() {
     return (
       <div className="grid-x grid-margin-x">
+        <GOPAuctions />
+
         <OpenAuctions />
 
         <ParticipatingAuctions />
