@@ -47,7 +47,7 @@ contract StudService is Auctions, usingOraclize {
     }
 
     constructor() public {
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     event LogHorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);
@@ -93,6 +93,10 @@ contract StudService is Auctions, usingOraclize {
 
     function removeFromStud(uint256 _id) public onlyHorseOwner(_id) {
         delete studs[_id];
+        // The horse will be removed from Stud (Will not be visible) but whoever is the owner will have
+        // to wait for the initial cooldown or that '__callback' is called to be able to put the horse
+        // in stud again, unless 'removeHorseOWN/1' is called by the 'owner'.
+        _removeHorseFromStud(_id);
     }
 
     function studInfo(uint256 _id) public view returns(bool, uint256, uint256) {

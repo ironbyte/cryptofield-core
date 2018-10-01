@@ -93,4 +93,17 @@ contract("StudService", acc => {
 
     assert.equal(studInfo[2].toNumber(), 259200); // Default to three days.
   })
+
+  it("should remove the horse from the list of horses in stud", async () => {
+    // Horse 2 is in Stud at the moment.
+    let horses = await core.getHorsesInStud.call();
+
+    assert.deepEqual(horses.toString(), '2');
+
+    await core.removeFromStud(2, { from: owner });
+
+    horses = await core.getHorsesInStud.call();
+
+    assert.deepEqual(horses, []);
+  })
 })
