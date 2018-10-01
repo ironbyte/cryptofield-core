@@ -101,7 +101,7 @@ contract("GOPCreator", acc => {
         // When we're creating an auction, the first parameter doesn't matter.
         await instance.createGOP(owner, "some hash", { from: owner, value: amount }); // Auction 1
 
-        let auction = await instance.auctionInformation.call(1);
+        let auction = await instance.auctionInformation.call(0);
         assert.equal(auction[2].toNumber(), 5);
         assert.equal(auction[3].toNumber(), 0);
         assert.equal(auction[6], true);

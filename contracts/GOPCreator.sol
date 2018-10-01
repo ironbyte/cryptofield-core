@@ -5,6 +5,8 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Core.sol";
 import "./usingOraclize.sol";
 
+// TODO: ADD USER TO AUCTIONS THEY'VE PARTICIPATED AND THE OWNER TOO
+
 /*
 @dev Contract in charge of creating auctions for G1P horses
 from 1 to 10, i.e. ZED 1 / ZED 10, having a lower genotype makes a horse rarer.
@@ -51,7 +53,7 @@ contract GOPCreator is Ownable, usingOraclize {
     constructor(address _addr) public {
         owner = msg.sender;
         core = Core(_addr);
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         // From 1 to 4 there will be 500 more available for later use.
         horsesForGen[1] = 1000;
@@ -150,7 +152,7 @@ contract GOPCreator is Ownable, usingOraclize {
     auctions from users.
     */
     function _createAuction(uint256 _minimum, string _hash) private {
-        uint256 id = gopsAuctionsList.push(1);
+        uint256 id = gopsAuctionsList.push(1) - 1;
 
         GOP memory g;
         g.createdAt = now;
@@ -270,6 +272,20 @@ contract GOPCreator is Ownable, usingOraclize {
 
     function getQueryPrice() public returns(uint256) {
         return oraclize_getPrice("URL");
+    }
+
+    /*
+    @dev Returns the bid of the '_bidder'
+    */
+    function bidOfBidder(address _bidder, uint256 _auction) public view returns(uint256) {
+        return gopAuctions[_auction].bidFor[_bidder];
+    }
+
+    // TODO: TEST
+    /*  RESTRICTED  */
+    function closeAuction(uint256 _auction) public onlyOwner() {
+        _removeAuction(_auction);
+        gopAuctions[_auction].isOpen = false;
     }
 
     /*  PRIVATE FUNCS   */
