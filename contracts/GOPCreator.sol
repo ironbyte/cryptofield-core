@@ -45,6 +45,7 @@ contract GOPCreator is Ownable, usingOraclize {
     mapping(uint256 => uint256) internal horsesForGen;
     mapping(uint256 => bool) internal firstHalfCompleted;
     mapping(address => uint256[]) internal auctionsParticipating;
+    mapping(address => uint256[]) internal auctionsCreatedBy;
     mapping(uint256 => uint256) internal auctionIndex;
 
     event LogGOPBid(address _owner, uint256 _amount);
@@ -90,7 +91,7 @@ contract GOPCreator is Ownable, usingOraclize {
     }
 
     /*
-    @dev  Depending of the batch open we're going to directly sell the horse or 
+    @dev  Depending of the batch open we're going to directly sell the horse or
     put them in Auctions first, only owner can put the horse into Auctions.
     */
     function createGOP(address _owner, string _hash) public payable returns(uint256) {
@@ -148,11 +149,11 @@ contract GOPCreator is Ownable, usingOraclize {
     }
 
     /*
-    @dev The auction functionality here is the same as the logic in the 'SaleContract' used for 
+    @dev The auction functionality here is the same as the logic in the 'SaleContract' used for
     auctions from users.
     */
     function _createAuction(uint256 _minimum, string _hash) private {
-        uint256 id = gopsAuctionsList.push(1) - 1;
+        uint256 id = gopsAuctionsList.push(1);
 
         GOP memory g;
         g.createdAt = now;
@@ -171,6 +172,8 @@ contract GOPCreator is Ownable, usingOraclize {
 
         // Default is one week in seconds
         oraclize_query(604800, "URL", url, payload);
+
+        auctionsCreatedBy[msg.sender].push(id);
     }
 
     function __callback(bytes32 _id, string _result) public {
@@ -243,9 +246,9 @@ contract GOPCreator is Ownable, usingOraclize {
     /*
     @dev returns the information from a GOP Auction
     */
-    function auctionInformation(uint256 _auction) 
-    public 
-    view 
+    function auctionInformation(uint256 _auction)
+    public
+    view
     returns(uint256, uint256, uint256, uint256, uint256, address, bool) {
         GOP memory g = gopAuctions[_auction];
         return(g.createdAt, g.minimum, g.gen, g.bidders.length, g.maxBid, g.maxBidder, g.isOpen);
@@ -279,6 +282,14 @@ contract GOPCreator is Ownable, usingOraclize {
     */
     function bidOfBidder(address _bidder, uint256 _auction) public view returns(uint256) {
         return gopAuctions[_auction].bidFor[_bidder];
+    }
+
+    /*
+    @dev Returns a two lists, the auctions the user is participating in and
+    the auctions the user created.
+    */
+    function getAuctionsFor(address _user) public view returns(uint256[], uint256[]) {
+        return(auctionsCreatedBy[_user], auctionsParticipating[_user]);
     }
 
     // TODO: TEST
