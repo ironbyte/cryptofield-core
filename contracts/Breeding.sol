@@ -49,6 +49,7 @@ contract Breeding is Ownable {
     }
 
     // TODO: msg.sender CAN'T BE THE OWNER OF BOTH HORSES
+    // TODO: TEST
     /*
     @dev Creates a new token based on parents.
     */
@@ -56,7 +57,7 @@ contract Breeding is Ownable {
         require(core.exists(_maleParent) && core.exists(_femaleParent), "Horses don't exist");
         require(core.isHorseInStud(_maleParent), "Male not in stud");
         require(msg.value >= core.matingPrice(_maleParent), "Mating cover not met");
-        // require(core.ownerOf(_maleParent) != msg.sender && core.ownerOf(_femaleParent) != msg.sender, "Owner of both horses");
+        require(_notSameOwner(_maleParent, _femaleParent), "Owner of both horses");
 
         // The owner of the female horse is the owner of the offspring.
         address offspringOwner = core.ownerOf(_femaleParent);
@@ -156,6 +157,16 @@ contract Breeding is Ownable {
         if(f.grandparents[_male]) return false;
 
         return true;
+    }
+
+    /*
+    @dev Checks whether 'msg.sender' is the owner of both horses or no.
+    */
+    function _notSameOwner(uint256 _male, uint256 _female) private view returns(bool) {
+        address maleOwner = core.ownerOf(_male);
+        address femOwner = core.ownerOf(_female);
+
+        return maleOwner != femOwner;
     }
 
     /*
