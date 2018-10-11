@@ -69,7 +69,7 @@ contract("Breeding", acc => {
     await instance.mix(4, 1, "female offspring hash", { from: owner, value: priceyAmount }); // 5
 
     let genotype = await core.getHorseData.call(5); // At this point parents had 1 and 1 as genotype.
-    assert.equal(genotype[6].toNumber(), 2);
+    assert.equal(genotype[5].toNumber(), 2);
   })
 
   // Maybe same as above tests but with a more direct approach
@@ -186,7 +186,7 @@ contract("Breeding", acc => {
     await instance.mix(18, 17, "female offspring hash", { from: owner, value: web3.toWei(0.01, "ether") }); // 19
 
     let bloodline = await core.getHorseData.call(19); // Nakamoto + Nakamoto = Nakamoto
-    assert.equal(web3.toUtf8(bloodline[7]), "N");
+    assert.equal(web3.toUtf8(bloodline[6]), "N");
 
     for (let i = 20; i <= 325; i++) {
       if (i == 100) {
@@ -204,15 +204,15 @@ contract("Breeding", acc => {
     await instance.mix(18, 321, "female offspring hash", { from: acc[5], value: amount }); // 326
 
     bloodline = await core.getHorseData.call(325);
-    assert.equal(web3.toUtf8(bloodline[7]), "S");
+    assert.equal(web3.toUtf8(bloodline[6]), "S");
   })
 
   it("should change the type of the horse once it has it's first offspring", async () => {
     let maleType = await core.getHorseData.call(22);
     let femaleType = await core.getHorseData.call(319);
 
-    assert.equal(web3.toUtf8(maleType[8]), "Colt"); // Colt
-    assert.equal(web3.toUtf8(femaleType[8]), "Filly"); // Filly
+    assert.equal(web3.toUtf8(maleType[7]), "Colt"); // Colt
+    assert.equal(web3.toUtf8(femaleType[7]), "Filly"); // Filly
 
     // await core.putInStud(22, amount, 1000, { from: acc[5], value: query });
 
@@ -221,7 +221,7 @@ contract("Breeding", acc => {
     maleType = await core.getHorseData.call(18);
     femaleType = await core.getHorseData.call(319);
 
-    assert.equal(web3.toUtf8(maleType[8]), "Stallion");
-    assert.equal(web3.toUtf8(femaleType[8]), "Mare");
+    assert.equal(web3.toUtf8(maleType[7]), "Stallion");
+    assert.equal(web3.toUtf8(femaleType[7]), "Mare");
   })
 })

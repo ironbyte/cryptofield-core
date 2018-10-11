@@ -58,9 +58,9 @@ contract Token is CryptofieldBase, ERC721Token {
     /*
     @dev Sets the name of a horse manually, this should be done only once.
     */
-    function setName(string _name, uint256 _tokenId) public ownerOfToken(_tokenId) {
-        setNameFor(_name, _tokenId);
-    }
+    // function setName(string _name, uint256 _tokenId) public ownerOfToken(_tokenId) {
+    //     setNameFor(_name, _tokenId);
+    // }
 
     // Check if an address has been granted approval of a token.
     function isTokenApproved(address _spender, uint256 _tokenId) public view returns(bool) {

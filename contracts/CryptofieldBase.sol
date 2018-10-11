@@ -18,14 +18,14 @@ contract CryptofieldBase is Ownable {
     HorseData public horseDataContract;
 
     // Names used for defaults in G1P.
-    string[6] private names = [
-        "Austin Riffle",
-        "Jerri Curl",
-        "Amoxi",
-        "Chase Jackson",
-        "Zeus",
-        "Apollo"
-    ];
+    // string[6] private names = [
+    //     "Austin Riffle",
+    //     "Jerri Curl",
+    //     "Amoxi",
+    //     "Chase Jackson",
+    //     "Zeus",
+    //     "Apollo"
+    // ];
 
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
@@ -39,10 +39,10 @@ contract CryptofieldBase is Ownable {
         uint256 lastTimeSold;
         uint256 amountOfTimesSold;
 
-        uint256[7] characteristics;
+        // uint256[7] characteristics;
 
         string horseHash;
-        string name;
+        // string name;
 
         bytes32 bloodline;
         bytes32 sex;
@@ -64,7 +64,6 @@ contract CryptofieldBase is Ownable {
         owner = msg.sender;
     }
 
-    // This function should have a random default name for the horse.
     function buyGOP(
         address _buyer, 
         string _horseHash, 
@@ -74,8 +73,8 @@ contract CryptofieldBase is Ownable {
     ) internal {
         require(bloodlineCounter <= 38000, "GOP cap met");
 
-        uint256 randNum = _getRand(5);
-        string memory nameChosen = names[randNum];
+        // uint256 randNum = _getRand(5);
+        // string memory nameChosen = names[randNum];
 
         // Pick the gender and type.
         if(gender == gen[0]) {
@@ -95,7 +94,7 @@ contract CryptofieldBase is Ownable {
         h.horseHash = _horseHash;
         h.sex = gender;
         h.baseValue = _baseValue;
-        h.name = nameChosen;
+        // h.name = nameChosen;
         h.genotype = genotype;
         h.bloodline = bloodline;
         h.hType = horseType;
@@ -157,7 +156,7 @@ contract CryptofieldBase is Ownable {
     )
     public
     view
-    returns(string, bytes32, uint256, uint256, string, uint256, uint256, bytes32, bytes32) {
+    returns(string, bytes32, uint256, uint256, uint256, uint256, bytes32, bytes32) {
         Horse storage h = horses[_horse];
 
         return (
@@ -165,7 +164,7 @@ contract CryptofieldBase is Ownable {
             h.sex,
             h.baseValue,
             h.timestamp,
-            h.name,
+            // h.name,
             h.amountOfTimesSold,
             h.genotype,
             h.bloodline,
@@ -197,14 +196,14 @@ contract CryptofieldBase is Ownable {
         emit LogHorseSell(_horseId, horse.amountOfTimesSold);
     }
 
-    /*
-    @dev Sets the name for a given horse, this is for Offsprings only, GOP have default names.
-    */
-    function setNameFor(string _name, uint256 _horseId) internal {
-        Horse storage h = horses[_horseId];
-        require(keccak256(abi.encodePacked(h.name)) == keccak256(abi.encodePacked("")), "Name is already defined");
-        horses[_horseId].name = _getName(_name, _horseId);
-    }
+    // /*
+    // @dev Sets the name for a given horse, this is for Offsprings only, GOP have default names.
+    // */
+    // function setNameFor(string _name, uint256 _horseId) internal {
+    //     Horse storage h = horses[_horseId];
+    //     require(keccak256(abi.encodePacked(h.name)) == keccak256(abi.encodePacked("")), "Name is already defined");
+    //     horses[_horseId].name = _getName(_name, _horseId);
+    // }
 
     /* RESTRICTED FUNCTIONS /*
 

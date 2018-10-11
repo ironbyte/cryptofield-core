@@ -36,8 +36,8 @@ contract("GOPCreator", acc => {
     let genotype = await core.getHorseData.call(2);
     let bloodline = await core.getHorseData.call(2);
 
-    assert.equal(genotype[6].toNumber(), 3);
-    assert.equal(web3.toUtf8(bloodline[7]), "S");
+    assert.equal(genotype[5].toNumber(), 3);
+    assert.equal(web3.toUtf8(bloodline[6]), "S");
   })
 
   it("should revert and not modify state", async () => {
@@ -50,7 +50,7 @@ contract("GOPCreator", acc => {
     }
 
     let genotype = await core.getHorseData.call(3);
-    assert.equal(genotype[6].toNumber(), 0);
+    assert.equal(genotype[5].toNumber(), 0);
   })
 
   it("should close the batch once the number of horses available is 500", async () => {

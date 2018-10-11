@@ -57,54 +57,54 @@ contract("Token", acc => {
     assert.equal(loggedOwner, newOwner);
   })
 
-  it("should use the given name if one is passed", async () => {
-    await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 1
-    await gop.createGOP(acc[2], "male hash", { from: acc[2], value: amount }); // 2
+  // it("should use the given name if one is passed", async () => {
+  //   await gop.createGOP(owner, "female hash", { from: owner, value: amount }); // 1
+  //   await gop.createGOP(acc[2], "male hash", { from: acc[2], value: amount }); // 2
 
-    await instance.putInStud(2, amount, 1, { from: acc[2], value: query });
+  //   await instance.putInStud(2, amount, 1, { from: acc[2], value: query });
 
-    await breed.mix(2, 1, "female offspring hash", { from: owner, value: amount }); // 3
+  //   await breed.mix(2, 1, "female offspring hash", { from: owner, value: amount }); // 3
 
-    await instance.setName("Spike", 3, { from: owner }); // This is only possible for offsprings.
-    let name = await instance.getHorseData.call(3);
+  //   await instance.setName("Spike", 3, { from: owner }); // This is only possible for offsprings.
+  //   let name = await instance.getHorseData.call(3);
 
-    assert.equal(name[4], "Spike");
-  })
+  //   assert.equal(name[4], "Spike");
+  // })
 
-  it("should generate a random name if no name is given", async () => {
-    await breed.mix(2, 1, "male offspring hash", { from: owner, value: amount }); // 4
-    // We're just going to pass an empty string from the front-end.
-    await instance.setName("", 4, { from: owner })
-    let name = await instance.getHorseData.call(2);
+  // it("should generate a random name if no name is given", async () => {
+  //   await breed.mix(2, 1, "male offspring hash", { from: owner, value: amount }); // 4
+  //   // We're just going to pass an empty string from the front-end.
+  //   await instance.setName("", 4, { from: owner })
+  //   let name = await instance.getHorseData.call(2);
 
-    assert.notEqual(name[4], "");
-  })
+  //   assert.notEqual(name[4], "");
+  // })
 
-  it("should revert if a name is already given for an offspring/GOP", async () => {
-    await breed.mix(2, 1, "female offspring hash", { from: owner, value: amount }); // 5
-    await instance.setName("Odds", 5, { from: owner });
+  // it("should revert if a name is already given for an offspring/GOP", async () => {
+  //   await breed.mix(2, 1, "female offspring hash", { from: owner, value: amount }); // 5
+  //   await instance.setName("Odds", 5, { from: owner });
 
-    try {
-      await instance.setName("Icy", 5, { from: owner });
-      assert.fail("Expected revert not received");
-    } catch (err) {
-      let revertFound = err.message.search("revert") >= 0;
-      assert(revertFound, `Expected "revert", got ${err} instead`);
-    }
-  })
+  //   try {
+  //     await instance.setName("Icy", 5, { from: owner });
+  //     assert.fail("Expected revert not received");
+  //   } catch (err) {
+  //     let revertFound = err.message.search("revert") >= 0;
+  //     assert(revertFound, `Expected "revert", got ${err} instead`);
+  //   }
+  // })
 
   it("should select the correct range of base value depending on the gen", async () => {
-    await gop.createGOP(owner, "some hash", { from: owner, value: amount }); // 6
+    await gop.createGOP(owner, "some hash", { from: owner, value: amount }); // 1
 
-    let baseValue = await instance.getBaseValue.call(6)
+    let baseValue = await instance.getBaseValue.call(1)
     assert.isAtLeast(baseValue.toNumber(), 95) && assert.isAtMost(baseValue.toNumber(), 99);
 
     await gop.closeBatch(1, { from: owner });
     await gop.openBatch(2, { from: owner });
 
-    await gop.createGOP(owner, "some hash", { from: owner, value: amount }); // 7
+    await gop.createGOP(owner, "some hash", { from: owner, value: amount }); // 2
 
-    baseValue = await instance.getBaseValue.call(7);
+    baseValue = await instance.getBaseValue.call(2);
 
     assert.isAtLeast(baseValue.toNumber(), 80) && assert.isAtMost(baseValue.toNumber(), 89);
   })

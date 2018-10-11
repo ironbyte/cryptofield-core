@@ -7,9 +7,6 @@ contract("CryptofieldBaseContract", accounts => {
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let owner = accounts[1];
   let amount = web3.toWei(0.40, "ether");
-  let defaults = [
-    "Austin Riffle", "Jerri Curl", "Amoxi", "Chase Jackson", "Zeus", "Apollo"
-  ];
 
 
   before("setup contract instance", async () => {
@@ -30,15 +27,15 @@ contract("CryptofieldBaseContract", accounts => {
     assert.equal(horseHash[0], hash);
   })
 
-  it("should contain one of the default names for GOP", async () => {
-    let horseName = await core.getHorseData.call(0);
-    assert.include(defaults, horseName[4]);
-  })
+  // it("should contain one of the default names for GOP", async () => {
+  //   let horseName = await core.getHorseData.call(0);
+  //   assert.include(defaults, horseName[4]);
+  // })
 
   it("should create correct genotype based on number of sale", async () => {
     // If we get the first one, we should have genotype 1.
     let genotype = await core.getHorseData.call(0);
-    assert.equal(genotype[6].toNumber(), 1);
+    assert.equal(genotype[5].toNumber(), 1);
 
     for (let i = 0; i <= 305; i++) {
       if (i === 100) {
@@ -53,21 +50,21 @@ contract("CryptofieldBaseContract", accounts => {
     }
 
     genotype = await core.getHorseData.call(100);
-    assert.equal(genotype[6].toNumber(), 1);
+    assert.equal(genotype[5].toNumber(), 1);
 
     let genotype2 = await core.getHorseData.call(120);
-    assert.equal(genotype2[6].toNumber(), 2);
+    assert.equal(genotype2[5].toNumber(), 2);
   })
 
   it("should create the correct bloodline for a horse", async () => {
     // We're using horses from the above test.
     let bloodline = await core.getHorseData.call(88);
-    assert.equal(web3.toUtf8(bloodline[7]), "N");
+    assert.equal(web3.toUtf8(bloodline[6]), "N");
 
     bloodline = await core.getHorseData.call(150);
-    assert.equal(web3.toUtf8(bloodline[7]), "N");
+    assert.equal(web3.toUtf8(bloodline[6]), "N");
 
     bloodline = await core.getHorseData.call(302);
-    assert.equal(web3.toUtf8(bloodline[7]), "S");
+    assert.equal(web3.toUtf8(bloodline[6]), "S");
   })
 })
