@@ -5,8 +5,6 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Core.sol";
 import "./usingOraclize.sol";
 
-// TODO: ADD USER TO AUCTIONS THEY'VE PARTICIPATED AND THE OWNER TOO
-
 /*
 @dev Contract in charge of creating auctions for G1P horses
 from 1 to 10, i.e. ZED 1 / ZED 10, having a lower genotype makes a horse rarer.
@@ -292,7 +290,6 @@ contract GOPCreator is Ownable, usingOraclize {
         return(auctionsCreatedBy[_user], auctionsParticipating[_user]);
     }
 
-    // TODO: TEST
     /*  RESTRICTED  */
     function closeAuction(uint256 _auction) public onlyOwner() {
         _removeAuction(_auction);
