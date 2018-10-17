@@ -17,16 +17,6 @@ contract CryptofieldBase is Ownable {
     address breedingContract;
     HorseData public horseDataContract;
 
-    // Names used for defaults in G1P.
-    // string[6] private names = [
-    //     "Austin Riffle",
-    //     "Jerri Curl",
-    //     "Amoxi",
-    //     "Chase Jackson",
-    //     "Zeus",
-    //     "Apollo"
-    // ];
-
     /*
     @dev horseHash stores basic horse information in a hash returned by IPFS.
     */
@@ -39,10 +29,7 @@ contract CryptofieldBase is Ownable {
         uint256 lastTimeSold;
         uint256 amountOfTimesSold;
 
-        // uint256[7] characteristics;
-
         string horseHash;
-        // string name;
 
         bytes32 bloodline;
         bytes32 sex;
@@ -73,9 +60,6 @@ contract CryptofieldBase is Ownable {
     ) internal {
         require(bloodlineCounter <= 38000, "GOP cap met");
 
-        // uint256 randNum = _getRand(5);
-        // string memory nameChosen = names[randNum];
-
         // Pick the gender and type.
         if(gender == gen[0]) {
             gender = gen[1]; // Female
@@ -94,7 +78,6 @@ contract CryptofieldBase is Ownable {
         h.horseHash = _horseHash;
         h.sex = gender;
         h.baseValue = _baseValue;
-        // h.name = nameChosen;
         h.genotype = genotype;
         h.bloodline = bloodline;
         h.hType = horseType;
