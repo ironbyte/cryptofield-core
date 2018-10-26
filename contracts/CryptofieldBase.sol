@@ -5,9 +5,9 @@ import "./HorseData.sol";
 
 contract CryptofieldBase is Ownable {
     bytes32 horseType;
-    bytes32 private gender; // First horse is a male.
+    bytes32 private gender = bytes32("F"); // First horse is a male.
     bytes32[2] private gen = [
-        bytes32("M"), 
+        bytes32("M"),
         bytes32("F")
     ];
 
@@ -52,8 +52,8 @@ contract CryptofieldBase is Ownable {
     }
 
     function buyGOP(
-        address _buyer, 
-        string _horseHash, 
+        address _buyer,
+        string _horseHash,
         uint256 _tokenId,
         uint256 _batchNumber,
         uint256 _baseValue
@@ -93,8 +93,8 @@ contract CryptofieldBase is Ownable {
     @dev Called internally, should only be called by 'Token'.
     */
     function buyOffspring(
-        address _buyer, 
-        string _horseHash, 
+        address _buyer,
+        string _horseHash,
         uint256 _tokenId,
         uint256 _maleParent,
         uint256 _femaleParent
@@ -147,7 +147,6 @@ contract CryptofieldBase is Ownable {
             h.sex,
             h.baseValue,
             h.timestamp,
-            // h.name,
             h.amountOfTimesSold,
             h.genotype,
             h.bloodline,
@@ -167,6 +166,10 @@ contract CryptofieldBase is Ownable {
         return horses[_horse].baseValue;
     }
 
+    function lastHorseSex() public view returns(bytes32) {
+        return gender;
+    }
+
     /*
     @dev Adds 1 to the amount of times a horse has been sold.
     @dev Adds unix timestamp of the date the horse was sold.
@@ -178,15 +181,6 @@ contract CryptofieldBase is Ownable {
 
         emit LogHorseSell(_horseId, horse.amountOfTimesSold);
     }
-
-    // /*
-    // @dev Sets the name for a given horse, this is for Offsprings only, GOP have default names.
-    // */
-    // function setNameFor(string _name, uint256 _horseId) internal {
-    //     Horse storage h = horses[_horseId];
-    //     require(keccak256(abi.encodePacked(h.name)) == keccak256(abi.encodePacked("")), "Name is already defined");
-    //     horses[_horseId].name = _getName(_name, _horseId);
-    // }
 
     /* RESTRICTED FUNCTIONS /*
 
