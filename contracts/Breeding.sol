@@ -23,16 +23,6 @@ contract Breeding is Ownable {
         uint256 trackingNumber;
         uint256 offspringCounter;
 
-        uint256 raceCounter;
-        uint256 raceVariable;
-        uint256 racePerfomance;
-        uint256 raceOutcome;
-        uint256 tieBreaker;
-        uint256 oddValue;
-        uint256 oddComparison;
-        uint256 racesWon;
-        uint256 racesLost;
-
         mapping(uint256 => bool) grandparents;
     }
 
