@@ -37,18 +37,18 @@ contract Races {
         winner.points = winner.points.add(_winnerPoints);
 
         for (uint256 i = 0; i < _ids.length; i++) {
-            HorseProfile storage h = horseProfile[i];
+            HorseProfile storage h = horseProfile[_ids[i]];
             
             h.starts += 1;
             h.points = h.points.add(_points[i]);
         }
 
         for (uint256 j = 0; j < _lottery.length; j++) {
-            horseProfile[j].lottery += 1;
+            horseProfile[_lottery[j]].lottery += 1;
         }
 
         for (uint256 k = 0; k < _paid.length; k++) {
-            horseProfile[k].paid += 1;
+            horseProfile[_paid[k]].paid += 1;
         }
     }
 

@@ -1,26 +1,3 @@
-/*
-  Initial setup for the contracts.
-*/
-/*const C = require("../build/contracts/Core.json");
-const B = require("../build/contracts/Breeding.json");
-const HD = require("../build/contracts/HorseData.json");
-const GOPC = require("../build/contracts/GOPCreator.json");
-const contract = require("truffle-contract");
-const web3 = require("web3");*/
-
-/*const Core = contract(C);
-const Breeding = contract(B);
-const HorseData = contract(HD);
-const GOPCreator = contract(GOPC);
-
-Core.setProvider(web3.currentProvider);
-Breeding.setProvider(web3.currentProvider);
-HorseData.setProvider(web3.currentProvider);
-GOPCreator.setProvider(web3.currentProvider);*/
-
-/*let acc;
-
-web3.eth.getAccounts((err, res) => { acc = res });*/
 const Core = artifacts.require("./Core");
 const Breeding = artifacts.require("./Breeding");
 const HorseData = artifacts.require("./HorseData");
