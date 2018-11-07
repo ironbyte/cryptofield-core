@@ -5,7 +5,7 @@ const HorseData = artifacts.require("HorseData");
 contract("GOPCreator", acc => {
   let instance, core, hd;
   let owner = acc[1];
-  let amount = web3.toWei(0.40, "ether");
+  let amount = web3.toWei(2, "ether");
 
   before("setup instance", async () => {
     instance = await GOPCreator.deployed();
@@ -102,7 +102,6 @@ contract("GOPCreator", acc => {
     await instance.createGOP(owner, "some hash", { from: owner, value: amount }); // Auction 1
 
     let auction = await instance.auctionInformation.call(1);
-    assert.equal(auction[2].toNumber(), 5);
     assert.equal(auction[3].toNumber(), 0);
     assert.equal(auction[6], true);
   })
@@ -140,5 +139,19 @@ contract("GOPCreator", acc => {
     // 2nd equals to [[], [1]]
     assert.deepEqual(auctionsUser1.toString(), "1,");
     assert.deepEqual(auctionsUser2.toString(), ",1");
+  })
+
+  it("should send the horse back to the owner if there are no bidders on the Auction", async () => {
+    await instance.createGOP(owner, "some hash", { from: owner, value: amount }); // 505
+    // At this point the owner of the token is the contract.
+    let initialOwner = await core.ownerOf.call(505);
+
+    assert.equal(initialOwner, instance.address);
+
+    await instance.closeAuction(2, { from: owner });
+    await instance.claim(2, { from: owner });
+
+    let newOwner = await core.ownerOf.call(505);
+    assert.equal(newOwner, owner);
   })
 })

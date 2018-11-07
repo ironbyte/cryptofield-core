@@ -246,6 +246,22 @@ contract("Auctions", acc => {
     // 1, 2, 6, 7, 8
   })
 
+  it("should send the horse back to the owner if there are no bidders on the Auction", async () => {
+    await gop.createGOP(acc[4], "9th hash", { from: owner, value: amount });
+
+    let response = await core.createAuction(1, 9, minimum, { from: acc[4], value: amount });
+    let auction = response.logs[1].args._auctionId.toNumber();
+
+    let initOwner = await core.ownerOf.call(9);
+    assert.equal(initOwner, instance.address);
+
+    await instance.closeAuction(auction, { from: owner });
+    await instance.withdraw(auction, { from: acc[4] });
+
+    let newOwner = await core.ownerOf.call(9);
+    assert.equal(newOwner, acc[4]);
+  })
+
   it("should transfer ownershp of the contract", async () => {
     let newOwner = acc[5];
 

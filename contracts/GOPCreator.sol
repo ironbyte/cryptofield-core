@@ -25,9 +25,10 @@ contract GOPCreator is Ownable, usingOraclize {
         uint256 maxBid;
         uint256 minimum;
 
-        uint256 gen;
+        uint256 horse;
 
         address maxBidder;
+        address horseOwner;
         address[] bidders;
 
         bool isOpen;
@@ -52,7 +53,7 @@ contract GOPCreator is Ownable, usingOraclize {
     constructor(address _addr) public {
         owner = msg.sender;
         core = Core(_addr);
-        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         // From 1 to 4 there will be 500 more available for later use.
         horsesForGen[1] = 1000;
@@ -114,7 +115,7 @@ contract GOPCreator is Ownable, usingOraclize {
             require(msg.sender == owner, "Not owner");
             require(msg.value >= oraclize_getPrice("URL"), "Oraclize price not met");
 
-            _createAuction(amount, _hash);
+            _createAuction(amount, _hash, currentOpenBatch);
 
             horsesForGen[currentOpenBatch] = horsesForGen[currentOpenBatch].sub(1);
 
@@ -150,14 +151,18 @@ contract GOPCreator is Ownable, usingOraclize {
     @dev The auction functionality here is the same as the logic in the 'SaleContract' used for
     auctions from users.
     */
-    function _createAuction(uint256 _minimum, string _hash) private {
+    function _createAuction(uint256 _minimum, string _hash, uint256 _batch) private {
         uint256 id = gopsAuctionsList.push(1);
 
+        // The owner of the horse will be the contract for as long as the Auction last.
+        uint256 horseId = core.createGOP(this, _hash, _batch);
+
         GOP memory g;
+        g.horseOwner = msg.sender;
         g.createdAt = now;
         g.minimum = _minimum;
         g.isOpen = true;
-        g.gen = currentOpenBatch;
+        g.horse = horseId;
         g.horseHash = _hash;
 
         gopAuctions[id] = g;
@@ -214,7 +219,7 @@ contract GOPCreator is Ownable, usingOraclize {
     /*
     @dev Claim the price (Minted token), ether if user didn't win and maximum bid if the user is the owner.
     */
-    function claim(uint256 _auction) public {
+    function claim(uint256 _auction) public returns(bool) {
         // 'owner' doesn't get anything from here.
         GOP storage g = gopAuctions[_auction];
 
@@ -222,12 +227,19 @@ contract GOPCreator is Ownable, usingOraclize {
 
         // Mints a token for the maxBidder.
         if(msg.sender == g.maxBidder) {
-            core.createGOP(msg.sender, g.horseHash, g.gen);
+            core.safeTransferFrom(this, msg.sender, g.horse);
             delete g.maxBidder;
         }
 
         // Transfer the maxBid to the owner.
         if(msg.sender == owner) {
+            // If auction has 0 bidders then we will send the horse back to the owner.
+            if(g.bidders.length == 0) {
+                core.safeTransferFrom(this, msg.sender, g.horse);
+
+                return true;
+            }
+
             msg.sender.transfer(g.maxBid);
             delete g.maxBid;
         }
@@ -239,6 +251,8 @@ contract GOPCreator is Ownable, usingOraclize {
         }
 
         emit LogGOPClaim(msg.sender);
+
+        return true;
     }
 
     /*
@@ -249,7 +263,7 @@ contract GOPCreator is Ownable, usingOraclize {
     view
     returns(uint256, uint256, uint256, uint256, uint256, address, bool) {
         GOP memory g = gopAuctions[_auction];
-        return(g.createdAt, g.minimum, g.gen, g.bidders.length, g.maxBid, g.maxBidder, g.isOpen);
+        return(g.createdAt, g.minimum, g.horse, g.bidders.length, g.maxBid, g.maxBidder, g.isOpen);
     }
 
     /*

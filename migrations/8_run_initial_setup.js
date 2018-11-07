@@ -13,18 +13,25 @@ module.exports = (deployer, network, acc) => {
       i.setGOPCreator(GOPCreator.address);
       i.setNft(SaleAuction.address);
     })
+  } else if (process.env.NODE_ENV === "test") {
+    Core.deployed().then(i => {
+      i.setBreedingAddr(Breeding.address, { from: acc[1] });
+      i.setHorseDataAddr(HorseData.address, { from: acc[1] });
+      i.setGOPCreator(GOPCreator.address, { from: acc[1] });
+      i.setNft(SaleAuction.address, { from: acc[1] });
+    })
   } else {
     Core.deployed().then(i => {
-      i.setBreedingAddr(Breeding.address, {from: acc[1]});
-      i.setHorseDataAddr(HorseData.address, {from: acc[1]});
-      i.setGOPCreator(GOPCreator.address, {from: acc[1]});
-      i.setNft(SaleAuction.address, {from: acc[1]});
+      i.setBreedingAddr(Breeding.address, { from: acc[1] });
+      i.setHorseDataAddr(HorseData.address, { from: acc[1] });
+      i.setGOPCreator(GOPCreator.address, { from: acc[1] });
+      i.setNft(SaleAuction.address, { from: acc[1] });
     })
 
-    GOPCreator.deployed().then(i => { return i.openBatch(2, {from: acc[1]}) })
+    GOPCreator.deployed().then(i => { return i.openBatch(2, { from: acc[1] }) })
 
-    for(let i = 0; i < 50; i++) {
-      GOPCreator.deployed().then(i => { return i.createGOP(acc[1], "some hash", {from: acc[1], value: value}) })
+    for (let i = 0; i < 50; i++) {
+      GOPCreator.deployed().then(i => { return i.createGOP(acc[1], "some hash", { from: acc[1], value: value }) })
     }
   }
 }

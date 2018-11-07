@@ -15,7 +15,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
     uint256[] auctionIds;
     uint256[] openAuctions;
-    
+
     Auctions core;
 
     struct AuctionData {
@@ -46,14 +46,14 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
     // Maps address to auctions created
     mapping(address => uint256[]) internal auctionsCreatedBy;
-    
+
     event LogBid(address _bidder, uint256 _amount);
     event LogWithdraw(address _user, uint256 _payout);
 
     constructor(address _core) public {
         owner = msg.sender;
         core = Auctions(_core);
-        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     function createAuction(address _owner, uint256 _duration, uint256 _horseId, uint256 _minimum) external payable returns(uint256) {
@@ -128,7 +128,6 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
 
         if(msg.sender == auction.owner) {
             // Send the horse back to the owner if no one participated in the auction.
-            // TODO: TEST THIS
             if(auction.bidders.length == 0) {
                 core.safeTransferFrom(this, msg.sender, auction.horse);
 
@@ -142,7 +141,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
         if(msg.sender == auction.maxBidder) {
             // Sends the token from 'auction.owner' to 'maxBidder'.
             core.tokenSold(auction.horse);
-            
+
             core.safeTransferFrom(this, msg.sender, auction.horse);
             delete auction.maxBidder;
 
