@@ -28,17 +28,17 @@ contract StudService is Auctions, usingOraclize {
     /*
     @dev We only remove the horse from the mapping ONCE the '__callback' is called, this is for a reason.
     For Studs we use Oraclize as a service for queries in the future but we also have a function
-    to manually remove the horse from stud but this does not cancel the 
+    to manually remove the horse from stud but this does not cancel the
     query that was already sent, so the horse is blocked from being in Stud again until the
     callback is called and effectively removing it from stud.
 
     Main case: User puts horse in stud, horse is manually removed, horse is put in stud
     again thus creating another query, this time the user decides to leave the horse
-    for the whole period of time but the first query which couldn't be cancelled is 
+    for the whole period of time but the first query which couldn't be cancelled is
     executed, calling the '__callback' function and removing the horse from Stud and leaving
     yet another query in air.
     */
-    
+
     mapping(uint256 => bool) internal currentlyInStud;
 
     modifier onlyHorseOwner(uint256 _id) {
@@ -82,8 +82,8 @@ contract StudService is Auctions, usingOraclize {
     function __callback(bytes32 _id, string result) public {
         require(msg.sender == oraclize_cbAddress(), "Not oraclize");
 
-        uint256 horse = parseInt(result); 
-        
+        uint256 horse = parseInt(result);
+
         // Manually remove the horse from stud since 'removeFromStud/1' allows only the owner.
         delete studs[horse];
         _removeHorseFromStud(horse);
