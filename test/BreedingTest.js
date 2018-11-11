@@ -214,14 +214,31 @@ contract("Breeding", acc => {
     assert.equal(web3.toUtf8(maleType[7]), "Colt"); // Colt
     assert.equal(web3.toUtf8(femaleType[7]), "Filly"); // Filly
 
-    // await core.putInStud(22, amount, 1000, { from: acc[5], value: query });
-
-    await instance.mix(18, 319, "offspring hash", { from: acc[5], value: amount }); // 327
+    await instance.mix(18, 319, "male offspring", { from: acc[5], value: amount }); // 327
 
     maleType = await core.getHorseData.call(18);
     femaleType = await core.getHorseData.call(319);
 
     assert.equal(web3.toUtf8(maleType[7]), "Stallion");
     assert.equal(web3.toUtf8(femaleType[7]), "Mare");
+  })
+
+  it("should send 8% to the owner of the contract", async () => {
+    let currBalance = web3.toWei(web3.eth.getBalance(owner));
+    let matingPrice = web3.toWei(0.01, "ether");
+    let realPercentage = matingPrice * 8 / 100;
+    let realOwnerPayment = matingPrice - realPercentage;
+
+    let op = await instance.mix(18, 317, "female offspring hash", { from: acc[5], value: matingPrice }); // 328
+    let logPercentage = op.logs[0].args._zedPercentage;
+    let logOwnerPayment = op.logs[0].args._ownerPay;
+
+    assert.equal(realPercentage, logPercentage.toNumber());
+    assert.equal(realOwnerPayment, logOwnerPayment.toNumber());
+
+    let newBalance = web3.toWei(web3.eth.getBalance(owner));
+    let comp = newBalance > currBalance;
+
+    assert(comp);
   })
 })

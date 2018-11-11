@@ -31,7 +31,12 @@ contract Breeding is Ownable {
     
     mapping(uint256 => mapping(uint256 => bool)) internal offspringsOf;
 
-    event LogOffspringCreated(uint256 _father, uint256 _mother, uint256 _offspring);
+    event LogOffspringCreated(uint256 _father, 
+        uint256 _mother, 
+        uint256 _offspring, 
+        uint256 _zedPercentage, 
+        uint256 _ownerPay
+    );
 
     constructor(address _core) public {
         core = Core(_core);
@@ -105,9 +110,12 @@ contract Breeding is Ownable {
 
         core.setBaseValue(tokenId, _getBaseValue(_maleParent, _femaleParent));
 
-        core.ownerOf(_maleParent).transfer(msg.value);
+        // 'owner' will get 8% of 'msg.value', the rest goes to the owner of 'maleParent'.
+        uint256 percentage = msg.value.mul(8).div(100);
+        owner.transfer(percentage);
+        core.ownerOf(_maleParent).transfer(msg.value.sub(percentage));
 
-        emit LogOffspringCreated(_maleParent, _femaleParent, tokenId);
+        emit LogOffspringCreated(_maleParent, _femaleParent, tokenId, percentage, msg.value.sub(percentage));
     }
 
     /*
