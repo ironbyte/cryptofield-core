@@ -17,7 +17,7 @@ contract("Auctions", acc => {
     hd = await HorseData.deployed();
 
     await core.setGOPCreator(gop.address, { from: owner });
-    await core.setNft(instance.address, { from: owner });
+    await core.setSaleAuctionAddress(instance.address, { from: owner });
     await core.setHorseDataAddr(hd.address, { from: owner });
 
     await gop.openBatch(1, { from: owner });

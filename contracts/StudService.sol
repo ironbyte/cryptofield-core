@@ -7,10 +7,10 @@ import "./usingOraclize.sol";
 @description Contract in charge of tracking availability of male horses in Stud.
 */
 contract StudService is Auctions, usingOraclize {
-    // TODO: ADD ONE MORE TIME HERE FOR 9 DAYS
-    uint256[2] private ALLOWED_TIMEFRAMES = [
+    uint256[3] private ALLOWED_TIMEFRAMES = [
         259200,
-        518400
+        518400,
+        777600
     ];
 
     uint256[] horsesInStud;

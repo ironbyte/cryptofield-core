@@ -46,7 +46,6 @@ contract Token is CryptofieldBase, ERC721Token {
         require(msg.sender == gopcreator, "Not authorized");
         uint256 tokenId = allTokensLength();
 
-        // TODO: CALL HORSE DATA FOR BASE VALUE
         uint256 baseValue = horseDataContract.getBaseValue(_batchNumber);
 
         _mint(_owner, tokenId);

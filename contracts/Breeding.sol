@@ -43,8 +43,6 @@ contract Breeding is Ownable {
         owner = msg.sender;
     }
 
-    // TODO: msg.sender CAN'T BE THE OWNER OF BOTH HORSES
-    // TODO: TEST
     /*
     @dev Creates a new token based on parents.
     */
