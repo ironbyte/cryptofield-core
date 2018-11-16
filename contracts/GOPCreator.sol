@@ -167,7 +167,7 @@ contract GOPCreator is Ownable, usingOraclize {
 
         gopAuctions[id] = g;
 
-        string memory url = "json(https://cryptofield.app/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://api.zed.run/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(id), "}");
 
         uint256 index = openAuctions.push(id) - 1;

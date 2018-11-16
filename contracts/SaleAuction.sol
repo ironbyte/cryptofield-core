@@ -169,7 +169,7 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
     @dev We construct the query with the auction ID and duration of it.
     */
     function sendAuctionQuery(uint256 _duration, uint256 _auctionId) private {
-        string memory url = "json(https://cryptofield.app/api/v1/close_auction).auction_closed";
+        string memory url = "json(https://api.zed.run/api/v1/close_auction).auction_closed";
         string memory payload = strConcat("{\"auction\":", uint2str(_auctionId), "}");
 
         oraclize_query(_duration, "URL", url, payload);

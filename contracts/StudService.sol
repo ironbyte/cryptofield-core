@@ -69,7 +69,7 @@ contract StudService is Auctions, usingOraclize {
         uint256 index = horsesInStud.push(_id) - 1;
         horseIndex[_id] = index;
 
-        string memory url = "json(https://cryptofield.app/api/v1/remove_horse_stud).horse_id";
+        string memory url = "json(https://api.zed.run/api/v1/remove_horse_stud).horse_id";
         string memory payload = strConcat("{\"stud_info\":", uint2str(_id), "}");
 
         oraclize_query(duration, "URL", url, payload);
