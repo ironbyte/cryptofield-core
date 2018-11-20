@@ -59,32 +59,8 @@ contract HorseData {
     }
 
     function getGenotype(uint256 _batchNumber) public pure returns(uint256) {
-        uint256 genotype;
-
-        // Generate bloodline and genotype based on '_batchNumber'
-        if(_batchNumber == 1) {
-            genotype = 1;
-        } else if(_batchNumber == 2) {
-            genotype = 2;
-        } else if(_batchNumber == 3) {
-            genotype = 3;
-        } else if(_batchNumber == 4) {
-            genotype = 4;
-        } else if(_batchNumber == 5) {
-            genotype = 5;
-        } else if(_batchNumber == 6) {
-            genotype = 6;
-        } else if(_batchNumber == 7) {
-            genotype = 7;
-        } else if(_batchNumber == 8) {
-            genotype = 8;
-        } else if(_batchNumber == 9) {
-            genotype = 9;
-        } else {
-            genotype = 10;
-        }
-
-        return genotype;
+        require(_batchNumber >= 1 && _batchNumber <= 10, "Batch number out of bounds");
+        return _batchNumber;
     }
 
     function getBaseValue(uint256 _batchNumber) public view returns(uint256) {
