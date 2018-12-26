@@ -25,3 +25,5 @@ truffle test
 * Set GOPCreator address on Core contract.
 * Set HorseData address on Core contract.
 * Set SaleAuction address on Core contract.
+
+The previous process is done automatically on the migrations, on production perhaps this can be done manually since we have to wait for every transaction to be mined. On development we generate 50 (Last is ID 49) horses locally, also for development purposes.

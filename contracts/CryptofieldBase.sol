@@ -1,15 +1,13 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-eth/contracts/ownership/Ownable.sol";
 import "./HorseData.sol";
+import "zos-lib/contracts/Initializable.sol";
 
-contract CryptofieldBase is Ownable {
+contract CryptofieldBase is Initializable, Ownable {
     bytes32 horseType;
-    bytes32 private gender = bytes32("F"); // First horse is a male.
-    bytes32[2] private gen = [
-        bytes32("M"),
-        bytes32("F")
-    ];
+    bytes32 public gender; // First horse is a male.
+    bytes32[2] private gen;
 
     uint256 constant GENOTYPE_CAP = 268;
     uint256 bloodlineCounter;
@@ -47,8 +45,14 @@ contract CryptofieldBase is Ownable {
         _;
     }
 
-    constructor() public {
-        owner = msg.sender;
+    function initialize(address _owner) public initializer {
+        Ownable.initialize(_owner);
+        
+        gender = bytes32("F");
+        gen = [
+            bytes32("M"),
+            bytes32("F")
+        ];
     }
 
     function buyGOP(

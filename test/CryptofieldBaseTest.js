@@ -1,24 +1,29 @@
+import { TestHelper } from "zos";
+
 const Core = artifacts.require("./Core");
 const GOPCreator = artifacts.require("./GOPCreator");
 const HorseData = artifacts.require("HorseData");
 
 contract("CryptofieldBaseContract", accounts => {
-  let core, gop, hd;
+  let core, gop, hd, project;
   let hash = "QmTsG4gGyRYXtBeTY7wqcyoksUp9QUpjzoYNdz8Y91GwoQ";
   let owner = accounts[1];
+  let deployer = accounts[2];
   let amount = web3.toWei(0.40, "ether");
 
+  before("setup instances", async () => {
+    project = await TestHelper({ from: deployer })
 
-  before("setup contract instance", async () => {
-    core = await Core.deployed();
-    gop = await GOPCreator.deployed();
-    hd = await HorseData.deployed();
+    core = await project.createProxy(Core, { initArgs: [owner] });
+    gop = await project.createProxy(GOPCreator, { initArgs: [core.address, owner] });
+    hd = await project.createProxy(HorseData);
 
     await core.setGOPCreator(gop.address, { from: owner });
     await core.setHorseDataAddr(hd.address, { from: owner });
 
     await gop.openBatch(1, { from: owner });
   })
+
 
   it("should be able to buy a horse", async () => {
     await gop.createGOP(owner, hash, { from: owner }); // 0

@@ -1,23 +1,29 @@
+import { TestHelper } from "zos";
+
 const GOPCreator = artifacts.require("./GOPCreator");
 const Core = artifacts.require("./Core");
 const HorseData = artifacts.require("HorseData");
 
 contract("GOPCreator", acc => {
-  let instance, core, hd;
+  let instance, core, hd, project;
   let owner = acc[1];
+  let deployer = acc[5];
   let amount = web3.toWei(2, "ether");
 
-  before("setup instance", async () => {
-    instance = await GOPCreator.deployed();
-    core = await Core.deployed();
-    hd = await HorseData.deployed();
+  before("setup instances", async () => {
+    project = await TestHelper({ from: deployer })
+
+    core = await project.createProxy(Core, { initArgs: [owner] });
+    instance = await project.createProxy(GOPCreator, { initArgs: [core.address, owner] });
+    hd = await project.createProxy(HorseData);
 
     await core.setGOPCreator(instance.address, { from: owner });
     await core.setHorseDataAddr(hd.address, { from: owner });
 
     await instance.openBatch(1, { from: owner });
 
-    await instance.createGOP(owner, "first hash", { value: amount }); // 0
+    // Creating a genesis token since we can't mix with a genesis horse.
+    await instance.createGOP(owner, "male hash", { from: owner }); // 0 Genesis token
   })
 
   it("should open a batch", async () => {

@@ -1,12 +1,14 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
+
+import "zos-lib/contracts/Initializable.sol";
 
 /*
 @description Contract in charge of sending back needed data for the creation of horses.
 */
-contract HorseData {
+contract HorseData is Initializable {
     mapping(bytes32 => bytes32) internal bloodlines;
 
-    constructor() public {
+    function initialize() public initializer {
         // Bloodline matrix.
         bloodlines[keccak256(abi.encodePacked(bytes32("N"), bytes32("N")))] = "N";
         bloodlines[keccak256(abi.encodePacked(bytes32("N"), bytes32("S")))] = "S";

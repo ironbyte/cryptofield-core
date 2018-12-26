@@ -1,12 +1,20 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
-import "./ERC721Token.sol";
+import "openzeppelin-eth/contracts/token/ERC721/StandaloneERC721.sol";
 import "./CryptofieldBase.sol";
 
-contract Token is CryptofieldBase, ERC721Token {
+contract Token is StandaloneERC721, CryptofieldBase {
     address gopcreator;
+    address[] private minters;
+    address[] private pausers;
 
-    constructor() ERC721Token("Zed Token", "ZT") public {}
+    function initialize(address _owner) public initializer {
+        minters.push(_owner);
+        pausers.push(_owner);
+
+        StandaloneERC721.initialize("Zed Token", "ZT", minters, pausers);
+        CryptofieldBase.initialize(_owner);
+    }
 
     modifier ownerOfToken(uint256 _tokenId) {
         require(ownerOf(_tokenId) == msg.sender, "Not owner");
@@ -14,7 +22,7 @@ contract Token is CryptofieldBase, ERC721Token {
     }
 
     modifier onlyApprovedOrOwner(uint256 _tokenId) {
-        require(isApprovedOrOwner(msg.sender, _tokenId), "Not owner or approved");
+        require(_isApprovedOrOwner(msg.sender, _tokenId), "Not owner or approved");
         _;
     }
 
@@ -22,12 +30,12 @@ contract Token is CryptofieldBase, ERC721Token {
     @dev Simply creates a new token and calls base contract to add the horse information.
     @dev Used for offsprings mostly, called from 'Breeding'
     */
-    function createOffspring(address _owner, string _hash, uint256 _male, uint256 _female) 
+    function createOffspring(address _owner, string _hash, uint256 _male, uint256 _female)
     external
     payable
-    onlyBreeding() 
+    onlyBreeding()
     returns(uint256) {
-        uint256 tokenId = allTokensLength();
+        uint256 tokenId = totalSupply();
 
         _mint(_owner, tokenId);
         buyOffspring(_owner, _hash, tokenId, _male, _female);
@@ -39,12 +47,12 @@ contract Token is CryptofieldBase, ERC721Token {
     @dev Creates a G1P.
     @dev Mostly used for Private and public sales to calculate genotypes.
     */
-    function createGOP(address _owner, string _hash, uint256 _batchNumber) 
-    public 
+    function createGOP(address _owner, string _hash, uint256 _batchNumber)
+    public
     payable
     returns(uint256) {
         require(msg.sender == gopcreator, "Not authorized");
-        uint256 tokenId = allTokensLength();
+        uint256 tokenId = totalSupply();
 
         uint256 baseValue = horseDataContract.getBaseValue(_batchNumber);
 
@@ -63,7 +71,7 @@ contract Token is CryptofieldBase, ERC721Token {
 
     // Check if an address has been granted approval of a token.
     function isTokenApproved(address _spender, uint256 _tokenId) public view returns(bool) {
-        return super.isApprovedOrOwner(_spender, _tokenId);
+        return _isApprovedOrOwner(_spender, _tokenId);
     }
 
     /*
@@ -77,7 +85,7 @@ contract Token is CryptofieldBase, ERC721Token {
     @dev Returns whether a horse exists or not.
     */
     function exists(uint256 _tokenId) public view returns(bool) {
-        return _tokenId <= allTokensLength();
+        return _tokenId <= totalSupply();
     }
 
     /*  RESTRICTED  */

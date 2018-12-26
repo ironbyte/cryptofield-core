@@ -1,8 +1,8 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/token/ERC721/ERC721Holder.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-eth/contracts/token/ERC721/ERC721Holder.sol";
+import "openzeppelin-eth/contracts/ownership/Ownable.sol";
+import "openzeppelin-eth/contracts/math/SafeMath.sol";
 import "./usingOraclize.sol";
 import "./Auctions.sol";
 
@@ -50,10 +50,10 @@ contract SaleAuction is ERC721Holder, usingOraclize, Ownable {
     event LogBid(address _bidder, uint256 _amount);
     event LogWithdraw(address _user, uint256 _payout);
 
-    constructor(address _core) public {
-        owner = msg.sender;
+    function initialize(address _core, address _owner) public initializer {
+        Ownable.initialize(_owner);
         core = Auctions(_core);
-        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     function createAuction(address _owner, uint256 _duration, uint256 _horseId, uint256 _minimum) external payable returns(uint256) {

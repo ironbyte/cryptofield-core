@@ -1,11 +1,16 @@
+import { TestHelper } from "zos";
+
 const Races = artifacts.require("./Races");
 
 contract("Races", acc => {
-  let instance;
+  let instance, project;
   let owner = acc[1];
+  let deployer = acc[2];
 
-  before("setup instance", async () => {
-    instance = await Races.deployed();
+  before("setup instances", async () => {
+    project = await TestHelper({ from: deployer })
+
+    instance = await project.createProxy(Races);
   })
 
   it("should create correct stats for the horses after a race", async () => {

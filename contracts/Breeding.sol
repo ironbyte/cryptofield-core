@@ -1,8 +1,9 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
 import "./Core.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-eth/contracts/math/SafeMath.sol";
+import "openzeppelin-eth/contracts/ownership/Ownable.sol";
+import "zos-lib/contracts/Initializable.sol";
 
 /*
 @dev Breeding contract in charge of generating new horses and stats for breeding.
@@ -38,9 +39,9 @@ contract Breeding is Ownable {
         uint256 _ownerPay
     );
 
-    constructor(address _core) public {
+    function initialize(address _core, address _owner) public initializer {
+        Ownable.initialize(_owner);
         core = Core(_core);
-        owner = msg.sender;
     }
 
     /*
@@ -110,7 +111,7 @@ contract Breeding is Ownable {
 
         // 'owner' will get 8% of 'msg.value', the rest goes to the owner of 'maleParent'.
         uint256 percentage = msg.value.mul(8).div(100);
-        owner.transfer(percentage);
+        owner().transfer(percentage);
         core.ownerOf(_maleParent).transfer(msg.value.sub(percentage));
 
         emit LogOffspringCreated(_maleParent, _femaleParent, tokenId, percentage, msg.value.sub(percentage));

@@ -1,17 +1,14 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
 import "./Auctions.sol";
 import "./usingOraclize.sol";
+import "zos-lib/contracts/Initializable.sol";
 
 /*
 @description Contract in charge of tracking availability of male horses in Stud.
 */
 contract StudService is Auctions, usingOraclize {
-    uint256[3] private ALLOWED_TIMEFRAMES = [
-        259200,
-        518400,
-        777600
-    ];
+    uint256[3] private ALLOWED_TIMEFRAMES;
 
     uint256[] horsesInStud;
 
@@ -46,8 +43,15 @@ contract StudService is Auctions, usingOraclize {
         _;
     }
 
-    constructor() public {
-        // OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
+    function initialize(address _owner) public initializer {
+        Auctions.initialize(_owner);
+
+        ALLOWED_TIMEFRAMES = [
+            259200,
+            518400,
+            777600
+        ];
+        OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     event LogHorseInStud(uint256 _horseId, uint256 _amount, uint256 _duration);

@@ -1,6 +1,6 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-eth/contracts/math/SafeMath.sol";
 
 /*
 @description This contract is in charge of keeping some kind of state and

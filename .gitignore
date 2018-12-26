@@ -7,3 +7,4 @@ build_webpack/
 bridge.log
 built-contracts/
 builtcontracts/
+.zos.session

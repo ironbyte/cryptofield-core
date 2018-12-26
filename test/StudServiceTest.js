@@ -1,18 +1,23 @@
+import { TestHelper } from "zos";
+
 const Core = artifacts.require("./Core");
 const GOPCreator = artifacts.require("./GOPCreator");
 const HorseData = artifacts.require("HorseData");
 
 contract("StudService", acc => {
-  let core, queryPrice, gop, hd;
+  let core, queryPrice, gop, hd, project;
   let owner = acc[1];
+  let deployer = acc[3];
   let amount = web3.toWei(0.40, "ether");
 
   let seconds = { day3: 259200, day6: 518400 }
 
-  before("setup instance", async () => {
-    core = await Core.deployed();
-    gop = await GOPCreator.deployed();
-    hd = await HorseData.deployed();
+  before("setup instances", async () => {
+    project = await TestHelper({ from: deployer })
+
+    core = await project.createProxy(Core, { initArgs: [owner] });
+    gop = await project.createProxy(GOPCreator, { initArgs: [core.address, owner] });
+    hd = await project.createProxy(HorseData);
 
     await core.setGOPCreator(gop.address, { from: owner });
     await core.setHorseDataAddr(hd.address, { from: owner });
@@ -22,7 +27,6 @@ contract("StudService", acc => {
     await gop.createGOP(owner, "genesis male hash", { from: owner }); // 0
     await gop.createGOP(owner, "female horse", { from: owner, value: amount }); // 1
     await gop.createGOP(owner, "male horse", { from: owner, value: amount }); // 2
-
 
     queryPrice = await core.getQueryPrice.call();
   })

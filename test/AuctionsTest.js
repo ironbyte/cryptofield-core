@@ -1,20 +1,25 @@
+import { TestHelper } from "zos";
+
 const Core = artifacts.require("./Core");
 const SaleAuction = artifacts.require("./SaleAuction");
 const GOPCreator = artifacts.require("./GOPCreator");
 const HorseData = artifacts.require("./HorseData");
 
 contract("Auctions", acc => {
-  let core, instance, gop, hd;
+  let core, instance, gop, hd, project;
   let owner = acc[1];
+  let deployer = acc[2];
   let buyer = acc[8];
   let amount = new web3.BigNumber(web3.toWei(1, "ether"));
   let minimum = web3.toWei(0.001, "ether");
 
-  before("setup instance", async () => {
-    core = await Core.deployed();
-    instance = await SaleAuction.deployed();
-    gop = await GOPCreator.deployed();
-    hd = await HorseData.deployed();
+  before("setup instances", async () => {
+    project = await TestHelper({ from: deployer })
+
+    core = await project.createProxy(Core, { initArgs: [owner] });
+    gop = await project.createProxy(GOPCreator, { initArgs: [core.address, owner] });
+    instance = await project.createProxy(SaleAuction, { initArgs: [core.address, owner] });
+    hd = await project.createProxy(HorseData);
 
     await core.setGOPCreator(gop.address, { from: owner });
     await core.setSaleAuctionAddress(instance.address, { from: owner });
@@ -74,7 +79,7 @@ contract("Auctions", acc => {
     let auctionId = res.logs[1].args._auctionId.toNumber();
 
     // Record a new bid.
-    await instance.bid(auctionId, { from: acc[2], value: web3.toWei(1, "finney") });
+    await instance.bid(auctionId, { from: acc[4], value: web3.toWei(1, "finney") });
 
     // OpenZeppelin implementation.
     try {

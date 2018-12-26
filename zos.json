@@ -1,0 +1,12 @@
+{
+  "zosversion": "2",
+  "name": "cryptofield",
+  "version": "0.1.0",
+  "contracts": {
+    "GOPCreator": "GOPCreator",
+    "Core": "Core",
+    "Breeding": "Breeding",
+    "SaleAuction": "SaleAuction",
+    "HorseData": "HorseData"
+  }
+}

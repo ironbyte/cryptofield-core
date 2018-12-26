@@ -1,15 +1,16 @@
-pragma solidity 0.4.24;
+pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-eth/contracts/math/SafeMath.sol";
+import "openzeppelin-eth/contracts/ownership/Ownable.sol";
 import "./Core.sol";
 import "./usingOraclize.sol";
+import "zos-lib/contracts/Initializable.sol";
 
 /*
 @dev Contract in charge of creating auctions for G1P horses
 from 1 to 10, i.e. ZED 1 / ZED 10, having a lower genotype makes a horse rarer.
 */
-contract GOPCreator is Ownable, usingOraclize {
+contract GOPCreator is Initializable, Ownable, usingOraclize {
     using SafeMath for uint256;
 
     bool anyBatchOpen;
@@ -50,8 +51,8 @@ contract GOPCreator is Ownable, usingOraclize {
     event LogGOPBid(address _owner, uint256 _amount);
     event LogGOPClaim(address _claimer);
 
-    constructor(address _addr) public {
-        owner = msg.sender;
+    function initialize(address _addr, address _owner) public initializer {
+        Ownable.initialize(_owner);
         core = Core(_addr);
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
@@ -112,7 +113,7 @@ contract GOPCreator is Ownable, usingOraclize {
         // There isn't a concern with sending 'amount' to 'owner' if the horse is going to Auction
         // because we return in this 'if' statement.
         if(currentOpenBatch >= 5 && currentOpenBatch <= 10) {
-            require(msg.sender == owner, "Not owner");
+            require(msg.sender == owner(), "Not owner");
             require(msg.value >= oraclize_getPrice("URL"), "Oraclize price not met");
 
             _createAuction(amount, _hash, currentOpenBatch);
@@ -142,7 +143,7 @@ contract GOPCreator is Ownable, usingOraclize {
             delete currentOpenBatch;
         }
 
-        owner.transfer(msg.value);
+        owner().transfer(msg.value);
 
         return horseId;
     }
@@ -232,7 +233,7 @@ contract GOPCreator is Ownable, usingOraclize {
         }
 
         // Transfer the maxBid to the owner.
-        if(msg.sender == owner) {
+        if(msg.sender == owner()) {
             // If auction has 0 bidders then we will send the horse back to the owner.
             if(g.bidders.length == 0) {
                 core.safeTransferFrom(this, msg.sender, g.horse);
@@ -245,7 +246,7 @@ contract GOPCreator is Ownable, usingOraclize {
         }
 
         // Sends money back to user if they didn't win.
-        if(msg.sender != g.maxBidder && msg.sender != owner) {
+        if(msg.sender != g.maxBidder && msg.sender != owner()) {
             msg.sender.transfer(g.bidFor[msg.sender]);
             delete g.bidFor[msg.sender];
         }
