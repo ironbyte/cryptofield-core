@@ -61,7 +61,7 @@
     "dotenv": "^6.0.0",
     "foundation-sites": "^6.4.4-rc1",
     "ipfs-mini": "^1.1.2",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "moment": "^2.22.2",
     "openzeppelin-solidity": "1.10.0",
     "react": "^15.4.2",
